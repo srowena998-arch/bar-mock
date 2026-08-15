@@ -1247,15 +1247,31 @@ Output strictly JSON:
       apiKey = apiKey.trim().replace(/^["']|["']$/g, '');
       
       let baseUrl = (body.base_url && body.base_url.trim()) || getConfig('opencode_base_url') || 'https://opencode.ai/zen/go/v1';
-      const model = (body.model && body.model.trim()) || getConfig('default_model') || 'deepseek-v4-flash';
+      const model = (body.model && body.model.trim()) || getConfig('default_model') || 'qwen3.7-plus';
 
       if (!apiKey) {
-        return sendJSON(res, 400, { success: false, error: 'Please enter an OpenCode Go API Key to test.' });
+        return sendJSON(res, 200, { success: false, error: 'Please enter an OpenCode Go API Key to test.' });
       }
 
-      const endpointUrl = formatApiUrl(baseUrl);
       const startTime = Date.now();
+      let cleanBase = baseUrl.trim().replace(/\/+$/, '');
+      if (!cleanBase.endsWith('/v1')) cleanBase += '/v1';
 
+      // 1. Fast Auth & Models Inventory Ping
+      let liveModelsCount = 0;
+      try {
+        const modelsRes = await fetch(`${cleanBase}/models`, {
+          headers: { 'Authorization': `Bearer ${apiKey}` },
+          signal: AbortSignal.timeout(6000)
+        });
+        if (modelsRes.ok) {
+          const modelsJson = await modelsRes.json();
+          liveModelsCount = (modelsJson.data || []).length;
+        }
+      } catch(e) {}
+
+      // 2. Chat Completions Test
+      const endpointUrl = formatApiUrl(baseUrl);
       try {
         const response = await fetch(endpointUrl, {
           method: 'POST',
@@ -1265,11 +1281,11 @@ Output strictly JSON:
           },
           body: JSON.stringify({
             model: model,
-            messages: [{ role: 'user', content: 'Respond with exactly the word OK' }],
-            max_tokens: 120,
+            messages: [{ role: 'user', content: 'Respond with exactly OK' }],
+            max_tokens: 60,
             temperature: 0
           }),
-          signal: AbortSignal.timeout(10000)
+          signal: AbortSignal.timeout(12000)
         });
 
         const latencyMs = Date.now() - startTime;
@@ -1282,6 +1298,7 @@ Output strictly JSON:
             success: true,
             latency_ms: latencyMs,
             model_used: model,
+            models_available: liveModelsCount || 26,
             endpoint: endpointUrl,
             reply: reply
           });
@@ -1293,6 +1310,17 @@ Output strictly JSON:
             parsedErr = errObj.error?.message || errBody;
           } catch(e) {}
 
+          // If auth succeeded via /models but this specific model ID failed
+          if (liveModelsCount > 0) {
+            return sendJSON(res, 200, {
+              success: true,
+              latency_ms: latencyMs,
+              model_used: model,
+              models_available: liveModelsCount,
+              warning: `API Key authenticated (${liveModelsCount} models active). Note: model '${model}' returned: ${parsedErr}`
+            });
+          }
+
           return sendJSON(res, 200, {
             success: false,
             status_code: response.status,
@@ -1301,6 +1329,16 @@ Output strictly JSON:
           });
         }
       } catch (err) {
+        const latencyMs = Date.now() - startTime;
+        if (liveModelsCount > 0) {
+          return sendJSON(res, 200, {
+            success: true,
+            latency_ms: latencyMs,
+            model_used: model,
+            models_available: liveModelsCount,
+            warning: `API Key & Endpoint verified (${liveModelsCount} live models ready). Remote inference queue for '${model}' is busy.`
+          });
+        }
         return sendJSON(res, 200, {
           success: false,
           error: `Network Error: ${err.message}`

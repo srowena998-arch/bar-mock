@@ -319,15 +319,13 @@ document.addEventListener('alpine:init', () => {
           })
         });
 
-        if (res.ok) {
-          const data = await res.json();
-          this.connectionResult = data;
-          if (data.success) {
-            this.showToastNotification(`🟢 Connected! (${data.latency_ms}ms) Model: ${data.model_used}`);
-            await this.fetchLiveModels();
-          } else {
-            this.showToastNotification(`🔴 Connection Failed: ${data.error || 'Check key and URL'}`);
-          }
+        const data = await res.json();
+        this.connectionResult = data;
+        if (data.success) {
+          this.showToastNotification(`🟢 Connected! (${data.latency_ms}ms) Model: ${data.model_used}`);
+          await this.fetchLiveModels();
+        } else {
+          this.showToastNotification(`🔴 Connection Failed: ${data.error || 'Check key and URL'}`);
         }
       } catch (e) {
         this.connectionResult = { success: false, error: e.message };

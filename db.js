@@ -268,7 +268,7 @@ const getCandidateFullEvaluationHistory = () => {
                 ca.attempted_at,
                 q.domain,
                 q.topic,
-                q.question,
+                q.interrogatory as question,
                 q.options,
                 q.correct_answer,
                 q.explanation

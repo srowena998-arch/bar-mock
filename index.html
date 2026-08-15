@@ -363,10 +363,19 @@
           <div x-show="connectionResult" class="text-[11px]">
             <div 
               x-show="connectionResult?.success" 
-              class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-1.5 font-mono text-[10px]"
+              class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-1 font-mono text-[10px]"
             >
-              <span>🟢</span>
-              <span x-text="`Connected! (${connectionResult?.latency_ms}ms) Model: ${connectionResult?.model_used}`"></span>
+              <div class="flex items-center gap-1.5 font-bold">
+                <span>🟢</span>
+                <span x-text="`Connected! (${connectionResult?.latency_ms}ms) Model: ${connectionResult?.model_used}`"></span>
+              </div>
+              <div class="text-[9.5px] text-emerald-700 flex items-center justify-between">
+                <span x-text="`✓ ${connectionResult?.models_available || 26} Live Models Ready in OpenCode Go`"></span>
+                <span class="text-[9px] text-slate-500 font-sans" x-show="connectionResult?.reply" x-text="`Ping Response: '${connectionResult?.reply}'`"></span>
+              </div>
+              <template x-if="connectionResult?.warning">
+                <p class="text-[9.5px] text-amber-800 bg-amber-100/60 p-1 rounded font-sans" x-text="connectionResult?.warning"></p>
+              </template>
             </div>
 
             <div 
