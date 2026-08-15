@@ -1,6 +1,8 @@
 {
   "dependencies": {
     "@ai-sdk/openai": "^4.0.42",
-    "ai": "^7.0.66"
+    "ai": "^7.0.66",
+    "llamaindex": "^0.12.1",
+    "sqlite-vec": "^0.1.9"
   }
 }

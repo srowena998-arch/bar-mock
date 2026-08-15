@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { db, getConfig, setConfig } = require('./db');
 const { runAutonomousIngestAgent, runDiagnosticAgent, refineQuestionModality, chatWithReviewerRAG } = require('./agent_engine');
+const { retrieveHybridRAG, getVectorStoreStats, indexAllReviewerBooks } = require('./rag_indexer');
 
 const PORT = process.env.PORT || 8080;
 
@@ -526,6 +527,52 @@ Output strictly JSON:
     }
 
     // ----------------------------------------------------
+    // API: POST /api/rag/query (LlamaIndex & SQLite Vector Search)
+    // ----------------------------------------------------
+    if (req.method === 'POST' && pathname === '/api/rag/query') {
+      const body = await parseJSONBody(req);
+      const { query, domain, top_k } = body;
+
+      if (!query || !query.trim()) {
+        return sendJSON(res, 400, { error: 'Search query is required' });
+      }
+
+      const results = retrieveHybridRAG({
+        query: query.trim(),
+        domain: domain || 'all',
+        topK: top_k || 6
+      });
+
+      return sendJSON(res, 200, {
+        success: true,
+        query: query.trim(),
+        domain: domain || 'all',
+        total_matched: results.length,
+        results
+      });
+    }
+
+    // ----------------------------------------------------
+    // API: GET /api/rag/stats (Vector Store Diagnostics)
+    // ----------------------------------------------------
+    if (req.method === 'GET' && pathname === '/api/rag/stats') {
+      const stats = getVectorStoreStats();
+      return sendJSON(res, 200, { success: true, stats });
+    }
+
+    // ----------------------------------------------------
+    // API: POST /api/rag/reindex (Trigger LlamaIndex Book Reindexing)
+    // ----------------------------------------------------
+    if (req.method === 'POST' && pathname === '/api/rag/reindex') {
+      const result = await indexAllReviewerBooks();
+      return sendJSON(res, 200, {
+        success: true,
+        message: `Successfully indexed ${result.total_chunks} LlamaIndex chunks into SQLite Vector Store!`,
+        result
+      });
+    }
+
+    // ----------------------------------------------------
     // API: GET /api/models (Dynamically fetch live models from provider)
     // ----------------------------------------------------
     if (req.method === 'GET' && pathname === '/api/models') {
@@ -774,6 +821,7 @@ ${user_answer}
 
 Please evaluate the candidate's answer and output strictly valid JSON.`;
 
+          const endpointUrl = formatApiUrl(baseUrl);
           const apiRes = await fetch(endpointUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },

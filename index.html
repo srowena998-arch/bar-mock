@@ -896,25 +896,33 @@
           </div>
 
           <!-- Studio Sub-Navigation Tabs -->
-          <div class="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100 border border-slate-200 text-xs">
+          <div class="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100 border border-slate-200 text-xs overflow-x-auto">
             <button 
               @click="resourcesTab = 'progress'"
               :class="resourcesTab === 'progress' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
-              class="px-3.5 py-1.5 rounded-xl transition"
+              class="px-3.5 py-1.5 rounded-xl transition whitespace-nowrap"
             >
               📊 Reviewer Coverage
             </button>
             <button 
               @click="resourcesTab = 'reformation'"
               :class="resourcesTab === 'reformation' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
-              class="px-3.5 py-1.5 rounded-xl transition"
+              class="px-3.5 py-1.5 rounded-xl transition whitespace-nowrap"
             >
               ✨ AI Question Reformation
             </button>
             <button 
+              @click="resourcesTab = 'vector_hub'; loadRagStats();"
+              :class="resourcesTab === 'vector_hub' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+              class="px-3.5 py-1.5 rounded-xl transition whitespace-nowrap flex items-center gap-1"
+            >
+              <span>🧠</span>
+              <span>Vector Hub (3,693 Chunks)</span>
+            </button>
+            <button 
               @click="resourcesTab = 'inspector'"
               :class="resourcesTab === 'inspector' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
-              class="px-3.5 py-1.5 rounded-xl transition"
+              class="px-3.5 py-1.5 rounded-xl transition whitespace-nowrap"
             >
               🔍 Raw Markdown Inspector
             </button>
@@ -1185,7 +1193,117 @@
 
         </div>
 
-        <!-- SUB-TAB 3: RAW MARKDOWN INSPECTOR -->
+        <!-- SUB-TAB: VECTOR KNOWLEDGE HUB & SEMANTIC EXPLORER -->
+        <div x-show="resourcesTab === 'vector_hub'" class="space-y-6">
+          
+          <!-- Hub Header & Status -->
+          <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-50 border border-slate-200 p-5 rounded-2xl">
+            <div>
+              <div class="flex items-center gap-2 mb-1">
+                <span class="text-xl">🧠</span>
+                <h3 class="text-base font-bold text-slate-900">LlamaIndex.TS & SQLite Vector Knowledge Hub</h3>
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono bg-emerald-100 text-emerald-800 border border-emerald-200">3,693 Nodes Indexed</span>
+              </div>
+              <p class="text-xs text-slate-500">Query 1,951 reviewer pages using 128-dimensional dense vector embeddings with cosine similarity</p>
+            </div>
+
+            <button 
+              @click="reindexVectorStore()" 
+              :disabled="isRagSearching"
+              class="px-4 py-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs shadow-xs transition flex items-center gap-1.5"
+            >
+              <span>🔄</span> Re-Index All 6 Reviewers
+            </button>
+          </div>
+
+          <!-- Semantic Search Dock -->
+          <div class="bg-white border border-slate-200 rounded-3xl p-6 shadow-xs space-y-4">
+            <form @submit.prevent="performRagSemanticSearch()" class="space-y-3">
+              <div class="flex flex-col sm:flex-row items-center gap-3">
+                <div class="relative flex-1 w-full">
+                  <input 
+                    type="text" 
+                    x-model="ragSearchQuery" 
+                    placeholder="Enter any legal doctrine, requisite, or concept (e.g. 'Ah Chong mistake of fact', 'Piercing the corporate veil', 'Res Judicata requisites')..." 
+                    class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-2xl pl-4 pr-10 py-3 text-xs sm:text-sm text-slate-900 outline-none font-medium transition"
+                  />
+                  <button 
+                    type="button" 
+                    x-show="ragSearchQuery" 
+                    @click="ragSearchQuery = ''; ragSearchResults = []" 
+                    class="absolute right-3 top-3 text-slate-400 hover:text-slate-600 text-xs"
+                  >✕</button>
+                </div>
+
+                <select 
+                  x-model="ragSearchDomain" 
+                  class="w-full sm:w-56 bg-slate-50 border border-slate-200 focus:border-amber-500 rounded-2xl px-3.5 py-3 text-xs text-slate-800 font-medium outline-none cursor-pointer"
+                >
+                  <option value="all">All 6 Bar Subjects</option>
+                  <template x-for="d in domains" :key="d.domain">
+                    <option :value="d.domain" x-text="d.domain"></option>
+                  </template>
+                </select>
+
+                <button 
+                  type="submit" 
+                  :disabled="isRagSearching || !ragSearchQuery.trim()"
+                  class="w-full sm:w-auto px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 font-bold text-xs shadow-md transition flex items-center justify-center gap-2 whitespace-nowrap"
+                >
+                  <span x-show="!isRagSearching">🔍 Vector Search</span>
+                  <span x-show="isRagSearching" class="flex items-center gap-1.5">
+                    <span class="inline-block w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
+                    <span>Searching Vectors...</span>
+                  </span>
+                </button>
+              </div>
+
+              <!-- Quick Doctrinal Preset Chips -->
+              <div class="flex items-center gap-1.5 overflow-x-auto text-[11px] pt-1 pb-1">
+                <span class="text-slate-400 font-semibold">Quick Doctrines:</span>
+                <button type="button" @click="ragSearchQuery = 'Mistake of fact Ah Chong requisites'; performRagSemanticSearch();" class="px-2.5 py-1 rounded-full bg-slate-50 hover:bg-amber-50 hover:text-amber-900 border border-slate-200 text-slate-700 transition">Ah Chong Doctrine</button>
+                <button type="button" @click="ragSearchQuery = 'Piercing the veil of corporate fiction fraud alter ego'; performRagSemanticSearch();" class="px-2.5 py-1 rounded-full bg-slate-50 hover:bg-amber-50 hover:text-amber-900 border border-slate-200 text-slate-700 transition">Piercing the Veil</button>
+                <button type="button" @click="ragSearchQuery = 'Res Judicata bar by prior judgment and conclusiveness of judgment'; performRagSemanticSearch();" class="px-2.5 py-1 rounded-full bg-slate-50 hover:bg-amber-50 hover:text-amber-900 border border-slate-200 text-slate-700 transition">Res Judicata</button>
+                <button type="button" @click="ragSearchQuery = 'Just causes vs authorized causes for employment termination'; performRagSemanticSearch();" class="px-2.5 py-1 rounded-full bg-slate-50 hover:bg-amber-50 hover:text-amber-900 border border-slate-200 text-slate-700 transition">Labor Termination</button>
+              </div>
+            </form>
+
+            <!-- Search Results Grid -->
+            <div x-show="ragSearchResults.length > 0" class="pt-4 border-t border-slate-100 space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-700 uppercase" x-text="`Top ${ragSearchResults.length} Vector-Ranked Nodes:`"></span>
+                <span class="text-[11px] text-slate-400 font-mono">Ranked by Cosine Similarity & Relevance</span>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <template x-for="chunk in ragSearchResults" :key="chunk.id">
+                  <div class="p-5 rounded-2xl bg-slate-50 border border-slate-200/90 hover:border-amber-400 hover:bg-amber-50/20 transition shadow-xs flex flex-col justify-between space-y-3">
+                    <div class="space-y-2">
+                      <div class="flex items-center justify-between">
+                        <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono bg-emerald-100 text-emerald-900 border border-emerald-200" x-text="`${chunk.score}% Relevance`"></span>
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-mono bg-white border border-slate-200 text-slate-600" x-text="`📖 ${chunk.domain} (p.${chunk.page})`"></span>
+                      </div>
+
+                      <h4 class="text-xs font-bold text-slate-900" x-text="chunk.topic"></h4>
+                      <p class="text-xs text-slate-700 font-serif leading-relaxed line-clamp-4 bg-white p-3 rounded-xl border border-slate-200" x-text="chunk.excerpt"></p>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-200 flex items-center justify-between">
+                      <span class="text-[10px] text-slate-400 font-mono" x-text="chunk.id"></span>
+                      <button 
+                        @click="authorQuestionFromChunk(chunk)" 
+                        class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] shadow-xs transition flex items-center gap-1"
+                      >
+                        <span>✨</span> Author Bar Question
+                      </button>
+                    </div>
+                  </div>
+                </template>
+              </div>
+            </div>
+          </div>
+
+        </div>
         <div x-show="resourcesTab === 'inspector'" class="space-y-5">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>

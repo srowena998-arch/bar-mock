@@ -57,10 +57,17 @@ document.addEventListener('alpine:init', () => {
     generatedOutput: null,
     
     // Resources Studio State
-    resourcesTab: 'progress', // 'progress' | 'reformation' | 'inspector'
+    resourcesTab: 'progress', // 'progress' | 'reformation' | 'vector_hub' | 'inspector'
     reformationSearch: '',
     reformationDomain: 'all',
     reformationType: 'all',
+
+    // LlamaIndex.TS & SQLite Vector RAG State
+    ragSearchQuery: '',
+    ragSearchDomain: 'all',
+    ragSearchResults: [],
+    isRagSearching: false,
+    ragStats: null,
 
     // Chatbot RAG State
     showChatbot: false,
@@ -276,6 +283,73 @@ document.addEventListener('alpine:init', () => {
       } catch (e) {
         console.warn('Analytics API error', e);
       }
+    },
+
+    // LlamaIndex.TS & SQLite Vector Hub Methods
+    async loadRagStats() {
+      try {
+        const res = await fetch('/api/rag/stats');
+        if (res.ok) {
+          const data = await res.json();
+          this.ragStats = data.stats;
+        }
+      } catch(e) {
+        console.warn('RAG stats error', e);
+      }
+    },
+
+    async performRagSemanticSearch() {
+      if (!this.ragSearchQuery.trim()) {
+        this.showToastNotification('⚠️ Enter a doctrine or keyword to search across 3,693 nodes');
+        return;
+      }
+
+      this.isRagSearching = true;
+      try {
+        const res = await fetch('/api/rag/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: this.ragSearchQuery.trim(),
+            domain: this.ragSearchDomain,
+            top_k: 8
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          this.ragSearchResults = data.results || [];
+          this.showToastNotification(`🧠 Found ${this.ragSearchResults.length} vector-ranked chunks!`);
+        }
+      } catch (e) {
+        this.showToastNotification('⚠️ Vector search query failed');
+      } finally {
+        this.isRagSearching = false;
+      }
+    },
+
+    async reindexVectorStore() {
+      this.isRagSearching = true;
+      try {
+        const res = await fetch('/api/rag/reindex', { method: 'POST' });
+        if (res.ok) {
+          const data = await res.json();
+          this.showToastNotification(data.message || 'Indexed books successfully!');
+          await this.loadRagStats();
+        }
+      } catch(e) {
+        this.showToastNotification('⚠️ Reindexing failed');
+      } finally {
+        this.isRagSearching = false;
+      }
+    },
+
+    authorQuestionFromChunk(chunk) {
+      if (!chunk) return;
+      this.studioSectionText = chunk.excerpt;
+      this.studioStrategyGuide = `Author a strict 2026 Philippine Bar Examination essay and MCQ directly testing the doctrine: "${chunk.topic}" on Page ${chunk.page} of ${chunk.book}.`;
+      this.resourcesTab = 'inspector';
+      this.showToastNotification(`✨ Loaded chunk from Page ${chunk.page} into Authoring Inspector!`);
     },
     
     // Extraction Studio Actions

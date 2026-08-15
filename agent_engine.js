@@ -304,50 +304,53 @@ Apply TARGETED EDITS based on user instructions while preserving the legal accur
 /**
  * RAG Knowledge Retrieval: Searches the 1,951 converted Markdown pages
  */
-function searchReviewerKnowledgeBase({ query, domain = null }) {
-  const dir = path.join(__dirname, 'storage', 'converted_md');
-  if (!fs.existsSync(dir)) return [];
+const { retrieveHybridRAG, getVectorStoreStats } = require('./rag_indexer');
 
-  const files = fs.readdirSync(dir).filter(f => f.endsWith('.md'));
+/**
+ * LlamaIndex.TS & SQLite Vector Search across all 3,693 Reviewer Nodes
+ */
+function searchReviewerKnowledgeBase({ query, domain = 'all', topK = 4 }) {
+  if (!query || !query.trim()) return [];
+  const vectorResults = retrieveHybridRAG({ query, domain, topK });
+  if (vectorResults.length > 0) return vectorResults;
+
+  // Fallback to direct text scanning if needed
+  const booksDir = path.join(__dirname, 'storage', 'converted_md');
+  const terms = query.toLowerCase().split(/\s+/).filter(t => t.length > 3);
+  if (terms.length === 0) return [];
+
   const results = [];
-  const queryTerms = (query || '').toLowerCase().split(/\s+/).filter(t => t.length > 2);
+  const bookFiles = fs.readdirSync(booksDir).filter(f => f.endsWith('.md') && !f.includes('sample'));
 
-  for (const f of files) {
-    if (domain && domain !== 'all' && !f.toLowerCase().includes(domain.toLowerCase().slice(0, 5))) {
-      continue;
-    }
+  for (const file of bookFiles) {
+    const bookTitle = file.replace('.md', '');
+    if (domain !== 'all' && !bookTitle.toLowerCase().includes(domain.toLowerCase())) continue;
 
-    const content = fs.readFileSync(path.join(dir, f), 'utf-8');
-    const bookTitle = f.replace('.md', '');
+    const content = fs.readFileSync(path.join(booksDir, file), 'utf-8');
+    const pages = content.split(/<!-- PAGE (\d+) -->/g);
 
-    // Split by page markers
-    const pages = content.split(/<!-- PAGE (\d+) -->/);
     for (let i = 1; i < pages.length; i += 2) {
       const pageNum = parseInt(pages[i], 10);
       const pageText = pages[i + 1] || '';
+      const textLower = pageText.toLowerCase();
 
       let matchScore = 0;
-      queryTerms.forEach(term => {
-        if (pageText.toLowerCase().includes(term)) matchScore += 1;
-      });
+      for (const t of terms) {
+        if (textLower.includes(t)) matchScore++;
+      }
 
       if (matchScore > 0) {
-        // Extract relevant excerpt
-        const firstIdx = pageText.toLowerCase().indexOf(queryTerms[0] || '');
-        const start = Math.max(0, firstIdx - 150);
-        const excerpt = pageText.slice(start, start + 700).trim();
-
         results.push({
           book: bookTitle,
           page: pageNum,
           score: matchScore,
-          excerpt: excerpt
+          excerpt: pageText.slice(0, 1000).trim()
         });
       }
     }
   }
 
-  return results.sort((a, b) => b.score - a.score).slice(0, 4);
+  return results.sort((a, b) => b.score - a.score).slice(0, topK);
 }
 
 /**
