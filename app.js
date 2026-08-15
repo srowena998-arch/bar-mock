@@ -577,6 +577,53 @@ document.addEventListener('alpine:init', () => {
       this.showChatbot = !this.showChatbot;
     },
 
+    formatMarkdown(raw) {
+      if (!raw) return '';
+      let str = String(raw);
+
+      // Escape basic HTML entities to avoid broken tags, while preserving structure
+      str = str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      // Format Blockquotes (handles lines starting with &gt; or >)
+      str = str.replace(/^(&gt;|>)\s*(.+)$/gm, '<blockquote class="border-l-3 border-amber-500 bg-amber-50/70 text-slate-800 pl-3 py-1.5 my-2 rounded-r italic font-serif text-[11.5px] leading-relaxed">$2</blockquote>');
+
+      // Format Headings
+      str = str.replace(/^###\s+(.+)$/gm, '<h5 class="font-bold text-slate-900 text-xs mt-2.5 mb-1 flex items-center gap-1.5">$1</h5>');
+      str = str.replace(/^##\s+(.+)$/gm, '<h4 class="font-bold text-slate-900 text-sm mt-3 mb-1.5 flex items-center gap-1.5">$1</h4>');
+      str = str.replace(/^#\s+(.+)$/gm, '<h3 class="font-bold text-slate-900 text-base mt-3.5 mb-2 flex items-center gap-1.5">$1</h3>');
+
+      // Format Bold & Italic
+      str = str.replace(/\*\*(.+?)\*\*/g, '<strong class="font-bold text-slate-950">$1</strong>');
+      str = str.replace(/\*(.+?)\*/g, '<em class="italic text-slate-700">$1</em>');
+
+      // Format Inline Code
+      str = str.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-slate-100 text-amber-900 border border-slate-200/60 font-mono text-[10.5px] font-semibold">$1</code>');
+
+      // Format Numbered Lists (e.g. "1. Step description")
+      str = str.replace(/^(\d+)\.\s+(.+)$/gm, '<div class="flex items-start gap-2 my-1 pl-0.5"><span class="font-bold font-mono text-[9.5px] text-amber-800 bg-amber-100/80 border border-amber-200/60 px-1.5 py-0.5 rounded mt-0.5 shrink-0">$1</span><span class="text-slate-800 leading-relaxed">$2</span></div>');
+
+      // Format Bullet Lists (e.g. "• Item" or "- Item")
+      str = str.replace(/^[•\-\*]\s+(.+)$/gm, '<div class="flex items-start gap-2 my-1 pl-0.5"><span class="text-amber-600 font-bold shrink-0 leading-tight">•</span><span class="text-slate-800 leading-relaxed">$1</span></div>');
+
+      // Convert double newlines into clean paragraph gaps
+      str = str.replace(/\n\n+/g, '<div class="h-2"></div>');
+      str = str.replace(/\n/g, '<br/>');
+
+      return str;
+    },
+
+    scrollChatToBottom() {
+      setTimeout(() => {
+        const container = document.getElementById('chatContainer');
+        if (container) {
+          container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+        }
+      }, 50);
+    },
+
     async sendChatMessage(customPrompt = null) {
       const prompt = (customPrompt || this.chatInput || '').trim();
       if (!prompt || this.isChatLoading) return;
@@ -584,6 +631,7 @@ document.addEventListener('alpine:init', () => {
       this.chatMessages.push({ role: 'user', content: prompt });
       this.chatInput = '';
       this.isChatLoading = true;
+      this.scrollChatToBottom();
 
       try {
         const res = await fetch('/api/chat', {
@@ -617,6 +665,7 @@ document.addEventListener('alpine:init', () => {
         });
       } finally {
         this.isChatLoading = false;
+        this.scrollChatToBottom();
       }
     },
 
@@ -632,6 +681,7 @@ document.addEventListener('alpine:init', () => {
           citations: []
         }
       ];
+      this.scrollChatToBottom();
     },
 
     // Autonomous Batch Ingestion
