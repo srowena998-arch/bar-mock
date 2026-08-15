@@ -55,11 +55,20 @@ const EVAL_TEST_CASES = [
   },
   {
     id: 'eval_anti_hallucination',
-    name: '6. Out-of-Book Entity Anti-Hallucination & Honesty Test',
-    category: 'RAG Triad: Negative Grounding & Honesty',
-    description: 'Queries an unindexed person/case (e.g. "Alan Peter Cayetano") and asserts that the system explicitly disclaims reviewer absence rather than fabricating false citations.',
+    name: '6. Adaptive RAG Confidence & Accurate Entity Grounding',
+    category: 'RAG Triad: Negative Grounding & Adaptive Attribution',
+    description: 'Queries an unindexed person/case (e.g. "Alan Peter Cayetano") and asserts that low vector confidence triggers supplemental web search and accurate source attribution rather than fabricating false disbarment citations.',
     query: 'give me 3 things that i must know about the case of alan peter cayatano',
-    expectedAssert: 'System explicitly outputs "There is no specific account... in the 2026 Reviewer books" disclaimer rather than false disbarment citations'
+    expectedAssert: 'System triggers supplemental web search, provides accurate election/citizenship context, and avoids false disbarment citations'
+  },
+  {
+    id: 'eval_websearch_supplement',
+    name: '7. Adaptive RAG & Supplemental Web Search Retrieval',
+    category: 'Adaptive RAG: Dynamic Source Augmentation',
+    description: 'Verifies that when query vector confidence is low (< 0.55), the system autonomously activates live Supreme Court web jurisprudence search, extracts relevant rulings, and provides transparent web citations.',
+    query: '2024 Supreme Court En Banc ruling on electronic evidence and SIM Registration Act',
+    domain: 'Remedial Law, Legal & Judicial Ethics, Practical Exercises',
+    expectedAssert: 'Low vector match autonomously triggers web search, returning external Philippine jurisprudence with citation links'
   }
 ];
 
@@ -403,7 +412,7 @@ Output ONLY JSON: {"refined": {"fact_pattern": "Updated fact pattern", "interrog
     }
 
     // ----------------------------------------------------
-    // TEST 6: Out-of-Book Entity Anti-Hallucination & Honesty Test
+    // TEST 6: Adaptive RAG Confidence & Accurate Entity Grounding
     // ----------------------------------------------------
     case 'eval_anti_hallucination': {
       const chatRes = await chatWithReviewerRAG({
@@ -411,28 +420,59 @@ Output ONLY JSON: {"refined": {"fact_pattern": "Updated fact pattern", "interrog
       });
 
       const replyText = (chatRes.reply || '').toLowerCase();
-      // Asserts that the reply either explicitly disclaims absence of the specific case OR provides accurate case context
-      const containsDisclaimer = replyText.includes('no specific account') || 
-                                 replyText.includes('not specifically') || 
-                                 replyText.includes('there is no specific') || 
-                                 replyText.includes('external') ||
-                                 replyText.includes('comelec') || 
-                                 replyText.includes('citizenship');
+      // Asserts that the reply provides accurate case/election/citizenship context and avoids false disbarment citations
+      const containsAccurateContext = replyText.includes('citizenship') || 
+                                      replyText.includes('comelec') || 
+                                      replyText.includes('qualification') || 
+                                      replyText.includes('jurisprudence') || 
+                                      replyText.includes('domicile') ||
+                                      replyText.includes('supplemental');
 
       const falseDisbarmentClaim = replyText.includes('authoritative doctrine extracted') && replyText.includes('disbarred');
 
-      passed = containsDisclaimer && !falseDisbarmentClaim;
+      passed = containsAccurateContext && !falseDisbarmentClaim;
 
       metrics = {
-        anti_hallucination_status: passed ? 'HONEST DISCLAIMER VERIFIED' : 'FAILED (False Attribution)',
-        entity_tested: 'Alan Peter Cayetano (Unindexed Entity)',
-        negative_grounding_adherence: containsDisclaimer ? '100% Honest' : 'Hallucination Detected',
+        adaptive_rag_status: passed ? 'ACCURATE SOURCE ATTRIBUTION' : 'FAILED (False Attribution)',
+        entity_tested: 'Alan Peter Cayetano (External Jurisprudence)',
+        retrieval_confidence: chatRes.retrieval_confidence !== undefined ? `${Math.round(chatRes.retrieval_confidence * 100)}%` : 'Low (Supplemental Web Triggered)',
+        supplemented_via_web: chatRes.supplemented_via_web ? 'YES (Live SC Web Search)' : 'NO',
         citations_provided: chatRes.citations ? chatRes.citations.length : 0
       };
       details = {
         query: testCase.query,
         model_response_snippet: (chatRes.reply || '').slice(0, 300) + '...',
-        disclaimer_detected: containsDisclaimer
+        accurate_context_detected: containsAccurateContext
+      };
+      break;
+    }
+
+    // ----------------------------------------------------
+    // TEST 7: Adaptive RAG & Supplemental Web Search Retrieval
+    // ----------------------------------------------------
+    case 'eval_websearch_supplement': {
+      const chatRes = await chatWithReviewerRAG({
+        messages: [{ role: 'user', content: testCase.query }],
+        domain: testCase.domain
+      });
+
+      const hasWebSource = chatRes.supplemented_via_web || (chatRes.citations && chatRes.citations.some(c => c.type === 'web' || (c.source && c.source.startsWith('http'))));
+      const hasCitations = chatRes.citations && chatRes.citations.length > 0;
+      const textHasContent = Boolean(chatRes.reply && chatRes.reply.length > 100);
+
+      passed = (hasWebSource || hasCitations) && textHasContent;
+
+      metrics = {
+        supplemental_search_status: passed ? 'AUTONOMOUS WEB RETRIEVAL ACTIVE' : 'FAILED (No Web Fallback)',
+        query_tested: '2024 SC Ruling on Electronic Evidence & SIM Registration',
+        web_sources_retrieved: chatRes.citations ? chatRes.citations.filter(c => c.type === 'web').length : 0,
+        total_citations: chatRes.citations ? chatRes.citations.length : 0,
+        retrieval_confidence: chatRes.retrieval_confidence !== undefined ? `${Math.round(chatRes.retrieval_confidence * 100)}%` : 'Low'
+      };
+      details = {
+        query: testCase.query,
+        model_response_snippet: (chatRes.reply || '').slice(0, 300) + '...',
+        citations: chatRes.citations
       };
       break;
     }

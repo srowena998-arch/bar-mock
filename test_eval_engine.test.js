@@ -15,8 +15,8 @@ async function request(method, path, body = null) {
   return { status: res.status, json };
 }
 
-test('Eval Suite: 6 Standard Benchmarks Defined', () => {
-  assert.equal(EVAL_TEST_CASES.length, 6);
+test('Eval Suite: 7 Standard Benchmarks Defined', () => {
+  assert.equal(EVAL_TEST_CASES.length, 7);
   EVAL_TEST_CASES.forEach(tc => {
     assert.ok(tc.id);
     assert.ok(tc.name);
@@ -35,7 +35,7 @@ test('API GET /api/evals/test-cases: Returns all standard test cases', async () 
   const res = await request('GET', '/api/evals/test-cases');
   assert.equal(res.status, 200);
   assert.equal(res.json.success, true);
-  assert.equal(res.json.test_cases.length, 6);
+  assert.equal(res.json.test_cases.length, 7);
 });
 
 test('API POST /api/evals/run-single: Executes vector chunk diet benchmark', async () => {
@@ -50,7 +50,7 @@ test('API POST /api/evals/run-single: Executes vector chunk diet benchmark', asy
   assert.ok(res.json.result.metrics.token_savings.includes('%'));
 });
 
-test('API POST /api/evals/run-single: Executes anti-hallucination honesty benchmark', async () => {
+test('API POST /api/evals/run-single: Executes adaptive RAG entity grounding benchmark', async () => {
   const res = await request('POST', '/api/evals/run-single', {
     test_id: 'eval_anti_hallucination'
   });
@@ -58,14 +58,25 @@ test('API POST /api/evals/run-single: Executes anti-hallucination honesty benchm
   assert.equal(res.status, 200);
   assert.equal(res.json.success, true);
   assert.equal(res.json.result.passed, true);
-  assert.equal(res.json.result.metrics.anti_hallucination_status, 'HONEST DISCLAIMER VERIFIED');
+  assert.equal(res.json.result.metrics.adaptive_rag_status, 'ACCURATE SOURCE ATTRIBUTION');
+});
+
+test('API POST /api/evals/run-single: Executes supplemental web search retrieval benchmark', async () => {
+  const res = await request('POST', '/api/evals/run-single', {
+    test_id: 'eval_websearch_supplement'
+  });
+
+  assert.equal(res.status, 200);
+  assert.equal(res.json.success, true);
+  assert.equal(res.json.result.passed, true);
+  assert.equal(res.json.result.metrics.supplemental_search_status, 'AUTONOMOUS WEB RETRIEVAL ACTIVE');
 });
 
 test('API POST /api/evals/run-all: Executes full throttled benchmark suite', async () => {
   const res = await request('POST', '/api/evals/run-all');
   assert.equal(res.status, 200);
   assert.equal(res.json.success, true);
-  assert.equal(res.json.scorecard.total_tests, 6);
-  assert.equal(res.json.scorecard.passed_count, 6);
+  assert.equal(res.json.scorecard.total_tests, 7);
+  assert.equal(res.json.scorecard.passed_count, 7);
   assert.equal(res.json.scorecard.overall_score, '100%');
 });
