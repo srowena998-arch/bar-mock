@@ -738,7 +738,7 @@
     </div>
   </div>
 
-  <!-- Interactive Question Authoring Modal -->
+  <!-- Interactive Question Authoring & AI Resource Generation Modal -->
   <div 
     x-show="showAuthorModal" 
     x-transition:enter="transition ease-out duration-200"
@@ -753,20 +753,152 @@
       @click.away="showAuthorModal = false" 
       class="bg-white border border-slate-200 rounded-3xl max-w-3xl w-full p-6 sm:p-7 space-y-5 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
     >
+      <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-slate-100 pb-4 shrink-0">
         <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 text-base font-bold">
+          <div class="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 text-lg font-bold">
             ✨
           </div>
           <div>
-            <h3 class="font-bold text-slate-900 text-base tracking-tight">Question Authoring Studio</h3>
-            <p class="text-xs text-slate-500">Author custom Essay or MCQ units and commit directly to the live SQLite Question Bank</p>
+            <h3 class="font-bold text-slate-900 text-base tracking-tight">Question Authoring & AI Resource Generator</h3>
+            <p class="text-xs text-slate-500">Formulate questions grounded directly in specific Reviewer books or uploaded custom documents</p>
           </div>
         </div>
         <button @click="showAuthorModal = false" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center text-sm transition">✕</button>
       </div>
 
-      <div class="space-y-4 text-xs overflow-y-auto flex-1 pr-1">
+      <!-- Mode Selector Tabs -->
+      <div class="grid grid-cols-2 gap-2 p-1.5 rounded-2xl bg-slate-100 border border-slate-200 shrink-0 text-xs">
+        <button 
+          type="button"
+          @click="authorMode = 'ai_resource'" 
+          :class="authorMode === 'ai_resource' ? 'bg-white text-slate-950 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 font-medium'"
+          class="py-2 rounded-xl transition text-center flex items-center justify-center gap-1.5"
+        >
+          <span>🚀</span> AI Generate from Resource (Automated)
+        </button>
+        <button 
+          type="button"
+          @click="authorMode = 'manual'" 
+          :class="authorMode === 'manual' ? 'bg-white text-slate-950 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 font-medium'"
+          class="py-2 rounded-xl transition text-center flex items-center justify-center gap-1.5"
+        >
+          <span>✍️</span> Manual Authoring Studio
+        </button>
+      </div>
+
+      <!-- Mode 1: AI Generation Grounded in Selected Resource -->
+      <div x-show="authorMode === 'ai_resource'" class="space-y-4 text-xs overflow-y-auto flex-1 pr-1">
+        
+        <!-- Helpful Informational Banner -->
+        <div class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 text-amber-950 flex items-start gap-2.5">
+          <span class="text-base">🧠</span>
+          <p class="leading-relaxed text-[11px]">
+            <strong>Zero Manual Rule Typing:</strong> Select any Reviewer book or uploaded document. The AI retrieves attached vector RAG chunks, extracts the statutory doctrine, and automatically generates both the ALAC breakdown and 4-option MCQs.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <!-- Resource Selector -->
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Attached Resource / Source Document</label>
+            <select 
+              x-model="authorResourceTitle" 
+              class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl p-2.5 text-slate-900 outline-none text-xs transition"
+            >
+              <option value="all">🌐 All Available Reviewer Books & Documents</option>
+              <template x-for="r in availableResources" :key="r.id || r.title">
+                <option :value="r.title" x-text="`${r.title} (${r.chunk_count || 0} Chunks)`"></option>
+              </template>
+            </select>
+          </div>
+
+          <!-- Bar Domain -->
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Bar Subject / Domain</label>
+            <select 
+              x-model="authorDomain" 
+              class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl p-2.5 text-slate-900 outline-none text-xs transition"
+            >
+              <template x-for="d in domains" :key="d.domain">
+                <option :value="d.domain" x-text="d.domain"></option>
+              </template>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <!-- Target Concept / Topic -->
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Target Doctrine / Topic (Optional)</label>
+            <input 
+              type="text" 
+              x-model="authorTopic" 
+              placeholder="e.g. Quo Warranto, Rule 114 Bail (Leave empty for auto-scout)" 
+              class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl p-2.5 text-slate-900 outline-none text-xs transition"
+            />
+          </div>
+
+          <!-- Modality Choice -->
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Output Modality</label>
+            <select 
+              x-model="authorModality" 
+              class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl p-2.5 text-slate-900 outline-none text-xs transition"
+            >
+              <option value="both">✨ Both (Essay with ALAC + Recall MCQ)</option>
+              <option value="essay">✍️ Essay Exam Only (ALAC Method)</option>
+              <option value="mcq">⚡ Recall MCQ Only (4 Options)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Bulk Count Selector -->
+        <div>
+          <label class="block text-slate-700 font-semibold mb-1.5">Question Generation Quantity</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button 
+              type="button" 
+              @click="authorCount = 1" 
+              :class="authorCount === 1 ? 'bg-amber-100 border-amber-400 text-amber-950 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+              class="p-2.5 rounded-xl border text-center transition flex items-center justify-center gap-1"
+            >
+              <span>1 Question Pair</span>
+            </button>
+            <button 
+              type="button" 
+              @click="authorCount = 3" 
+              :class="authorCount === 3 ? 'bg-amber-100 border-amber-400 text-amber-950 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+              class="p-2.5 rounded-xl border text-center transition flex items-center justify-center gap-1"
+            >
+              <span>⚡ 3 Questions (Bulk)</span>
+            </button>
+            <button 
+              type="button" 
+              @click="authorCount = 5" 
+              :class="authorCount === 5 ? 'bg-amber-100 border-amber-400 text-amber-950 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+              class="p-2.5 rounded-xl border text-center transition flex items-center justify-center gap-1"
+            >
+              <span>⚡ 5 Questions (Bulk)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Optional Angle / Refinement Prompt -->
+        <div>
+          <label class="block text-slate-700 font-semibold mb-1">Custom Jurisprudence Angle / Nuance (Optional)</label>
+          <input 
+            type="text" 
+            x-model="authorInstruction" 
+            placeholder="e.g. Test 2024 Supreme Court En Banc doctrines with a procedural appeals twist..." 
+            class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl p-2.5 text-slate-900 outline-none text-xs transition"
+          />
+        </div>
+
+      </div>
+
+      <!-- Mode 2: Manual Authoring -->
+      <div x-show="authorMode === 'manual'" class="space-y-4 text-xs overflow-y-auto flex-1 pr-1">
         <!-- Modality Selector -->
         <div class="grid grid-cols-2 gap-3 p-1 rounded-2xl bg-slate-100 border border-slate-200">
           <button 
@@ -883,17 +1015,107 @@
         </template>
       </div>
 
+      <!-- Modal Footer -->
       <div class="flex items-center justify-between pt-3 border-t border-slate-100 shrink-0">
-        <span class="text-[11px] text-slate-400 font-mono">Will be saved to SQLite Question Bank</span>
+        <span class="text-[11px] text-slate-400 font-mono">Persistence: SQLite barmock.db</span>
         <div class="flex items-center gap-2">
-          <button @click="showAuthorModal = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold">Cancel</button>
+          <button @click="showAuthorModal = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">Cancel</button>
+          
+          <!-- AI Resource Mode Button -->
+          <template x-if="authorMode === 'ai_resource'">
+            <button 
+              @click="generateFromResource()" 
+              :disabled="isGeneratingFromResource" 
+              class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-40 text-slate-950 text-xs font-bold shadow-md transition flex items-center gap-2"
+            >
+              <span x-show="!isGeneratingFromResource">🚀 AI Generate & Save to Question Bank</span>
+              <span x-show="isGeneratingFromResource" class="flex items-center gap-1.5">
+                <span class="inline-block w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
+                <span>Synthesizing from Resource RAG...</span>
+              </span>
+            </button>
+          </template>
+
+          <!-- Manual Mode Button -->
+          <template x-if="authorMode === 'manual'">
+            <button 
+              @click="saveNewQuestion()" 
+              :disabled="isAuthoringQuestion || !newQuestion.topic.trim() || !newQuestion.interrogatory.trim()" 
+              class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 text-xs font-bold shadow-sm transition flex items-center gap-1.5"
+            >
+              <span x-show="!isAuthoringQuestion">💾 Commit Question to SQLite</span>
+              <span x-show="isAuthoringQuestion">Saving...</span>
+            </button>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk AI Question Reformation Modal -->
+  <div 
+    x-show="showBulkModal" 
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0 scale-95"
+    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100 scale-100"
+    x-transition:leave-end="opacity-0 scale-95"
+    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+  >
+    <div 
+      @click.away="showBulkModal = false" 
+      class="bg-white border border-slate-200 rounded-3xl max-w-xl w-full p-6 sm:p-7 space-y-5 shadow-2xl overflow-hidden"
+    >
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 text-lg font-bold">
+            ⚡
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base tracking-tight" x-text="`Bulk AI Refine (${selectedQuestionIds.length} Questions)`"></h3>
+            <p class="text-xs text-slate-500">Apply batch jurisprudence updates or structural reformations across all selected questions</p>
+          </div>
+        </div>
+        <button @click="showBulkModal = false" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center text-sm transition">✕</button>
+      </div>
+
+      <div class="space-y-3.5 text-xs">
+        <div>
+          <label class="block text-slate-700 font-semibold mb-1">1-Click Transformation Presets:</label>
+          <div class="flex flex-wrap gap-1.5 text-[10px]">
+            <button @click="bulkPrompt = 'Update jurisprudence to reflect recent 2024 Supreme Court En Banc doctrines'" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition">+ 2024 Jurisprudence</button>
+            <button @click="bulkPrompt = 'Add a third-party claim and complex timeline twist to facts'" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition">+ Complex Facts Twist</button>
+            <button @click="bulkPrompt = 'Format suggested answers strictly into categorical ALAC with statutory articles'" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition">+ Strict ALAC Answers</button>
+            <button @click="bulkPrompt = 'Expand MCQs with high-discrimination plausible distractors'" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition">+ Tricky MCQ Traps</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-700 font-semibold mb-1">Batch Reformation Prompt:</label>
+          <textarea 
+            x-model="bulkPrompt" 
+            rows="3" 
+            placeholder="Type your natural language instruction to apply to all selected questions..." 
+            class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-2xl p-3 text-slate-900 outline-none text-xs leading-relaxed transition"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+        <span class="text-[11px] text-slate-400 font-mono" x-text="`Will update ${selectedQuestionIds.length} records in SQLite`"></span>
+        <div class="flex items-center gap-2">
+          <button @click="showBulkModal = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">Cancel</button>
           <button 
-            @click="saveNewQuestion()" 
-            :disabled="isAuthoringQuestion || !newQuestion.topic.trim() || !newQuestion.interrogatory.trim()" 
-            class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 text-xs font-bold shadow-sm transition flex items-center gap-1.5"
+            @click="executeBulkRefine()" 
+            :disabled="isBulkProcessing || !bulkPrompt.trim()" 
+            class="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-40 text-slate-950 text-xs font-bold shadow-md transition flex items-center gap-2"
           >
-            <span x-show="!isAuthoringQuestion">💾 Commit Question to SQLite</span>
-            <span x-show="isAuthoringQuestion">Saving...</span>
+            <span x-show="!isBulkProcessing">⚡ Apply Bulk Refinement</span>
+            <span x-show="isBulkProcessing" class="flex items-center gap-1.5">
+              <span class="inline-block w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
+              <span>Refining Selected...</span>
+            </span>
           </button>
         </div>
       </div>
@@ -1597,42 +1819,103 @@
         <!-- SUB-TAB 2: AI QUESTION REFORMATION WORKBENCH -->
         <div x-show="resourcesTab === 'reformation'" class="space-y-5">
           
-          <!-- Top Description & Search Controls -->
-          <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
-            <div>
-              <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
-                <span>✨</span> Question Bank Management & Interactive AI Reformation
-              </h3>
-              <p class="text-xs text-slate-500">Select any question on the left to edit, update with modern 2024–2026 jurisprudence, or expand MCQs on the right</p>
+          <!-- Top Description, Modality Chips & Search Controls -->
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 rounded-3xl border border-slate-200 shadow-xs">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">✨</span>
+                <h3 class="font-bold text-slate-900 text-sm">Question Bank Management & AI Reformation</h3>
+              </div>
+              <p class="text-xs text-slate-500">Search, batch refine, or edit individual Essay and MCQ questions directly in SQLite</p>
             </div>
 
-            <!-- Filter Controls -->
-            <div class="flex items-center gap-2">
+            <!-- Modality Filter Buttons & Action -->
+            <div class="flex flex-wrap items-center gap-2">
+              <div class="flex items-center p-1 rounded-2xl bg-slate-100 border border-slate-200 text-xs">
+                <button 
+                  @click="reformationType = 'all'" 
+                  :class="reformationType === 'all' ? 'bg-white text-slate-950 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                  class="px-3 py-1.5 rounded-xl transition"
+                  x-text="`All (${questions.length})`"
+                ></button>
+                <button 
+                  @click="reformationType = 'essay'" 
+                  :class="reformationType === 'essay' ? 'bg-white text-slate-950 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                  class="px-3 py-1.5 rounded-xl transition"
+                  x-text="`✍️ Essays (${questions.filter(q => q.type === 'essay').length})`"
+                ></button>
+                <button 
+                  @click="reformationType = 'mcq'" 
+                  :class="reformationType === 'mcq' ? 'bg-white text-slate-950 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                  class="px-3 py-1.5 rounded-xl transition"
+                  x-text="`⚡ MCQs (${questions.filter(q => q.type === 'mcq').length})`"
+                ></button>
+              </div>
+
+              <button 
+                @click="openAuthorModal()" 
+                class="px-4 py-2 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-xs transition flex items-center gap-1.5"
+              >
+                <span>➕</span> Generate / Author
+              </button>
+            </div>
+          </div>
+
+          <!-- Secondary Filter Bar & Search -->
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs">
+            <div class="flex items-center gap-2 flex-1 min-w-[240px]">
               <input 
                 type="text" 
                 x-model="reformationSearch" 
-                placeholder="Search topics / doctrines..." 
-                class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none w-44 sm:w-56"
+                placeholder="Search topics, doctrines, or fact patterns..." 
+                class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none transition"
               />
+            </div>
 
+            <div class="flex items-center gap-2">
               <select 
                 x-model="reformationDomain"
-                class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none"
+                class="bg-white border border-slate-200 focus:border-amber-500 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none"
               >
-                <option value="all">All Domains</option>
+                <option value="all">All Domains (100% Bar Coverage)</option>
                 <template x-for="d in domains" :key="d.domain">
                   <option :value="d.domain" x-text="d.domain"></option>
                 </template>
               </select>
+            </div>
+          </div>
 
-              <select 
-                x-model="reformationType"
-                class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none"
+          <!-- Bulk Action Floating Bar (Visible When Questions are Selected) -->
+          <div 
+            x-show="selectedQuestionIds.length > 0" 
+            x-transition 
+            class="flex items-center justify-between p-3.5 bg-slate-900 text-white rounded-2xl shadow-lg border border-slate-800 text-xs"
+          >
+            <div class="flex items-center gap-3">
+              <span class="px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950 font-bold font-mono text-[11px]" x-text="`${selectedQuestionIds.length} Selected`"></span>
+              <span class="text-slate-300">Bulk operations across selected questions:</span>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button 
+                @click="showBulkModal = true; bulkPrompt = 'Update jurisprudence to reflect recent 2024 Supreme Court En Banc doctrines';" 
+                class="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition flex items-center gap-1"
               >
-                <option value="all">All Types</option>
-                <option value="essay">Essays</option>
-                <option value="mcq">MCQs</option>
-              </select>
+                <span>✨</span> Bulk AI Refine
+              </button>
+              <button 
+                @click="executeBulkDelete()" 
+                :disabled="isBulkProcessing"
+                class="px-3.5 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-bold transition flex items-center gap-1"
+              >
+                <span>🗑️</span> Delete Selected
+              </button>
+              <button 
+                @click="selectedQuestionIds = []" 
+                class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition"
+              >
+                Cancel
+              </button>
             </div>
           </div>
 
@@ -1640,12 +1923,23 @@
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             <!-- Left Column: Question Browser (5 Cols) -->
-            <div class="lg:col-span-5 space-y-2.5 max-h-[680px] overflow-y-auto pr-1">
+            <div class="lg:col-span-5 space-y-2.5 max-h-[720px] overflow-y-auto pr-1">
+              
+              <!-- Selection Header -->
               <div class="flex items-center justify-between px-1 text-xs text-slate-500 pb-1 border-b border-slate-100">
-                <span class="font-bold uppercase tracking-wider text-[10px]">Select from Question Bank</span>
-                <span class="font-mono text-[10px]" x-text="`${questions.filter(item => (reformationDomain === 'all' || item.domain === reformationDomain) && (reformationType === 'all' || item.type === reformationType) && (!reformationSearch || item.topic.toLowerCase().includes(reformationSearch.toLowerCase()) || (item.question || item.fact_pattern || '').toLowerCase().includes(reformationSearch.toLowerCase()))).length} Questions Available`"></span>
+                <label class="flex items-center gap-2 cursor-pointer select-none font-bold uppercase tracking-wider text-[10px]">
+                  <input 
+                    type="checkbox" 
+                    @change="toggleSelectAllQuestions(questions.filter(item => (reformationDomain === 'all' || item.domain === reformationDomain) && (reformationType === 'all' || item.type === reformationType) && (!reformationSearch || item.topic.toLowerCase().includes(reformationSearch.toLowerCase()) || (item.question || item.fact_pattern || item.interrogatory || '').toLowerCase().includes(reformationSearch.toLowerCase()))))"
+                    :checked="questions.filter(item => (reformationDomain === 'all' || item.domain === reformationDomain) && (reformationType === 'all' || item.type === reformationType) && (!reformationSearch || item.topic.toLowerCase().includes(reformationSearch.toLowerCase()) || (item.question || item.fact_pattern || item.interrogatory || '').toLowerCase().includes(reformationSearch.toLowerCase()))).length > 0 && questions.filter(item => (reformationDomain === 'all' || item.domain === reformationDomain) && (reformationType === 'all' || item.type === reformationType) && (!reformationSearch || item.topic.toLowerCase().includes(reformationSearch.toLowerCase()) || (item.question || item.fact_pattern || item.interrogatory || '').toLowerCase().includes(reformationSearch.toLowerCase()))).every(q => isQuestionSelected(q.id))"
+                    class="rounded text-amber-600 focus:ring-amber-500"
+                  />
+                  <span>Select All Filtered</span>
+                </label>
+                <span class="font-mono text-[10px]" x-text="`${questions.filter(item => (reformationDomain === 'all' || item.domain === reformationDomain) && (reformationType === 'all' || item.type === reformationType) && (!reformationSearch || item.topic.toLowerCase().includes(reformationSearch.toLowerCase()) || (item.question || item.fact_pattern || item.interrogatory || '').toLowerCase().includes(reformationSearch.toLowerCase()))).length} Questions`"></span>
               </div>
 
+              <!-- Question Cards List -->
               <template x-for="q in questions.filter(item => 
                 (reformationDomain === 'all' || item.domain === reformationDomain) && 
                 (reformationType === 'all' || item.type === reformationType) &&
@@ -1654,10 +1948,17 @@
                 <div 
                   @click="selectQuestionToReform(q)"
                   :class="activeRefineQuestion?.id === q.id ? 'border-amber-500 bg-amber-50/50 ring-2 ring-amber-500/20 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'"
-                  class="p-3.5 rounded-2xl border transition shadow-2xs cursor-pointer space-y-1.5"
+                  class="p-3.5 rounded-2xl border transition shadow-2xs cursor-pointer space-y-2 relative"
                 >
                   <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-1.5 truncate max-w-[75%]">
+                    <div class="flex items-center gap-2 truncate max-w-[78%]">
+                      <!-- Selection Checkbox -->
+                      <input 
+                        type="checkbox" 
+                        @click.stop="toggleSelectQuestion(q.id)"
+                        :checked="isQuestionSelected(q.id)"
+                        class="rounded text-amber-600 focus:ring-amber-500 shrink-0"
+                      />
                       <span 
                         :class="q.type === 'essay' ? 'bg-indigo-50 text-indigo-800 border-indigo-200' : 'bg-amber-50 text-amber-800 border-amber-200'"
                         class="px-2 py-0.5 rounded-md text-[9px] font-bold font-mono uppercase border shrink-0"
@@ -1665,7 +1966,7 @@
                       ></span>
                       <span class="text-xs font-bold text-slate-900 truncate" x-text="q.topic"></span>
                     </div>
-                    <span class="text-[10px] text-slate-400 font-mono shrink-0" x-text="q.domain.slice(0, 12) + '...'"></span>
+                    <span class="text-[10px] text-slate-400 font-mono shrink-0" x-text="q.domain.slice(0, 10) + '...'"></span>
                   </div>
 
                   <p class="text-[11px] text-slate-600 line-clamp-2 leading-relaxed" x-text="q.type === 'essay' ? q.fact_pattern : (q.question || q.interrogatory)"></p>

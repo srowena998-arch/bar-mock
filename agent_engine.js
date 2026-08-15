@@ -183,7 +183,7 @@ async function refineQuestionModality({ original_question, refinement_instructio
   const modelName = getModelName();
   const apiKey = getConfig('opencode_api_key') || process.env.OPENCODE_API_KEY || '';
 
-  const isMcq = original_question.type === 'mcq' || Boolean(original_question.options);
+  const isMcq = original_question.type === 'mcq' || (original_question.type !== 'essay' && Array.isArray(original_question.options) && original_question.options.length > 0);
 
   if (isMcq) {
     const mcqSchema = z.object({

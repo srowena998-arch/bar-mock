@@ -109,9 +109,25 @@ document.addEventListener('alpine:init', () => {
     uploadContent: '',
     isUploadingResource: false,
 
-    // Question Authoring Modal State (From Chunks / Scratch)
+    // Question Bank State & Bulk Actions
+    questions: [],
+    selectedQuestionIds: [],
+    showBulkModal: false,
+    bulkPrompt: '',
+    isBulkProcessing: false,
+
+    // Resource-Grounded Question Authoring Modal State
     showAuthorModal: false,
     isAuthoringQuestion: false,
+    authorMode: 'ai_resource', // 'ai_resource' | 'manual'
+    authorResourceTitle: 'all',
+    authorDomain: 'Criminal Law',
+    authorTopic: '',
+    authorModality: 'both', // 'essay' | 'mcq' | 'both'
+    authorCount: 1, // 1 | 3 | 5
+    authorInstruction: '',
+    isGeneratingFromResource: false,
+    availableResources: [],
     newQuestion: {
       domain: 'Criminal Law',
       type: 'essay',
@@ -141,12 +157,13 @@ document.addEventListener('alpine:init', () => {
     isTestingConnection: false,
     connectionResult: null,
     showApiKey: false,
-    availableModels: ['deepseek-v4-flash', 'deepseek-v4-pro', 'deepseek-chat', 'deepseek-reasoner'],
+    availableModels: [],
     modelFetchSource: '',
     settings: {
       opencode_api_key: '',
-      opencode_base_url: 'https://api.deepseek.com',
-      default_model: 'deepseek-v4-flash',
+      opencode_model: 'deepseek-v4-flash',
+      opencode_base_url: 'https://opencode.ai/api/v1',
+      evaluation_strictness: 'lenient',
       has_key: false
     },
     
@@ -157,6 +174,7 @@ document.addEventListener('alpine:init', () => {
     async init() {
       await this.loadQuestions();
       await this.loadDomains();
+      await this.loadAvailableResources();
       await this.loadSettings();
       await this.loadExtractionProgress();
       await this.loadModalityCoverage();
@@ -189,6 +207,18 @@ document.addEventListener('alpine:init', () => {
         console.warn('Domains load error:', err);
       }
     },
+
+    async loadAvailableResources() {
+      try {
+        const res = await fetch('/api/resources/list');
+        if (res.ok) {
+          const data = await res.json();
+          this.availableResources = data.resources || [];
+        }
+      } catch (err) {
+        console.warn('Resources list error:', err);
+      }
+    },
     
     async loadQuestions() {
       try {
@@ -196,6 +226,7 @@ document.addEventListener('alpine:init', () => {
         if (res.ok) {
           const data = await res.json();
           const qList = data.questions || [];
+          this.questions = qList;
           this.allEssays = qList.filter(q => q.type === 'essay').map(q => ({
             ...q,
             domainName: q.domain,
@@ -207,6 +238,9 @@ document.addEventListener('alpine:init', () => {
           }));
           this.filterEssays();
           this.filterMcqs();
+          if (this.questions.length > 0 && !this.activeRefineQuestion) {
+            this.activeRefineQuestion = JSON.parse(JSON.stringify(this.questions[0]));
+          }
         }
       } catch (err) {
         console.warn('Questions load error:', err);
@@ -840,38 +874,141 @@ document.addEventListener('alpine:init', () => {
       this.showAuthorModal = true;
     },
 
-    async saveNewQuestion() {
-      if (!this.newQuestion.topic.trim() || !this.newQuestion.interrogatory.trim()) {
-        this.showToastNotification('⚠️ Topic and Interrogatory are required fields.');
+    toggleSelectAllQuestions(filteredList) {
+      if (!filteredList || filteredList.length === 0) return;
+      const allSelected = filteredList.every(q => this.selectedQuestionIds.includes(q.id));
+      if (allSelected) {
+        const idsToRemove = new Set(filteredList.map(q => q.id));
+        this.selectedQuestionIds = this.selectedQuestionIds.filter(id => !idsToRemove.has(id));
+      } else {
+        const newIds = new Set([...this.selectedQuestionIds, ...filteredList.map(q => q.id)]);
+        this.selectedQuestionIds = Array.from(newIds);
+      }
+    },
+
+    toggleSelectQuestion(id) {
+      const idx = this.selectedQuestionIds.indexOf(id);
+      if (idx > -1) {
+        this.selectedQuestionIds.splice(idx, 1);
+      } else {
+        this.selectedQuestionIds.push(id);
+      }
+    },
+
+    isQuestionSelected(id) {
+      return this.selectedQuestionIds.includes(id);
+    },
+
+    async executeBulkRefine() {
+      if (this.selectedQuestionIds.length === 0) {
+        this.showToastNotification('⚠️ Please select at least one question to refine.');
+        return;
+      }
+      if (!this.bulkPrompt.trim()) {
+        this.showToastNotification('⚠️ Please enter a bulk refinement prompt.');
         return;
       }
 
-      this.isAuthoringQuestion = true;
+      this.isBulkProcessing = true;
       try {
-        const res = await fetch('/api/questions/create', {
+        const res = await fetch('/api/questions/bulk-refine', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(this.newQuestion)
+          body: JSON.stringify({
+            ids: this.selectedQuestionIds,
+            instruction: this.bulkPrompt,
+            target_field: 'all'
+          })
         });
 
         const data = await res.json();
         if (res.ok && data.success) {
-          this.showToastNotification('🎉 New Bar Question committed to SQLite Question Bank!');
-          this.showAuthorModal = false;
+          this.showToastNotification(`✨ Successfully refined ${data.updated_count} question(s) in bulk!`);
+          this.showBulkModal = false;
+          this.bulkPrompt = '';
+          this.selectedQuestionIds = [];
+          await this.loadQuestions();
+        } else {
+          this.showToastNotification(`⚠️ Bulk refinement failed: ${data.error || 'Unknown error'}`);
+        }
+      } catch (e) {
+        this.showToastNotification('⚠️ Network error during bulk refinement.');
+      } finally {
+        this.isBulkProcessing = false;
+      }
+    },
+
+    async executeBulkDelete() {
+      if (this.selectedQuestionIds.length === 0) return;
+      if (!confirm(`Are you sure you want to delete ${this.selectedQuestionIds.length} selected question(s) from SQLite?`)) {
+        return;
+      }
+
+      this.isBulkProcessing = true;
+      try {
+        const res = await fetch('/api/questions/bulk-delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ids: this.selectedQuestionIds })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          this.showToastNotification(`🗑️ Deleted ${data.deleted_count} question(s)!`);
+          const deletedSet = new Set(this.selectedQuestionIds);
+          this.selectedQuestionIds = [];
+          if (this.activeRefineQuestion && deletedSet.has(this.activeRefineQuestion.id)) {
+            this.activeRefineQuestion = null;
+          }
           await this.loadQuestions();
           await this.loadModalityCoverage();
-          if (this.newQuestion.type === 'essay') {
-            this.currentTab = 'essay';
-          } else {
-            this.currentTab = 'mcq';
+        } else {
+          this.showToastNotification('⚠️ Bulk deletion failed.');
+        }
+      } catch (e) {
+        this.showToastNotification('⚠️ Error deleting questions.');
+      } finally {
+        this.isBulkProcessing = false;
+      }
+    },
+
+    async generateFromResource() {
+      this.isGeneratingFromResource = true;
+      try {
+        const res = await fetch('/api/author-from-resource', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            resource_title: this.authorResourceTitle,
+            domain: this.authorDomain,
+            topic: this.authorTopic.trim(),
+            modality: this.authorModality,
+            count: parseInt(this.authorCount) || 1,
+            instruction: this.authorInstruction.trim()
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          this.showToastNotification(`🚀 ${data.message}`);
+          this.showAuthorModal = false;
+          this.authorTopic = '';
+          this.authorInstruction = '';
+          await this.loadQuestions();
+          await this.loadModalityCoverage();
+          if (data.questions && data.questions.length > 0) {
+            const firstCreated = this.questions.find(q => q.id === data.questions[0].id);
+            if (firstCreated) {
+              this.selectQuestionToReform(firstCreated);
+            }
           }
         } else {
-          this.showToastNotification(`⚠️ Failed to commit question: ${data.error || 'Unknown error'}`);
+          this.showToastNotification(`⚠️ Generation failed: ${data.error || 'Unknown error'}`);
         }
-      } catch (err) {
-        this.showToastNotification('⚠️ Error saving new question to database.');
+      } catch (e) {
+        this.showToastNotification('⚠️ Network error generating questions from resource.');
       } finally {
-        this.isAuthoringQuestion = false;
+        this.isGeneratingFromResource = false;
       }
     },
 

@@ -3,7 +3,7 @@ const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
 const { db, getConfig, setConfig } = require('./db');
-const { runAutonomousIngestAgent, runDiagnosticAgent, refineQuestionModality, chatWithReviewerRAG } = require('./agent_engine');
+const { runAutonomousIngestAgent, runDiagnosticAgent, refineQuestionModality, chatWithReviewerRAG, generateQuestionModalitiesWithAI } = require('./agent_engine');
 const { retrieveHybridRAG, getVectorStoreStats, indexAllReviewerBooks, ingestCustomResource, getModalityCoverageStats } = require('./rag_indexer');
 const { EVAL_TEST_CASES, runSingleEvaluation, runAllEvaluations } = require('./eval_engine');
 
@@ -486,11 +486,11 @@ Output strictly JSON:
       if (isMcq) {
         db.prepare(`
           UPDATE questions 
-          SET topic = ?, question = ?, options = ?, correct_answer = ?, explanation = ?, difficulty = ?
+          SET topic = ?, interrogatory = ?, options = ?, correct_answer = ?, explanation = ?, difficulty = ?
           WHERE id = ?
         `).run(
           question.topic,
-          question.question,
+          question.question || question.interrogatory,
           JSON.stringify(question.options || []),
           question.correct_answer || 'A',
           question.explanation || '',
@@ -678,6 +678,254 @@ Output strictly JSON:
           success: true,
           message: `Question ${qId} successfully committed to SQLite Question Bank!`,
           question_id: qId
+        });
+      } catch (err) {
+        return sendJSON(res, 500, { success: false, error: err.message });
+      }
+    }
+
+    // ----------------------------------------------------
+    // API: GET /api/resources/list (Available Books & Uploaded Materials)
+    // ----------------------------------------------------
+    if (req.method === 'GET' && pathname === '/api/resources/list') {
+      try {
+        const books = db.prepare(`
+          SELECT b.id, b.book_title as title, b.domain, b.total_pages as pages, 
+                 COUNT(c.id) as chunk_count, 'official_reviewer' as type
+          FROM book_metadata b
+          LEFT JOIN rag_chunks c ON c.domain = b.domain OR c.book_id = b.id
+          GROUP BY b.id
+          ORDER BY b.id ASC
+        `).all();
+
+        // Also query custom uploaded documents from rag_chunks
+        const customChunks = db.prepare(`
+          SELECT DISTINCT book_id as title, domain, COUNT(id) as chunk_count, 'custom_resource' as type
+          FROM rag_chunks
+          WHERE book_id NOT IN (SELECT id FROM book_metadata) AND book_id IS NOT NULL AND book_id != ''
+          GROUP BY book_id
+        `).all();
+
+        return sendJSON(res, 200, {
+          success: true,
+          resources: [...books, ...customChunks]
+        });
+      } catch (err) {
+        return sendJSON(res, 500, { success: false, error: err.message });
+      }
+    }
+
+    // ----------------------------------------------------
+    // API: POST /api/author-from-resource (Resource-Grounded AI Generation & Bulk Create)
+    // ----------------------------------------------------
+    if (req.method === 'POST' && pathname === '/api/author-from-resource') {
+      const body = await parseJSONBody(req);
+      const {
+        resource_title,
+        domain = 'Criminal Law',
+        topic,
+        modality = 'both', // 'essay' | 'mcq' | 'both'
+        count = 1, // 1 | 3 | 5
+        instruction = ''
+      } = body;
+
+      const numQuestions = Math.min(Math.max(parseInt(count) || 1, 1), 5);
+      const generatedList = [];
+
+      try {
+        // 1. Fetch chunks or syllabus sections attached to this resource
+        let queryChunks = [];
+        if (resource_title && resource_title !== 'all') {
+          queryChunks = db.prepare(`
+            SELECT content, page_number, book_id, domain 
+            FROM rag_chunks 
+            WHERE book_id = ? OR domain = ? 
+            ORDER BY RANDOM() 
+            LIMIT ?
+          `).all(resource_title, domain, numQuestions * 2);
+        }
+
+        if (!queryChunks || queryChunks.length === 0) {
+          queryChunks = db.prepare(`
+            SELECT content, page_number, book_id, domain 
+            FROM rag_chunks 
+            WHERE domain LIKE ? 
+            ORDER BY RANDOM() 
+            LIMIT ?
+          `).all(`%${domain.slice(0, 10)}%`, numQuestions * 2);
+        }
+
+        // 2. Also look up unextracted syllabus sections for topics
+        const sections = db.prepare(`
+          SELECT id, topic_title, page_number, domain 
+          FROM syllabus_sections 
+          WHERE (domain = ? OR ? = 'all')
+          ORDER BY RANDOM() 
+          LIMIT ?
+        `).all(domain, domain, numQuestions);
+
+        for (let i = 0; i < numQuestions; i++) {
+          const chunk = queryChunks[i % (queryChunks.length || 1)] || null;
+          const section = sections[i % (sections.length || 1)] || null;
+
+          const chosenTopic = topic || (section ? section.topic_title : (chunk ? `Doctrine on ${domain}` : 'General Bar Doctrine'));
+          const chosenDomain = domain || (section ? section.domain : 'Criminal Law');
+          const page = chunk ? chunk.page_number : (section ? section.page_number : 100);
+          const excerpt = chunk ? chunk.content : `Authoritative Philippine doctrine in ${chosenDomain} regarding ${chosenTopic}.`;
+
+          // Generate modalities with AI using the real attached resource excerpt
+          const modalities = await generateQuestionModalitiesWithAI({
+            domain: chosenDomain,
+            topic: chosenTopic,
+            page: page,
+            excerpt: excerpt,
+            instruction: instruction
+          });
+
+          // Insert Essay if requested
+          if (modality === 'essay' || modality === 'both') {
+            const essayId = `q_essay_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+            db.prepare(`
+              INSERT INTO questions (
+                id, domain, type, topic, subject_hierarchy, difficulty,
+                fact_pattern, interrogatory, suggested_answer, extracted_rule
+              ) VALUES (?, ?, 'essay', ?, ?, 'hard', ?, ?, ?, ?)
+            `).run(
+              essayId,
+              chosenDomain,
+              chosenTopic,
+              JSON.stringify([chosenDomain, chosenTopic]),
+              modalities.essay.fact_pattern,
+              modalities.essay.interrogatory,
+              JSON.stringify(modalities.essay.suggested_answer),
+              modalities.essay.extracted_rule || `Grounded from ${resource_title || chosenDomain}`
+            );
+            generatedList.push({ id: essayId, type: 'essay', topic: chosenTopic, domain: chosenDomain });
+          }
+
+          // Insert MCQ if requested
+          if (modality === 'mcq' || modality === 'both') {
+            const mcqId = `q_mcq_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+            db.prepare(`
+              INSERT INTO questions (
+                id, domain, type, topic, subject_hierarchy, difficulty,
+                interrogatory, options, correct_answer, explanation
+              ) VALUES (?, ?, 'mcq', ?, ?, 'hard', ?, ?, ?, ?)
+            `).run(
+              mcqId,
+              chosenDomain,
+              chosenTopic,
+              JSON.stringify([chosenDomain, chosenTopic]),
+              modalities.mcq.question || modalities.mcq.interrogatory,
+              JSON.stringify(modalities.mcq.options),
+              modalities.mcq.correct_answer,
+              modalities.mcq.explanation
+            );
+            generatedList.push({ id: mcqId, type: 'mcq', topic: chosenTopic, domain: chosenDomain });
+          }
+
+          if (section) {
+            db.prepare('UPDATE syllabus_sections SET is_extracted = 1 WHERE id = ?').run(section.id);
+          }
+        }
+
+        return sendJSON(res, 200, {
+          success: true,
+          message: `Successfully generated and saved ${generatedList.length} resource-grounded question(s)!`,
+          created_count: generatedList.length,
+          questions: generatedList
+        });
+      } catch (err) {
+        return sendJSON(res, 500, { success: false, error: err.message });
+      }
+    }
+
+    // ----------------------------------------------------
+    // API: POST /api/questions/bulk-delete (Batch Question Deletion)
+    // ----------------------------------------------------
+    if (req.method === 'POST' && pathname === '/api/questions/bulk-delete') {
+      const body = await parseJSONBody(req);
+      const { ids } = body;
+
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return sendJSON(res, 400, { error: 'ids array is required' });
+      }
+
+      try {
+        const placeholders = ids.map(() => '?').join(',');
+        db.prepare(`DELETE FROM questions WHERE id IN (${placeholders})`).run(...ids);
+        return sendJSON(res, 200, {
+          success: true,
+          message: `Successfully deleted ${ids.length} question(s)!`,
+          deleted_count: ids.length
+        });
+      } catch (err) {
+        return sendJSON(res, 500, { success: false, error: err.message });
+      }
+    }
+
+    // ----------------------------------------------------
+    // API: POST /api/questions/bulk-refine (Batch AI Question Reformation)
+    // ----------------------------------------------------
+    if (req.method === 'POST' && pathname === '/api/questions/bulk-refine') {
+      const body = await parseJSONBody(req);
+      const { ids, instruction = 'Update jurisprudence to 2024 standards', target_field = 'all' } = body;
+
+      if (!Array.isArray(ids) || ids.length === 0) {
+        return sendJSON(res, 400, { error: 'ids array is required' });
+      }
+
+      try {
+        let updatedCount = 0;
+        for (const qId of ids) {
+          const row = db.prepare('SELECT * FROM questions WHERE id = ?').get(qId);
+          if (row) {
+            let suggestedAnswer = null;
+            let options = null;
+            try { suggestedAnswer = JSON.parse(row.suggested_answer); } catch (e) { suggestedAnswer = row.suggested_answer; }
+            try { options = JSON.parse(row.options); } catch (e) { options = row.options; }
+
+            const parsedQuestion = { ...row, suggested_answer: suggestedAnswer, options };
+            const refined = await refineQuestionModality({
+              original_question: parsedQuestion,
+              refinement_instruction: instruction,
+              target_field: target_field || 'all'
+            });
+
+            const safeAnswer = typeof refined.suggested_answer === 'object' ? JSON.stringify(refined.suggested_answer) : (refined.suggested_answer || '');
+            const safeRule = typeof refined.extracted_rule === 'object' ? JSON.stringify(refined.extracted_rule) : (refined.extracted_rule || '');
+            const safeOptions = Array.isArray(refined.options) ? JSON.stringify(refined.options) : (refined.options || '[]');
+
+            db.prepare(`
+              UPDATE questions SET
+                topic = ?,
+                fact_pattern = ?,
+                interrogatory = ?,
+                suggested_answer = ?,
+                extracted_rule = ?,
+                options = ?,
+                correct_answer = ?,
+                explanation = ?
+              WHERE id = ?
+            `).run(
+              refined.topic || row.topic,
+              refined.fact_pattern || row.fact_pattern || '',
+              refined.interrogatory || refined.question || row.interrogatory || '',
+              safeAnswer,
+              safeRule,
+              safeOptions,
+              refined.correct_answer || row.correct_answer || 'A',
+              refined.explanation || row.explanation || '',
+              qId
+            );
+            updatedCount++;
+          }
+        }
+
+        return sendJSON(res, 200, {
+          success: true,
+          message: `Successfully refined ${updatedCount} question(s) in batch!`,
+          updated_count: updatedCount
         });
       } catch (err) {
         return sendJSON(res, 500, { success: false, error: err.message });
