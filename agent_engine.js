@@ -305,6 +305,7 @@ Apply TARGETED EDITS based on user instructions while preserving the legal accur
  * RAG Knowledge Retrieval: Searches the 1,951 converted Markdown pages
  */
 const { retrieveHybridRAG, getVectorStoreStats } = require('./rag_indexer');
+const { searchWebJurisprudence } = require('./web_search');
 
 /**
  * LlamaIndex.TS & SQLite Vector Search across all 3,693 Reviewer Nodes
@@ -354,7 +355,7 @@ function searchReviewerKnowledgeBase({ query, domain = 'all', topK = 4 }) {
 }
 
 /**
- * AI Bar Assistant Chatbot with Grounded RAG
+ * AI Bar Assistant Chatbot with Grounded RAG & Anti-Hallucination Web Guardrail
  */
 async function chatWithReviewerRAG({ messages = [], domain = 'all' }) {
   const provider = getAIProvider();
@@ -364,33 +365,68 @@ async function chatWithReviewerRAG({ messages = [], domain = 'all' }) {
   const lastUserMsg = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
   const ragExcerpts = searchReviewerKnowledgeBase({ query: lastUserMsg, domain });
 
+  // Robust Entity & Key Term Grounding Check
+  const STOPWORDS = new Set([
+    'give', 'me', 'what', 'are', 'things', 'that', 'must', 'know', 'about', 'case', 'of', 'in', 'the', 'under',
+    'philippine', 'law', 'and', 'with', 'for', 'explain', 'discuss', 'summary', 'doctrine', 'how', 'when', 'why',
+    'which', 'can', 'could', 'would', 'should', 'tell', 'jurisprudence', 'rule', 'rules'
+  ]);
+
+  const rawTerms = (lastUserMsg || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !STOPWORDS.has(w));
+  let isEntityPresentInChunks = true;
+  let missingEntityName = '';
+
+  if (rawTerms.length > 0 && ragExcerpts.length > 0) {
+    const allChunkText = ragExcerpts.map(r => r.excerpt).join(' ').toLowerCase();
+    const matchingTerms = rawTerms.filter(t => allChunkText.includes(t));
+    
+    // If fewer than 40% of the candidate's core query terms are found in the retrieved chunk, it is ungrounded
+    if (matchingTerms.length === 0 || (matchingTerms.length / rawTerms.length) < 0.4) {
+      isEntityPresentInChunks = false;
+      missingEntityName = rawTerms.slice(0, 3).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+  }
+
+  // Web search fallback if query mentions specific case/person outside local reviewer
+  let webExcerpts = [];
+  if (!isEntityPresentInChunks || ragExcerpts.length === 0) {
+    webExcerpts = await searchWebJurisprudence(lastUserMsg, 2);
+  }
+
   const contextStr = ragExcerpts.length > 0
     ? ragExcerpts.map(r => `[SOURCE: ${r.book} | Page ${r.page}]\n${r.excerpt}`).join('\n\n---\n\n')
     : 'General 2026 Philippine Supreme Court Bar Syllabus Knowledge Base.';
+
+  const webContextStr = webExcerpts.length > 0
+    ? '\n\n[EXTERNAL PHILIPPINE JURISPRUDENCE SEARCH]:\n' + webExcerpts.map(w => `• ${w.title}: ${w.snippet}`).join('\n')
+    : '';
 
   const systemPrompt = `You are "Dean Phoenix", an elite Supreme Court Bar Examination Counsel, Legal Mentor, and Platform Guide for the 2026 Philippine Bar Examination Platform.
 Your dual mission is:
 1. Provide authoritative, doctrinal legal advice grounded directly in the 2026 Supreme Court Syllabus and Blue Phoenix Reviewers.
 2. Serve as a knowledgeable System Guide who can teach users how to use and navigate every feature of this Bar 2026 Mock Reviewer platform.
 
-PLATFORM NAVIGATION & TUTORIAL GUIDE:
-- **📊 Dashboard Tab**: Shows the Candidate's projected weighted score against the 75.0% passing threshold across all 6 Bar subjects (Criminal, Civil, Remedial, Commercial/Tax, Labor, Ethics), domain status (Passing Ready, Needs Practice, Critical Focus), and qualitative diagnostic reports.
-- **✍️ Essay Exam Tab**: Distraction-free exam simulator. Candidates type their answer under strict Bar exam conditions applying ALAC (Answer, Legal Basis, Application, Conclusion) and click "✨ Grade Answer with AI" for a 4-part rubric breakdown (10/30/50/10 points).
-- **⚡ Recall MCQs Tab**: Drill core definitions, exceptions, and requisites with instant doctrinal explanations.
-- **📚 Resources Studio Tab**:
-  1. *Reviewer Coverage*: Monitors total pages (1,951) across 6 books and 1,046 syllabus topics. Features "🚀 Auto-Scout & Ingest Next Batch" for autonomous agent question authoring.
-  2. *✨ AI Question Reformation*: Interactive workbench where instructors/examinees select any question, enter natural language prompts (e.g. "Update with 2024 Supreme Court En Banc ruling", "Add sub-question on civil liability"), inspect side-by-side diff previews, and save directly to SQLite.
-  3. *🔍 Raw Markdown Inspector*: View raw markdown reviewer excerpts and author custom questions with system directives.
-- **⚙️ Settings Modal (Top Right)**: Configure OpenCode Go Base URL (https://opencode.ai/zen/go/v1) or DeepSeek, test connection with "🔌 Test Connection", and fetch live models ("🔄 Fetch Live Models").
+CRITICAL ANTI-HALLUCINATION & HONESTY PROTOCOL:
+- If the user asks about a specific person, case title, or doctrine (such as "${missingEntityName || 'a specific case'}") that is NOT specifically discussed in the retrieved reviewer excerpts:
+  YOU MUST EXPLICITLY BEGIN by stating:
+  "There is no specific account or discussion of the case of ${missingEntityName || 'this specific entity'} in the 2026 Blue Phoenix Reviewer books on this matter. However, regarding the related legal doctrine..."
+- NEVER present generic or unrelated disbarment, remedial, or criminal statutory excerpts as if they are the direct ruling of that person or case.
+- Be rigorously honest about the boundary between what is inside the 2026 Reviewer books vs external jurisprudence.
 
-LEGAL DOCTRINE GUIDELINES:
-1. Cite specific statutory Articles (e.g. Civil Code, Revised Penal Code, Rules of Court) and Supreme Court doctrines.
-2. Structure doctrinal answers clearly (Elements, Exceptions, Jurisprudence).
-3. If grounded in the provided source texts, explicitly reference the source page (e.g., "[Source: Criminal Law Reviewer, Page 45]").
-4. If a user asks for platform help or how to change questions/resources, explain the exact tab, button, and workflow methodically.
+PLATFORM NAVIGATION & TUTORIAL GUIDE:
+- **📊 Dashboard Tab**: Shows Candidate's projected weighted score against 75.0% passing threshold across all 6 Bar subjects, domain status (Passing Ready, Needs Practice, Critical Focus), and diagnostic reports.
+- **✍️ Essay Exam Tab**: Distraction-free exam simulator applying ALAC (Answer, Legal Basis, Application, Conclusion) with 4-part rubric grading (10/30/50/10 points).
+- **⚡ Recall MCQs Tab**: Drill core definitions, exceptions, and requisites with instant explanations.
+- **📚 Resources Studio Tab**:
+  1. *Reviewer Coverage*: 1,951 pages across 6 books and 1,046 syllabus topics.
+  2. *✨ AI Question Reformation*: Interactive workbench to reform questions with 2024 SC doctrines or custom prompts.
+  3. *🧠 Vector Knowledge Hub*: Semantic search across 3,693 LlamaIndex nodes.
+  4. *🔍 Raw Markdown Inspector*: View raw markdown excerpts and author custom questions.
+- **🧪 AI Evals Tab**: Live LLM-as-a-Judge and RAG Triad benchmark suite with token diet proof.
+- **⚙️ Settings Modal (Top Right)**: Configure OpenCode Go Base URL, API key, and model.
 
 GROUNDED REVIEWER EXCERPTS:
-${contextStr}`;
+${contextStr}${webContextStr}`;
 
   if (apiKey) {
     try {
@@ -398,8 +434,8 @@ ${contextStr}`;
         model: provider(modelName),
         system: systemPrompt,
         messages: messages.map(m => ({ role: m.role, content: m.content })),
-        temperature: 0.3,
-        abortSignal: AbortSignal.timeout(6000)
+        temperature: 0.2,
+        abortSignal: AbortSignal.timeout(8000)
       });
 
       return {
@@ -468,10 +504,22 @@ To update or reform any Bar question (e.g., inject 2024–2026 Supreme Court En 
     };
   }
 
-  // Grounded local fallback reply
+  // Grounded local fallback reply with Honest Negative Disclaimer check
+  if (!isEntityPresentInChunks && missingEntityName) {
+    let externalSnippet = '';
+    if (webExcerpts.length > 0) {
+      externalSnippet = `\n\n**External Philippine Jurisprudence Reference:**\n• **${webExcerpts[0].title}**: ${webExcerpts[0].snippet}`;
+    }
+
+    return {
+      reply: `⚖️ **Notice Regarding Case Grounding:**\nThere is no specific account or discussion of the case of **${missingEntityName}** in the 2026 Blue Phoenix Reviewer books on this matter.\n\nHowever, under Philippine Law and Supreme Court jurisprudence, the governing rules and related statutory requisites apply as established by the Court.${externalSnippet}\n\n*Tip: Connect your OpenCode Go API key in Settings ⚙️ for comprehensive multi-case legal synthesis.*`,
+      citations: []
+    };
+  }
+
   const citationList = ragExcerpts.map(r => `• ${r.book} (Page ${r.page})`).join('\n');
   const excerptSummary = ragExcerpts.length > 0
-    ? `Here is the authoritative doctrine extracted directly from the Reviewer:\n\n> "${ragExcerpts[0].excerpt.slice(0, 300)}..."\n\n**Key Legal Elements & Doctrine:**\nUnder Philippine law, this requires categorical compliance with statutory requisites and established Supreme Court jurisprudence.`
+    ? `Here is the relevant doctrine extracted from the 2026 Reviewer:\n\n> "${ragExcerpts[0].excerpt.slice(0, 300)}..."\n\n**Key Legal Elements & Doctrine:**\nUnder Philippine law, this requires compliance with the governing statutory requisites.`
     : `Under the 2026 Philippine Bar Examination Syllabus, this topic is governed by the statutory provisions and established doctrines of the Supreme Court.`;
 
   return {
