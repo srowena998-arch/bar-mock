@@ -69,6 +69,13 @@ document.addEventListener('alpine:init', () => {
     isRagSearching: false,
     ragStats: null,
 
+    // AI Quality Benchmarks & Evals State
+    evalTestCases: [],
+    evalResults: {},
+    evalScorecard: null,
+    isRunningEvals: false,
+    activeEvalTestId: null,
+
     // Chatbot RAG State
     showChatbot: false,
     isChatLoading: false,
@@ -116,8 +123,13 @@ document.addEventListener('alpine:init', () => {
       await this.loadExtractionProgress();
       await this.loadReadinessAnalytics();
       await this.fetchLiveModels();
+      await this.loadEvalTestCases();
       this.startTimer();
       this.loadSavedEssayAnswer();
+
+      if (window.location.search.includes('tab=evals') || window.location.search.includes('evals=true')) {
+        this.currentTab = 'evals';
+      }
       
       this.$nextTick(() => {
         if (window.lucide) window.lucide.createIcons();
@@ -350,6 +362,64 @@ document.addEventListener('alpine:init', () => {
       this.studioStrategyGuide = `Author a strict 2026 Philippine Bar Examination essay and MCQ directly testing the doctrine: "${chunk.topic}" on Page ${chunk.page} of ${chunk.book}.`;
       this.resourcesTab = 'inspector';
       this.showToastNotification(`✨ Loaded chunk from Page ${chunk.page} into Authoring Inspector!`);
+    },
+
+    // AI Quality Evaluation & Benchmarking Methods
+    async loadEvalTestCases() {
+      try {
+        const res = await fetch('/api/evals/test-cases');
+        if (res.ok) {
+          const data = await res.json();
+          this.evalTestCases = data.test_cases || [];
+        }
+      } catch(e) {
+        console.warn('Failed to load eval test cases', e);
+      }
+    },
+
+    async runSingleEval(testId) {
+      this.activeEvalTestId = testId;
+      try {
+        const res = await fetch('/api/evals/run-single', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ test_id: testId })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          this.evalResults[testId] = data.result;
+          this.showToastNotification(`✨ ${data.result.name}: ${data.result.status}`);
+        } else {
+          this.showToastNotification(`⚠️ Eval failed for ${testId}`);
+        }
+      } catch (e) {
+        this.showToastNotification(`⚠️ Error running eval: ${e.message}`);
+      } finally {
+        this.activeEvalTestId = null;
+      }
+    },
+
+    async runAllEvals() {
+      this.isRunningEvals = true;
+      this.evalScorecard = null;
+      this.evalResults = {};
+      try {
+        const res = await fetch('/api/evals/run-all', { method: 'POST' });
+        if (res.ok) {
+          const data = await res.json();
+          this.evalScorecard = data.scorecard;
+          if (data.scorecard.results) {
+            data.scorecard.results.forEach(r => {
+              this.evalResults[r.test_id] = r;
+            });
+          }
+          this.showToastNotification(`🎉 All Benchmarks Complete: ${data.scorecard.overall_score} Score!`);
+        }
+      } catch (e) {
+        this.showToastNotification(`⚠️ Benchmark suite error: ${e.message}`);
+      } finally {
+        this.isRunningEvals = false;
+      }
     },
     
     // Extraction Studio Actions

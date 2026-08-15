@@ -5,6 +5,7 @@ const path = require('node:path');
 const { db, getConfig, setConfig } = require('./db');
 const { runAutonomousIngestAgent, runDiagnosticAgent, refineQuestionModality, chatWithReviewerRAG } = require('./agent_engine');
 const { retrieveHybridRAG, getVectorStoreStats, indexAllReviewerBooks } = require('./rag_indexer');
+const { EVAL_TEST_CASES, runSingleEvaluation, runAllEvaluations } = require('./eval_engine');
 
 const PORT = process.env.PORT || 8080;
 
@@ -570,6 +571,47 @@ Output strictly JSON:
         message: `Successfully indexed ${result.total_chunks} LlamaIndex chunks into SQLite Vector Store!`,
         result
       });
+    }
+
+    // ----------------------------------------------------
+    // API: GET /api/evals/test-cases
+    // ----------------------------------------------------
+    if (req.method === 'GET' && pathname === '/api/evals/test-cases') {
+      return sendJSON(res, 200, {
+        success: true,
+        test_cases: EVAL_TEST_CASES
+      });
+    }
+
+    // ----------------------------------------------------
+    // API: POST /api/evals/run-single
+    // ----------------------------------------------------
+    if (req.method === 'POST' && pathname === '/api/evals/run-single') {
+      const body = await parseJSONBody(req);
+      const { test_id } = body;
+
+      if (!test_id) {
+        return sendJSON(res, 400, { error: 'test_id is required' });
+      }
+
+      try {
+        const result = await runSingleEvaluation(test_id);
+        return sendJSON(res, 200, { success: true, result });
+      } catch(err) {
+        return sendJSON(res, 500, { success: false, error: err.message });
+      }
+    }
+
+    // ----------------------------------------------------
+    // API: POST /api/evals/run-all (With Rate-Limiting Guardrails)
+    // ----------------------------------------------------
+    if (req.method === 'POST' && pathname === '/api/evals/run-all') {
+      try {
+        const scorecard = await runAllEvaluations({ delayMs: 800 });
+        return sendJSON(res, 200, { success: true, scorecard });
+      } catch(err) {
+        return sendJSON(res, 500, { success: false, error: err.message });
+      }
     }
 
     // ----------------------------------------------------
