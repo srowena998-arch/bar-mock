@@ -589,20 +589,33 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
+    selectQuestionToReform(q) {
+      if (!q) return;
+      this.activeRefineQuestion = JSON.parse(JSON.stringify(q));
+      this.refinePreviewData = null;
+      this.refineInstruction = '';
+      this.refineItemType = q.type || (q.options ? 'mcq' : 'essay');
+      this.refineTargetField = 'all';
+    },
+
     async applyRefinedQuestion() {
-      if (!this.refinePreviewData || !this.refinePreviewData.refined) return;
+      const qToSave = this.refinePreviewData?.refined || this.activeRefineQuestion;
+      if (!qToSave || !qToSave.id) return;
       
       try {
         const res = await fetch('/api/update-question', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ question: this.refinePreviewData.refined })
+          body: JSON.stringify({ question: qToSave })
         });
 
         if (res.ok) {
-          this.showToastNotification('💾 Refined question committed to SQLite DB!');
+          this.showToastNotification('💾 Question changes committed to SQLite Question Bank!');
           this.showRefineModal = false;
+          this.activeRefineQuestion = JSON.parse(JSON.stringify(qToSave));
+          this.refinePreviewData = null;
           await this.loadQuestions();
+          await this.loadModalityCoverage();
         } else {
           this.showToastNotification('⚠️ Failed to commit refined question.');
         }

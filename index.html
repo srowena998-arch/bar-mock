@@ -1640,129 +1640,294 @@
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             <!-- Left Column: Question Browser (5 Cols) -->
-            <div class="lg:col-span-5 space-y-2.5 max-h-[580px] overflow-y-auto pr-1">
-              <template x-for="q in allQuestions.filter(item => 
+            <div class="lg:col-span-5 space-y-2.5 max-h-[680px] overflow-y-auto pr-1">
+              <div class="flex items-center justify-between px-1 text-xs text-slate-500 pb-1 border-b border-slate-100">
+                <span class="font-bold uppercase tracking-wider text-[10px]">Select from Question Bank</span>
+                <span class="font-mono text-[10px]" x-text="`${questions.filter(item => (reformationDomain === 'all' || item.domain === reformationDomain) && (reformationType === 'all' || item.type === reformationType) && (!reformationSearch || item.topic.toLowerCase().includes(reformationSearch.toLowerCase()) || (item.question || item.fact_pattern || '').toLowerCase().includes(reformationSearch.toLowerCase()))).length} Questions Available`"></span>
+              </div>
+
+              <template x-for="q in questions.filter(item => 
                 (reformationDomain === 'all' || item.domain === reformationDomain) && 
                 (reformationType === 'all' || item.type === reformationType) &&
-                (!reformationSearch || item.topic.toLowerCase().includes(reformationSearch.toLowerCase()) || (item.question || item.fact_pattern || '').toLowerCase().includes(reformationSearch.toLowerCase()))
+                (!reformationSearch || item.topic.toLowerCase().includes(reformationSearch.toLowerCase()) || (item.question || item.fact_pattern || item.interrogatory || '').toLowerCase().includes(reformationSearch.toLowerCase()))
               )" :key="q.id">
                 <div 
-                  @click="openRefineModalForQuestion(q)"
-                  :class="activeRefineQuestion?.id === q.id ? 'border-amber-500 bg-amber-50/40 ring-2 ring-amber-500/20' : 'border-slate-200 bg-white hover:border-slate-300'"
-                  class="p-3.5 rounded-2xl border transition shadow-xs cursor-pointer space-y-1.5"
+                  @click="selectQuestionToReform(q)"
+                  :class="activeRefineQuestion?.id === q.id ? 'border-amber-500 bg-amber-50/50 ring-2 ring-amber-500/20 shadow-sm' : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'"
+                  class="p-3.5 rounded-2xl border transition shadow-2xs cursor-pointer space-y-1.5"
                 >
                   <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-1.5">
+                    <div class="flex items-center gap-1.5 truncate max-w-[75%]">
                       <span 
                         :class="q.type === 'essay' ? 'bg-indigo-50 text-indigo-800 border-indigo-200' : 'bg-amber-50 text-amber-800 border-amber-200'"
-                        class="px-2 py-0.5 rounded-md text-[9px] font-bold font-mono uppercase border"
-                        x-text="q.type"
+                        class="px-2 py-0.5 rounded-md text-[9px] font-bold font-mono uppercase border shrink-0"
+                        x-text="q.type === 'essay' ? '✍️ Essay' : '⚡ MCQ'"
                       ></span>
-                      <span class="text-xs font-bold text-slate-900 truncate max-w-[170px]" x-text="q.topic"></span>
+                      <span class="text-xs font-bold text-slate-900 truncate" x-text="q.topic"></span>
                     </div>
-                    <span class="text-[10px] text-slate-400 font-mono" x-text="q.domain"></span>
+                    <span class="text-[10px] text-slate-400 font-mono shrink-0" x-text="q.domain.slice(0, 12) + '...'"></span>
                   </div>
 
-                  <p class="text-[11px] text-slate-600 line-clamp-2" x-text="q.type === 'essay' ? q.fact_pattern : q.question"></p>
+                  <p class="text-[11px] text-slate-600 line-clamp-2 leading-relaxed" x-text="q.type === 'essay' ? q.fact_pattern : (q.question || q.interrogatory)"></p>
                 </div>
               </template>
+
+              <div 
+                x-show="questions.filter(item => (reformationDomain === 'all' || item.domain === reformationDomain) && (reformationType === 'all' || item.type === reformationType)).length === 0" 
+                class="p-8 text-center bg-white rounded-2xl border border-slate-200 space-y-2"
+              >
+                <span class="text-2xl">🔍</span>
+                <p class="text-xs text-slate-500">No questions match your current filter.</p>
+                <button @click="reformationDomain = 'all'; reformationType = 'all'; reformationSearch = '';" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold">Reset Filters</button>
+              </div>
             </div>
 
             <!-- Right Column: Interactive Prompt & Reformation Canvas (7 Cols) -->
-            <div class="lg:col-span-7 bg-slate-50 border border-slate-200 rounded-3xl p-5 sm:p-6 space-y-4">
+            <div class="lg:col-span-7 bg-white border border-slate-200 rounded-3xl p-5 sm:p-6 space-y-5 shadow-xs">
               
+              <!-- Empty State Guide -->
               <template x-if="!activeRefineQuestion">
-                <div class="flex flex-col items-center justify-center min-h-[360px] text-center p-6 space-y-3">
-                  <div class="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-2xl shadow-xs">
+                <div class="flex flex-col items-center justify-center min-h-[420px] text-center p-6 space-y-4">
+                  <div class="w-14 h-14 rounded-3xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-3xl shadow-xs">
                     👈
                   </div>
-                  <h4 class="font-bold text-slate-800 text-sm">Select a Question to Reform</h4>
-                  <p class="text-xs text-slate-500 max-w-sm">Click on any Essay or MCQ question from the list on the left to open the in-place prompt bar, inject modern jurisprudence, or expand choices.</p>
+                  <div class="space-y-1">
+                    <h4 class="font-bold text-slate-900 text-base">Select a Question to Reform</h4>
+                    <p class="text-xs text-slate-500 max-w-md">Click on any Essay or MCQ question from the list on the left to edit in-place, synthesize modern 2024–2026 jurisprudence, or restructure ALAC rubrics.</p>
+                  </div>
+
+                  <div class="flex items-center gap-2 pt-2">
+                    <button 
+                      @click="if (questions.length > 0) selectQuestionToReform(questions[0])" 
+                      class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-xs transition flex items-center gap-1.5"
+                    >
+                      <span>✨</span> Select First Question
+                    </button>
+                    <button 
+                      @click="openAuthorModal()" 
+                      class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs transition flex items-center gap-1.5"
+                    >
+                      <span>➕</span> Author New Question
+                    </button>
+                  </div>
                 </div>
               </template>
 
+              <!-- Active Question Reformation Canvas -->
               <template x-if="activeRefineQuestion">
-                <div class="space-y-4">
-                  <!-- Selected Question Header -->
-                  <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                <div class="space-y-5">
+                  
+                  <!-- Selected Question Header Bar -->
+                  <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
                     <div class="flex items-center gap-2">
                       <span 
-                        :class="activeRefineQuestion.type === 'essay' ? 'bg-indigo-100 text-indigo-900' : 'bg-amber-100 text-amber-900'"
-                        class="px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase"
-                        x-text="activeRefineQuestion.type"
+                        :class="activeRefineQuestion.type === 'essay' ? 'bg-indigo-50 text-indigo-900 border-indigo-200' : 'bg-amber-50 text-amber-900 border-amber-200'"
+                        class="px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase border"
+                        x-text="activeRefineQuestion.type === 'essay' ? '✍️ Essay Question (ALAC)' : '⚡ Recall MCQ'"
                       ></span>
-                      <h4 class="text-xs font-bold text-slate-900" x-text="activeRefineQuestion.topic"></h4>
+                      <span class="text-xs font-bold text-slate-900" x-text="activeRefineQuestion.topic"></span>
                     </div>
-                    <span class="text-[11px] text-slate-500 font-mono" x-text="activeRefineQuestion.domain"></span>
+
+                    <div class="flex items-center gap-2">
+                      <span class="text-[11px] text-slate-500 font-mono" x-text="activeRefineQuestion.domain"></span>
+                      <button 
+                        @click="applyRefinedQuestion()" 
+                        class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-xs transition flex items-center gap-1"
+                      >
+                        <span>💾</span> Save to SQLite
+                      </button>
+                    </div>
                   </div>
 
-                  <!-- Active Question Preview -->
-                  <div class="p-3.5 rounded-2xl bg-white border border-slate-200 text-xs space-y-1.5">
-                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Current Text:</span>
-                    <p class="text-slate-800 leading-relaxed font-serif" x-text="activeRefineQuestion.type === 'essay' ? activeRefineQuestion.fact_pattern : activeRefineQuestion.question"></p>
-                    <div x-show="activeRefineQuestion.interrogatory" class="text-slate-900 font-semibold pt-1 border-t border-slate-100" x-text="`Interrogatory: ${activeRefineQuestion.interrogatory}`"></div>
-                  </div>
+                  <!-- Direct In-Place Field Editor (Essay Modality) -->
+                  <template x-if="activeRefineQuestion.type === 'essay'">
+                    <div class="space-y-3 bg-slate-50/70 border border-slate-200 rounded-2xl p-4 text-xs">
+                      <div>
+                        <label class="block text-slate-700 font-semibold mb-1">Fact Pattern / Case Scenario:</label>
+                        <textarea 
+                          x-model="activeRefineQuestion.fact_pattern" 
+                          rows="3" 
+                          class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2.5 text-xs text-slate-900 leading-relaxed outline-none transition"
+                        ></textarea>
+                      </div>
 
-                  <!-- Component Target Selector (for Essays) -->
+                      <div>
+                        <label class="block text-slate-700 font-semibold mb-1">Interrogatory / Question Call:</label>
+                        <input 
+                          type="text" 
+                          x-model="activeRefineQuestion.interrogatory" 
+                          class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2.5 text-xs text-slate-900 font-semibold outline-none transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label class="block text-slate-700 font-semibold mb-1">Suggested ALAC Breakdown:</label>
+                        <template x-if="typeof activeRefineQuestion.suggested_answer === 'object' && activeRefineQuestion.suggested_answer !== null">
+                          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1">
+                              <span class="text-[10px] font-bold text-amber-800 uppercase">Issue:</span>
+                              <textarea x-model="activeRefineQuestion.suggested_answer.issue" rows="2" class="w-full text-xs text-slate-800 outline-none resize-none bg-transparent"></textarea>
+                            </div>
+                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1">
+                              <span class="text-[10px] font-bold text-indigo-800 uppercase">Legal Basis:</span>
+                              <textarea x-model="activeRefineQuestion.suggested_answer.rule" rows="2" class="w-full text-xs text-slate-800 outline-none resize-none bg-transparent"></textarea>
+                            </div>
+                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1">
+                              <span class="text-[10px] font-bold text-emerald-800 uppercase">Application:</span>
+                              <textarea x-model="activeRefineQuestion.suggested_answer.analysis" rows="2" class="w-full text-xs text-slate-800 outline-none resize-none bg-transparent"></textarea>
+                            </div>
+                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1">
+                              <span class="text-[10px] font-bold text-slate-800 uppercase">Conclusion:</span>
+                              <textarea x-model="activeRefineQuestion.suggested_answer.conclusion" rows="2" class="w-full text-xs text-slate-800 outline-none resize-none bg-transparent"></textarea>
+                            </div>
+                          </div>
+                        </template>
+
+                        <template x-if="typeof activeRefineQuestion.suggested_answer !== 'object' || activeRefineQuestion.suggested_answer === null">
+                          <textarea 
+                            x-model="activeRefineQuestion.suggested_answer" 
+                            rows="4" 
+                            class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2.5 text-xs text-slate-900 font-mono leading-relaxed outline-none"
+                          ></textarea>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- Direct In-Place Field Editor (MCQ Modality) -->
+                  <template x-if="activeRefineQuestion.type === 'mcq'">
+                    <div class="space-y-3 bg-slate-50/70 border border-slate-200 rounded-2xl p-4 text-xs">
+                      <div>
+                        <label class="block text-slate-700 font-semibold mb-1">MCQ Question / Prompt:</label>
+                        <input 
+                          type="text" 
+                          x-model="activeRefineQuestion.question" 
+                          class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2.5 text-xs text-slate-900 font-semibold outline-none transition"
+                        />
+                      </div>
+
+                      <div class="space-y-2">
+                        <label class="block text-slate-700 font-semibold">4 Distractor Options:</label>
+                        <template x-for="(opt, oIdx) in (activeRefineQuestion.options || [])" :key="oIdx">
+                          <input 
+                            type="text" 
+                            x-model="activeRefineQuestion.options[oIdx]" 
+                            class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2 text-xs text-slate-800 outline-none transition"
+                          />
+                        </template>
+                      </div>
+
+                      <div class="grid grid-cols-2 gap-3">
+                        <div>
+                          <label class="block text-slate-700 font-semibold mb-1">Correct Answer Key:</label>
+                          <select x-model="activeRefineQuestion.correct_answer" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold font-mono">
+                            <option value="A">A</option>
+                            <option value="B">B</option>
+                            <option value="C">C</option>
+                            <option value="D">D</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label class="block text-slate-700 font-semibold mb-1">Doctrinal Rationale:</label>
+                          <input 
+                            type="text" 
+                            x-model="activeRefineQuestion.explanation" 
+                            class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-800 outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- Target Component Selector (for Essays) -->
                   <template x-if="activeRefineQuestion.type === 'essay'">
                     <div>
-                      <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Target Component to Modify</label>
+                      <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">AI Target Component to Modify</label>
                       <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
                         <button 
                           @click="refineTargetField = 'all'" 
-                          :class="refineTargetField === 'all' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-white border-slate-200 text-slate-600'"
-                          class="p-1.5 rounded-xl border text-center transition text-[11px]"
-                        >All Components</button>
+                          :class="refineTargetField === 'all' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+                          class="p-2 rounded-xl border text-center transition text-[11px]"
+                        >All (Regenerate Essay)</button>
                         <button 
                           @click="refineTargetField = 'fact_pattern'" 
-                          :class="refineTargetField === 'fact_pattern' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-white border-slate-200 text-slate-600'"
-                          class="p-1.5 rounded-xl border text-center transition text-[11px]"
+                          :class="refineTargetField === 'fact_pattern' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+                          class="p-2 rounded-xl border text-center transition text-[11px]"
                         >Fact Pattern Only</button>
                         <button 
                           @click="refineTargetField = 'interrogatory'" 
-                          :class="refineTargetField === 'interrogatory' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-white border-slate-200 text-slate-600'"
-                          class="p-1.5 rounded-xl border text-center transition text-[11px]"
+                          :class="refineTargetField === 'interrogatory' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+                          class="p-2 rounded-xl border text-center transition text-[11px]"
                         >Interrogatory Only</button>
                         <button 
                           @click="refineTargetField = 'suggested_answer'" 
-                          :class="refineTargetField === 'suggested_answer' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-white border-slate-200 text-slate-600'"
-                          class="p-1.5 rounded-xl border text-center transition text-[11px]"
+                          :class="refineTargetField === 'suggested_answer' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+                          class="p-2 rounded-xl border text-center transition text-[11px]"
                         >Answer / ALAC Only</button>
                       </div>
                     </div>
                   </template>
 
-                  <!-- Direct Prompt Input Box -->
-                  <div class="space-y-1.5">
+                  <!-- Target Component Selector (for MCQs) -->
+                  <template x-if="activeRefineQuestion.type === 'mcq'">
+                    <div>
+                      <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">AI Target Component to Modify</label>
+                      <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
+                        <button 
+                          @click="refineTargetField = 'all'" 
+                          :class="refineTargetField === 'all' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+                          class="p-2 rounded-xl border text-center transition text-[11px]"
+                        >All (Regenerate MCQ)</button>
+                        <button 
+                          @click="refineTargetField = 'question'" 
+                          :class="refineTargetField === 'question' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+                          class="p-2 rounded-xl border text-center transition text-[11px]"
+                        >Question Prompt Only</button>
+                        <button 
+                          @click="refineTargetField = 'options'" 
+                          :class="refineTargetField === 'options' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+                          class="p-2 rounded-xl border text-center transition text-[11px]"
+                        >4 Distractors Only</button>
+                        <button 
+                          @click="refineTargetField = 'explanation'" 
+                          :class="refineTargetField === 'explanation' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+                          class="p-2 rounded-xl border text-center transition text-[11px]"
+                        >Explanation Only</button>
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- Direct Prompt Input Box with 1-Click Presets -->
+                  <div class="space-y-2">
                     <div class="flex items-center justify-between">
-                      <label class="text-xs font-bold text-slate-800">Natural Language Reformation Prompt</label>
-                      <span class="text-[10px] text-slate-400 font-mono">OpenCode Go / AI SDK</span>
+                      <label class="text-xs font-bold text-slate-800">Natural Language AI Reformation Prompt</label>
+                      <span class="text-[10px] text-slate-400 font-mono">DeepSeek / OpenCode Go Engine</span>
                     </div>
 
                     <!-- Quick Preset Chips -->
                     <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-[10px]">
-                      <span class="text-slate-400 font-semibold">Presets:</span>
-                      <button @click="refineInstruction = 'Update jurisprudence to reflect 2024 Supreme Court En Banc doctrines'" class="px-2.5 py-1 rounded-full bg-white hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition">+ 2024 Jurisprudence</button>
-                      <button @click="refineInstruction = 'Add a third-party cross-claim and procedural timeline twist'" class="px-2.5 py-1 rounded-full bg-white hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition">+ Timeline Twist</button>
-                      <button @click="refineInstruction = 'Format suggested answer strictly into categorical ALAC with statutory articles'" class="px-2.5 py-1 rounded-full bg-white hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition">+ Strict ALAC</button>
-                      <button @click="refineInstruction = 'Expand MCQ with 4 plausible distractors testing subtle exceptions'" class="px-2.5 py-1 rounded-full bg-white hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition">+ Tricky Distractors</button>
+                      <span class="text-slate-400 font-semibold shrink-0">Presets:</span>
+                      <button @click="refineInstruction = 'Update jurisprudence to reflect recent 2024 Supreme Court En Banc doctrines'" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition whitespace-nowrap">+ 2024 Jurisprudence</button>
+                      <button @click="refineInstruction = 'Add a third-party cross-claim and procedural timeline twist'" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition whitespace-nowrap">+ Complex Twist</button>
+                      <button @click="refineInstruction = 'Format suggested answer strictly into categorical ALAC with statutory articles'" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition whitespace-nowrap">+ Strict ALAC</button>
+                      <button @click="refineInstruction = 'Expand MCQ with 4 plausible distractors testing subtle exceptions'" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition whitespace-nowrap">+ Tricky Traps</button>
                     </div>
 
                     <textarea 
                       x-model="refineInstruction" 
                       placeholder="Type your reformation instruction here (e.g. 'Update fact pattern with a 2024 jurisprudence scenario and test sub-question (b) on damages')..."
-                      class="w-full h-24 bg-white border border-slate-200 focus:border-amber-500 rounded-2xl p-3 text-slate-900 outline-none resize-none leading-relaxed text-xs transition"
+                      class="w-full h-24 bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-2xl p-3 text-slate-900 outline-none resize-none leading-relaxed text-xs transition"
                     ></textarea>
                   </div>
 
                   <!-- Synthesize Action Button -->
-                  <div class="flex items-center justify-between">
+                  <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
                     <button 
                       @click="executeRefineQuestion()" 
                       :disabled="isRefining || !refineInstruction.trim()"
                       class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-40 text-slate-950 font-bold text-xs shadow-md transition flex items-center gap-2"
                     >
-                      <span x-show="!isRefining">⚡ Synthesize Refinement with AI SDK</span>
+                      <span x-show="!isRefining">⚡ Synthesize Refinement with AI</span>
                       <span x-show="isRefining" class="flex items-center gap-1.5">
                         <span class="inline-block w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
                         <span>Synthesizing...</span>
@@ -1778,23 +1943,23 @@
                   </div>
 
                   <!-- Inline Split Diff Preview & Commit -->
-                  <div x-show="refinePreviewData" x-transition class="p-4 rounded-2xl bg-white border border-amber-300 shadow-sm space-y-3">
-                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                      <span class="text-xs font-bold text-amber-800 uppercase flex items-center gap-1.5">
+                  <div x-show="refinePreviewData" x-transition class="p-4 rounded-2xl bg-amber-50/70 border border-amber-300 shadow-xs space-y-3">
+                    <div class="flex items-center justify-between border-b border-amber-200/80 pb-2">
+                      <span class="text-xs font-bold text-amber-900 uppercase flex items-center gap-1.5">
                         <span>📋</span> Synthesized Output (Ready to Commit)
                       </span>
                       <button 
                         @click="applyRefinedQuestion()" 
                         class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5"
                       >
-                        <span>💾</span> Apply & Save to SQLite
+                        <span>💾</span> Apply & Save to Question Bank
                       </button>
                     </div>
 
                     <div class="text-xs space-y-2">
                       <p class="text-slate-800 font-serif leading-relaxed" x-text="refinePreviewData?.refined?.fact_pattern || refinePreviewData?.refined?.question"></p>
-                      <div x-show="refinePreviewData?.refined?.interrogatory" class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-slate-900 font-semibold" x-text="refinePreviewData?.refined?.interrogatory"></div>
-                      <div x-show="refinePreviewData?.refined?.explanation" class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700" x-text="refinePreviewData?.refined?.explanation"></div>
+                      <div x-show="refinePreviewData?.refined?.interrogatory" class="p-2.5 rounded-xl bg-white border border-amber-200 text-slate-900 font-semibold" x-text="refinePreviewData?.refined?.interrogatory"></div>
+                      <div x-show="refinePreviewData?.refined?.explanation" class="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-700" x-text="refinePreviewData?.refined?.explanation"></div>
                     </div>
                   </div>
 
