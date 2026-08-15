@@ -665,14 +665,16 @@ document.addEventListener('alpine:init', () => {
           })
         });
         
-        if (res.ok) {
-          const data = await res.json();
+        const data = await res.json();
+
+        if (res.ok && data.success && data.evaluation) {
           this.evaluationResult = data.evaluation;
           this.showToastNotification(`✨ Graded: ${data.evaluation.score}% / 100% (Saved to DB)`);
           await this.loadRecentAttempts();
           await this.loadReadinessAnalytics();
         } else {
-          this.showToastNotification('⚠️ Evaluation failed. Check server logs.');
+          const errorMsg = data.error || 'AI Evaluation failed. Please check your API key in Settings ⚙️';
+          this.showToastNotification(`⚠️ ${errorMsg}`);
         }
       } catch (err) {
         console.error('Grade error:', err);

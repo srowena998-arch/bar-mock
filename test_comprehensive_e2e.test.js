@@ -281,12 +281,16 @@ test('API POST /api/settings: Full key persistence without truncation on GET', a
   assert.equal(getRes.json.settings.default_model, 'deepseek-v4-flash');
 });
 
-test('API POST /api/evaluate: Full scoring flow with ALAC & IRAC rubrics, attempt persistence, and deep-dive concept', async () => {
+test('API POST /api/evaluate: Strict non-recording on failed AI response & validation guardrails', async () => {
   const questionRes = await request('GET', '/api/questions');
   const sampleQ = questionRes.json.questions.find(q => q.type === 'essay');
   assert.ok(sampleQ, 'At least one essay question must exist');
 
-  // Submit categorical ALAC answer
+  // Clear existing attempts count for sampleQ
+  const initialAttemptsRes = await request('GET', `/api/attempts/${sampleQ.id}`);
+  const initialCount = initialAttemptsRes.json.attempts.length;
+
+  // Submit answer without a valid API key (using invalid test key)
   const evalRes = await request('POST', '/api/evaluate', {
     question_id: sampleQ.id,
     user_answer: `Answer: Yes, the petition should be granted.
@@ -295,25 +299,15 @@ Application: Here, the loan agreement was executed in writing on May 15, 2014, a
 Conclusion: Wherefore, the motion to dismiss grounded on prescription must be denied.`
   });
 
-  assert.equal(evalRes.status, 200);
-  assert.equal(evalRes.json.success, true);
-  assert.ok(evalRes.json.attempt_id);
-  assert.ok(evalRes.json.evaluation.score >= 0 && evalRes.json.evaluation.score <= 100);
-  
-  // Verify 4-part rubric breakdown
-  const b = evalRes.json.evaluation.breakdown;
-  assert.ok(b.issue_or_answer >= 0 && b.issue_or_answer <= 10);
-  assert.ok(b.legal_basis >= 0 && b.legal_basis <= 30);
-  assert.ok(b.application >= 0 && b.application <= 50);
-  assert.ok(b.conclusion >= 0 && b.conclusion <= 10);
+  // When AI API fails, endpoint MUST return 400 and recorded: false
+  assert.equal(evalRes.status, 400);
+  assert.equal(evalRes.json.success, false);
+  assert.equal(evalRes.json.recorded, false);
+  assert.ok(evalRes.json.error.includes('AI Evaluation failed') || evalRes.json.error.includes('No API Key configured'));
 
-  // Verify Deep-Dive Doctrinal Analysis exists
-  assert.ok(evalRes.json.evaluation.deep_dive_concept);
-
-  // Verify attempt was saved in SQLite
-  const attemptsRes = await request('GET', `/api/attempts/${sampleQ.id}`);
-  assert.equal(attemptsRes.status, 200);
-  assert.ok(attemptsRes.json.attempts.some(a => a.id === evalRes.json.attempt_id));
+  // Verify that NO attempt was added to SQLite
+  const afterAttemptsRes = await request('GET', `/api/attempts/${sampleQ.id}`);
+  assert.equal(afterAttemptsRes.json.attempts.length, initialCount, 'Database must NOT record attempts on failed AI evaluation');
 });
 
 test('API POST /api/evaluate: Edge cases (empty answer, missing question_id, invalid question)', async () => {

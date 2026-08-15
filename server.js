@@ -799,8 +799,13 @@ Please evaluate the candidate's answer and output strictly valid JSON.`;
             }
           } else {
             const errText = await apiRes.text();
-            lastApiError = `HTTP ${apiRes.status}: ${errText.slice(0, 150)}`;
-            console.error(`AI API Evaluation Error (${apiRes.status}):`, errText);
+            let parsedMessage = errText;
+            try {
+              const errJson = JSON.parse(errText);
+              parsedMessage = errJson.error?.message || errText;
+            } catch(e) {}
+            lastApiError = `HTTP ${apiRes.status}: ${parsedMessage}`;
+            console.error(`AI API Evaluation Error (${apiRes.status}):`, parsedMessage);
           }
         } catch (apiErr) {
           lastApiError = apiErr.message;
@@ -808,38 +813,20 @@ Please evaluate the candidate's answer and output strictly valid JSON.`;
         }
       }
 
-      if (!evaluationResult) {
-        const wordCount = user_answer.trim().split(/\s+/).length;
-        const hasIssue = /issue|whether|answer|yes|no|granted|denied|liable/i.test(user_answer);
-        const hasRule = /article|section|rule|doctrine|jurisprudence|law|court/i.test(user_answer);
-        const hasAnalysis = /because|here|in this case|applying|since|moreover/i.test(user_answer);
-        const hasConclusion = /therefore|in view of|wherefore|consequently|thus|in conclusion/i.test(user_answer);
+      // STRICT VALIDATION: If AI evaluation failed or no API key, DO NOT RECORD INTO DB
+      if (!evaluationResult || typeof evaluationResult.score !== 'number') {
+        const errorMessage = !apiKey 
+          ? 'No API Key configured. Please click ⚙️ Settings at the top right to configure your OpenCode Go or DeepSeek API Key.'
+          : `AI Evaluation failed (${lastApiError || 'API returned invalid response'}). No attempt or score was recorded.`;
 
-        let issueScore = hasIssue ? 8 : 4;
-        let ruleScore = hasRule ? 24 : 14;
-        let appScore = hasAnalysis && wordCount > 80 ? 38 : (wordCount > 40 ? 28 : 18);
-        let concScore = hasConclusion ? 8 : 4;
-        let total = issueScore + ruleScore + appScore + concScore;
-
-        evaluationResult = {
-          score: Math.min(95, total),
-          breakdown: {
-            issue_or_answer: issueScore,
-            legal_basis: ruleScore,
-            application: appScore,
-            conclusion: concScore
-          },
-          strengths: wordCount >= 70 
-            ? 'Clear effort to structure the answer with legal reasoning and categorical resolution.' 
-            : 'Direct response provided to the core interrogatory.',
-          deficiencies: apiKey 
-            ? `AI Provider Connection Issue (${lastApiError || 'Check API Key / URL in Settings'}). Local benchmark applied.` 
-            : 'No API key configured in Settings (click ⚙️ to enter your key). Local benchmark applied.',
-          prescribed_polish: 'To maximize points on the 2026 Bar Exam, begin immediately with a categorical answer, state the governing statute and requisites, then methodically apply each element to the given facts before concluding.',
-          deep_dive_concept: `Key Concept in ${qRow.topic}: Philippine Bar examiners evaluate whether the candidate demonstrates systematic issue-spotting and mastery of the essential requisites under ${qRow.domain}.`
-        };
+        return sendJSON(res, 400, {
+          success: false,
+          error: errorMessage,
+          recorded: false
+        });
       }
 
+      // Only record into SQLite if AI evaluation was strictly successful
       const attemptId = `att_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
       db.prepare(`
         INSERT INTO candidate_attempts (id, question_id, user_answer, ai_score, ai_feedback, ai_breakdown)
@@ -855,8 +842,9 @@ Please evaluate the candidate's answer and output strictly valid JSON.`;
 
       return sendJSON(res, 200, {
         success: true,
-        attempt_id: attemptId,
-        evaluation: evaluationResult
+        evaluation: evaluationResult,
+        recorded: true,
+        attempt_id: attemptId
       });
     }
 
