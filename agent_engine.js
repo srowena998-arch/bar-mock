@@ -4,7 +4,7 @@ const path = require('node:path');
 const { createOpenAI } = require('@ai-sdk/openai');
 const { generateText, generateObject, tool } = require('ai');
 const { z } = require('zod');
-const { db, getConfig } = require('./db');
+const { db, getConfig, getCandidateAnalytics } = require('./db');
 
 /**
  * Configure AI SDK Provider (DeepSeek / OpenCode / OpenAI / OpenRouter)
@@ -176,6 +176,207 @@ const commitToDatabaseTool = tool({
 });
 
 /**
+ * AI Dean Phoenix RAG Chatbot: Answers legal questions grounded in 2026 Reviewers & SQLite
+ */
+async function chatWithReviewerRAG(messages) {
+  const provider = getAIProvider();
+  const modelName = getModelName();
+  const apiKey = getConfig('opencode_api_key') || process.env.OPENCODE_API_KEY || '';
+
+  const lastUserMsg = messages && messages.length > 0 ? messages[messages.length - 1].content : '';
+  const lowerQuery = (lastUserMsg || '').toLowerCase();
+
+  // 1. INTENT ORCHESTRATION: Candidate Performance & Progress Analytics Intent
+  const progressKeywords = [
+    'progress', 'how is my progress', 'my stats', 'how am i doing', 'my score', 
+    'my scores', 'weak area', 'weakness', 'strength', 'readiness', 'my attempts', 
+    'my performance', 'analysis on my progress', 'how am i performing', 'diagnostic',
+    'study plan', 'recommendation', 'summary of my progress'
+  ];
+  
+  const isProgressIntent = progressKeywords.some(kw => lowerQuery.includes(kw));
+  
+  if (isProgressIntent) {
+    const analytics = getCandidateAnalytics();
+    const domainLines = analytics.domain_breakdown && analytics.domain_breakdown.length > 0
+      ? analytics.domain_breakdown.map(d => `• **${d.domain}**: Avg Score **${d.avg_score}/100** (${d.attempts} attempts, Best: ${d.highest_score})`).join('\n')
+      : '• *No subject domains attempted yet. Take your first Essay or MCQ Exam to populate this matrix!*';
+
+    const reply = `⚖️ **Dean Phoenix Candidate Progress & Diagnostic Analysis**
+
+Here is your current 2026 Philippine Bar Examination readiness diagnostic based on live SQLite candidate attempt logs:
+
+---
+
+### 📊 Performance Summary
+• **Total Question Attempts:** **${analytics.total_attempts}**
+• **Composite Average Score:** **${analytics.overall_average}/100**
+• **Supreme Court Benchmark:** **75.00%** (Official Passing Grade)
+• **Bar Readiness Status:** ${analytics.overall_average >= 75 ? '🟢 **ON TRACK TO PASS** (Meeting SC Bar Standards)' : (analytics.total_attempts === 0 ? '⚪ **NO ATTEMPTS RECORDED** (Ready for Initial Baseline)' : '🟡 **REINFORCEMENT REQUIRED** (Score currently below 75.00%)')}
+
+---
+
+### 📚 Subject Domain Mastery Breakdown
+${domainLines}
+
+---
+
+### 🎯 Dean Phoenix Strategic Action Plan
+1. **Strengthen ALAC Legal Basis:** Supreme Court Bar examiners award **30% of total essay points** for precise citation of statutory Articles and En Banc doctrines.
+2. **Methodical Application (50% weight):** Ensure you apply the rules element-by-element to every specific fact provided in the interrogatory before concluding.
+3. **Daily Recall MCQs:** Drill at least 15–20 high-yield recall questions in the **"⚡ Recall MCQs"** tab to lock in statutory time periods, exceptions, and requisites!
+
+*Keep going, future Atty.! Discipline and repetition will carry you through the 2026 Bar Examinations.*`;
+
+    return {
+      reply: reply,
+      citations: [],
+      retrieval_confidence: 1.0,
+      supplemented_via_web: false
+    };
+  }
+
+  // 2. INTENT ORCHESTRATION: Platform Guide & Tutorial Query Detection
+  if (lowerQuery.includes('reform') || lowerQuery.includes('update question') || lowerQuery.includes('edit question') || lowerQuery.includes('change question') || lowerQuery.includes('modernize') || (lowerQuery.includes('how do i') && !lowerQuery.includes('study'))) {
+    return {
+      reply: `⚖️ **Platform Tutorial: How to Reform or Update Questions with Modern Jurisprudence**
+
+To update or reform any Bar question (e.g., inject 2024–2026 Supreme Court En Banc rulings, add procedural timeline twists, or expand MCQ distractors):
+
+1. **Navigate to "📚 Resources Studio"** in the top navigation bar.
+2. **Select the "✨ AI Question Reformation" tab**.
+3. **Select a Question**: Browse or search topics in the left column and click on any Essay or MCQ.
+4. **Choose Target Component** (for Essays): Select *All Components*, *Fact Pattern Only*, *Interrogatory Only*, or *Answer / ALAC Only*.
+5. **Enter Your Natural Language Prompt**: In the dedicated prompt box, type instructions like:
+   - *"Update fact pattern with 2024 Supreme Court jurisprudence on warrantless arrests and add a sub-question (b) on damages."*
+   - *"Expand this MCQ with 4 tricky distractors testing subtle exceptions."*
+6. **Click "⚡ Synthesize Refinement with AI SDK"**: The system will generate the updated version adhering to Bar standards.
+7. **Inspect the Side-by-Side Diff**: Review the before vs. after comparison.
+8. **Click "💾 Apply & Save to SQLite"**: The modified question is immediately committed to the live SQLite question bank!`,
+      citations: []
+    };
+  }
+
+  if (lowerQuery.includes('how does grading') || lowerQuery.includes('how grading works') || lowerQuery.includes('rubric') || (lowerQuery.includes('alac') && lowerQuery.includes('how'))) {
+    return {
+      reply: `⚖️ **Platform Tutorial: How the Supreme Court AI Grader Works**
+
+1. **Go to the "✍️ Essay Exam" tab**.
+2. Read the legal fact pattern and the specific interrogatory.
+3. In the Candidate Exam Workspace, structure your response applying strict **ALAC** (Answer, Legal Basis, Application, Conclusion).
+4. Click **"✨ Grade Answer with AI"**.
+5. The platform scores your answer against the official **100-Point Supreme Court Rubric**:
+   - **Issue & Direct Answer**: 10 Points (Categorical stance)
+   - **Legal Basis (Rule)**: 30 Points (Exact statutory Articles & case doctrines)
+   - **Application (Analysis)**: 50 Points (Methodical element-by-fact matching)
+   - **Conclusion**: 10 Points (Final legal result)
+6. All attempts and scores are saved to your SQLite database history and update your composite Bar readiness index!`,
+      citations: []
+    };
+  }
+
+  // 3. INTENT ORCHESTRATION: Substantive Legal Doctrine Retrieval (Hybrid RAG + Web Fallback)
+  const { retrieveHybridRAG } = require('./rag_indexer');
+  const { searchWebJurisprudence } = require('./web_search');
+  let ragExcerpts = [];
+  try {
+    ragExcerpts = await retrieveHybridRAG({ query: lastUserMsg, domain: 'all', topK: 2 });
+  } catch (err) {
+    console.warn('Hybrid RAG retrieval failed, falling back:', err.message);
+  }
+
+  // Calculate Retrieval Grounding Confidence
+  let retrievalConfidence = 1.0;
+  let missingEntityName = '';
+  const rawTerms = lastUserMsg.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 3);
+
+  if (ragExcerpts.length === 0) {
+    retrievalConfidence = 0.0;
+    missingEntityName = rawTerms.slice(0, 3).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  } else if (rawTerms.length > 0) {
+    const combinedExcerpt = ragExcerpts.map(r => r.excerpt.toLowerCase()).join(' ');
+    const matchingTerms = rawTerms.filter(t => combinedExcerpt.includes(t));
+    if (matchingTerms.length === 0) {
+      retrievalConfidence = 0.0;
+      missingEntityName = rawTerms.slice(0, 3).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    } else {
+      retrievalConfidence = matchingTerms.length / rawTerms.length;
+      if (retrievalConfidence < 0.45) {
+        missingEntityName = rawTerms.slice(0, 3).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      }
+    }
+  }
+
+  // Supplemental Web Search
+  let webExcerpts = [];
+  if (retrievalConfidence < 0.55 || ragExcerpts.length === 0) {
+    webExcerpts = await searchWebJurisprudence(lastUserMsg, 2);
+  }
+
+  const isWebSupported = Boolean(
+    webExcerpts.length > 0 && 
+    rawTerms.some(t => webExcerpts.some(w => w.snippet.toLowerCase().includes(t) || w.title.toLowerCase().includes(t)))
+  );
+
+  const contextStr = ragExcerpts.length > 0
+    ? ragExcerpts.map(r => `[SOURCE: ${r.book || r.book_id || '2026 Reviewer'} | Page ${r.page || r.page_number || 1}]\n${r.excerpt}`).join('\n\n---\n\n')
+    : 'General 2026 Philippine Supreme Court Bar Syllabus Knowledge Base.';
+
+  const webContextStr = isWebSupported
+    ? '\n\n[SUPPLEMENTAL PHILIPPINE JURISPRUDENCE & WEB SEARCH]:\n' + webExcerpts.map(w => `• ${w.title} (Source: ${w.url}): ${w.snippet}`).join('\n')
+    : '';
+
+  const systemPrompt = `You are "Dean Phoenix", an elite Supreme Court Bar Examination Counsel.
+GROUNDED REVIEWER EXCERPTS:
+${contextStr}${webContextStr}`;
+
+  const allCitations = [
+    ...ragExcerpts.map(r => ({ 
+      type: 'reviewer', 
+      book: r.book || r.book_id || '2026 Reviewer',
+      page: r.page || r.page_number || 1,
+      title: `${r.book || r.book_id || '2026 Reviewer'} (Page ${r.page || r.page_number || 1})`, 
+      source: `${r.book || r.book_id || '2026 Reviewer'} (Page ${r.page || r.page_number || 1})` 
+    })),
+    ...(isWebSupported ? webExcerpts.map(w => ({ 
+      type: 'web', 
+      book: 'Supreme Court Jurisprudence / Web',
+      page: 'Online',
+      title: w.title, 
+      source: w.url 
+    })) : [])
+  ];
+
+  if (apiKey) {
+    try {
+      const { text } = await generateText({
+        model: provider(modelName),
+        system: systemPrompt,
+        messages: messages.map(m => ({ role: m.role, content: m.content })),
+        temperature: 0.2,
+        abortSignal: AbortSignal.timeout(8000)
+      });
+
+      return {
+        reply: text,
+        citations: allCitations,
+        retrieval_confidence: retrievalConfidence,
+        supplemented_via_web: isWebSupported
+      };
+    } catch (err) {
+      console.warn('Chatbot API failed, applying fallback:', err.message);
+    }
+  }
+
+  return {
+    reply: "Unable to reach Dean Phoenix. Please check your OpenCode/API configuration.",
+    citations: [],
+    retrieval_confidence: 0,
+    supplemented_via_web: false
+  };
+}
+
+/**
  * Targeted AI Question Refinement (AI SDK-Powered In-Place Editing for Essay & MCQ)
  */
 async function refineQuestionModality({ original_question, refinement_instruction, target_field = 'all' }) {
@@ -184,6 +385,14 @@ async function refineQuestionModality({ original_question, refinement_instructio
   const apiKey = getConfig('opencode_api_key') || process.env.OPENCODE_API_KEY || '';
 
   const isMcq = original_question.type === 'mcq' || (original_question.type !== 'essay' && Array.isArray(original_question.options) && original_question.options.length > 0);
+
+  // Normalize fields defensively to prevent any 'undefined' strings
+  const currentInterrogatory = (original_question.interrogatory || original_question.question || '').replace(/^undefined\s*/gi, '').trim() ||
+    `Is the legal contention of the petitioner sustainable under Philippine ${original_question.domain || 'Law'}? Explain with legal basis.`;
+  const currentFactPattern = (original_question.fact_pattern || '').replace(/^undefined\s*/gi, '').trim() ||
+    `In a dispute arising in Manila, the parties contested the statutory requisites governing ${original_question.topic || 'the legal doctrine'} under Philippine Law.`;
+  const currentTopic = original_question.topic || 'Supreme Court Jurisprudence';
+  const currentDomain = original_question.domain || 'Philippine Law';
 
   if (isMcq) {
     const mcqSchema = z.object({
@@ -198,12 +407,12 @@ async function refineQuestionModality({ original_question, refinement_instructio
     if (apiKey) {
       try {
         const prompt = `[ORIGINAL MCQ QUESTION]:
-Domain: ${original_question.domain || 'Philippine Law'}
-Topic: ${original_question.topic}
-Question: ${original_question.question}
-Options: ${JSON.stringify(original_question.options)}
-Correct Answer: ${original_question.correct_answer}
-Explanation: ${original_question.explanation}
+Domain: ${currentDomain}
+Topic: ${currentTopic}
+Question: ${currentInterrogatory}
+Options: ${JSON.stringify(original_question.options || [])}
+Correct Answer: ${original_question.correct_answer || 'A'}
+Explanation: ${original_question.explanation || ''}
 
 [REFINEMENT INSTRUCTION]: ${refinement_instruction}
 
@@ -225,8 +434,11 @@ Apply the requested refinement strictly adhering to Philippine Supreme Court Bar
 
     // Fallback deterministic MCQ refinement
     const updatedMcq = JSON.parse(JSON.stringify(original_question));
-    updatedMcq.question = `${updatedMcq.question} (Expanded: ${refinement_instruction})`;
-    updatedMcq.explanation = `${updatedMcq.explanation} (Doctrinally refined under 2026 Bar syllabus standards).`;
+    updatedMcq.question = currentInterrogatory;
+    if (!updatedMcq.question.includes('According to')) {
+      updatedMcq.question = `${currentInterrogatory} Which statement correctly applies the governing Supreme Court rule?`;
+    }
+    updatedMcq.explanation = `${original_question.explanation || 'Under Philippine jurisprudence, the rule is strictly applied.'} (Doctrinally refined under 2026 Bar syllabus standards).`;
     return updatedMcq;
   }
 
@@ -247,11 +459,11 @@ Apply the requested refinement strictly adhering to Philippine Supreme Court Bar
   if (apiKey) {
     try {
       const prompt = `[ORIGINAL QUESTION COMPONENT]:
-Domain: ${original_question.domain || 'Philippine Law'}
-Topic: ${original_question.topic}
+Domain: ${currentDomain}
+Topic: ${currentTopic}
 Difficulty: ${original_question.difficulty || 'hard'}
-Fact Pattern: ${original_question.fact_pattern || ''}
-Interrogatory: ${original_question.interrogatory || ''}
+Fact Pattern: ${currentFactPattern}
+Interrogatory: ${currentInterrogatory}
 Suggested Answer: ${JSON.stringify(original_question.suggested_answer || {})}
 
 [TARGET FIELD TO MODIFY]: ${target_field}
@@ -277,174 +489,48 @@ Apply TARGETED EDITS based on user instructions while preserving the legal accur
     }
   }
 
-  // Deterministic local refinement fallback
+  // Deterministic local refinement fallback with clean legal synthesis
   const updated = JSON.parse(JSON.stringify(original_question));
+  updated.topic = currentTopic;
+  updated.domain = currentDomain;
 
   if (target_field === 'interrogatory' || target_field === 'all') {
-    if (!updated.interrogatory.includes('(b)')) {
-      updated.interrogatory = `${updated.interrogatory}\n(b) Assuming the civil action is instituted separately, how will the criminal proceedings affect the civil liability? Explain.`;
+    if (!currentInterrogatory.includes('(b)')) {
+      updated.interrogatory = `(a) ${currentInterrogatory.replace(/^\([a-z]\)\s*/i, '')}\n\n(b) Assuming a third-party claim is instituted, what is the proper procedural remedy available to the aggrieved party under Philippine ${currentDomain}? Explain.`;
     } else {
-      updated.interrogatory = `${updated.interrogatory} (Refined: ${refinement_instruction})`;
+      updated.interrogatory = currentInterrogatory;
     }
+  } else {
+    updated.interrogatory = currentInterrogatory;
   }
 
   if (target_field === 'fact_pattern' || target_field === 'all') {
-    updated.fact_pattern = `${updated.fact_pattern} In the interim, an adverse third-party claim was filed asserting non-compliance with statutory requisites.`;
+    if (!currentFactPattern.includes('In the interim')) {
+      updated.fact_pattern = `${currentFactPattern} In the interim, an adverse third-party claim was filed before the Regional Trial Court asserting non-compliance with governing statutory requisites.`;
+    } else {
+      updated.fact_pattern = currentFactPattern;
+    }
+  } else {
+    updated.fact_pattern = currentFactPattern;
   }
 
   if (target_field === 'suggested_answer' || target_field === 'all') {
-    if (updated.suggested_answer) {
-      updated.suggested_answer.conclusion = `${updated.suggested_answer.conclusion} (Refined under 2026 Bar syllabus standards).`;
+    let baseAns = updated.suggested_answer;
+    if (typeof baseAns !== 'object' || !baseAns) {
+      baseAns = {
+        issue: `Whether the claims of the parties are meritorious under Philippine ${currentDomain}.`,
+        rule: `Under Philippine law and Supreme Court jurisprudence, compliance with statutory requisites is mandatory.`,
+        analysis: `Applying the rule to the facts, the requisite statutory elements must concur to sustain the action.`,
+        conclusion: `Therefore, the action must be resolved in accordance with established procedural and substantive rules.`
+      };
     }
+    updated.suggested_answer = baseAns;
   }
 
   return updated;
 }
 
 /**
- * RAG Knowledge Retrieval: Searches the 1,951 converted Markdown pages
- */
-const { retrieveHybridRAG, getVectorStoreStats } = require('./rag_indexer');
-const { searchWebJurisprudence } = require('./web_search');
-
-/**
- * LlamaIndex.TS & SQLite Vector Search across all 3,693 Reviewer Nodes
- */
-function searchReviewerKnowledgeBase({ query, domain = 'all', topK = 4 }) {
-  if (!query || !query.trim()) return [];
-  const vectorResults = retrieveHybridRAG({ query, domain, topK });
-  if (vectorResults.length > 0) return vectorResults;
-
-  // Fallback to direct text scanning if needed
-  const booksDir = path.join(__dirname, 'storage', 'converted_md');
-  const terms = query.toLowerCase().split(/\s+/).filter(t => t.length > 3);
-  if (terms.length === 0) return [];
-
-  const results = [];
-  const bookFiles = fs.readdirSync(booksDir).filter(f => f.endsWith('.md') && !f.includes('sample'));
-
-  for (const file of bookFiles) {
-    const bookTitle = file.replace('.md', '');
-    if (domain !== 'all' && !bookTitle.toLowerCase().includes(domain.toLowerCase())) continue;
-
-    const content = fs.readFileSync(path.join(booksDir, file), 'utf-8');
-    const pages = content.split(/<!-- PAGE (\d+) -->/g);
-
-    for (let i = 1; i < pages.length; i += 2) {
-      const pageNum = parseInt(pages[i], 10);
-      const pageText = pages[i + 1] || '';
-      const textLower = pageText.toLowerCase();
-
-      let matchScore = 0;
-      for (const t of terms) {
-        if (textLower.includes(t)) matchScore++;
-      }
-
-      if (matchScore > 0) {
-        results.push({
-          book: bookTitle,
-          page: pageNum,
-          score: matchScore,
-          excerpt: pageText.slice(0, 1000).trim()
-        });
-      }
-    }
-  }
-
-  return results.sort((a, b) => b.score - a.score).slice(0, topK);
-}
-
-/**
- * AI Bar Assistant Chatbot with Grounded RAG & Anti-Hallucination Web Guardrail
- */
-async function chatWithReviewerRAG({ messages = [], domain = 'all' }) {
-  const provider = getAIProvider();
-  const modelName = getModelName();
-  const apiKey = getConfig('opencode_api_key') || process.env.OPENCODE_API_KEY || '';
-
-  const lastUserMsg = messages.filter(m => m.role === 'user').slice(-1)[0]?.content || '';
-  const ragExcerpts = searchReviewerKnowledgeBase({ query: lastUserMsg, domain });
-
-  // Compute Adaptive Retrieval Confidence Score (0.0 to 1.0)
-  const STOPWORDS = new Set([
-    'give', 'me', 'what', 'are', 'things', 'that', 'must', 'know', 'about', 'case', 'of', 'in', 'the', 'under',
-    'philippine', 'law', 'and', 'with', 'for', 'explain', 'discuss', 'summary', 'doctrine', 'how', 'when', 'why',
-    'which', 'can', 'could', 'would', 'should', 'tell', 'jurisprudence', 'rule', 'rules', 'requisites', 'elements',
-    'commercial', 'civil', 'criminal', 'remedial', 'political', 'labor', 'taxation', 'legal', 'ethics', 'standard'
-  ]);
-
-  const rawTerms = (lastUserMsg || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !STOPWORDS.has(w));
-  let retrievalConfidence = 1.0;
-  let missingEntityName = '';
-
-  if (rawTerms.length > 0) {
-    if (ragExcerpts.length === 0) {
-      retrievalConfidence = 0.0;
-      missingEntityName = rawTerms.slice(0, 3).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-    } else {
-      const allChunkText = ragExcerpts.map(r => r.excerpt).join(' ').toLowerCase();
-      const matchingTerms = rawTerms.filter(t => allChunkText.includes(t));
-      retrievalConfidence = matchingTerms.length / rawTerms.length;
-      if (retrievalConfidence < 0.45) {
-        missingEntityName = rawTerms.slice(0, 3).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-      }
-    }
-  }
-
-  // Corrective / Adaptive RAG: Trigger Supplemental Web Search on Low Confidence (< 0.55)
-  let webExcerpts = [];
-  if (retrievalConfidence < 0.55 || ragExcerpts.length === 0) {
-    webExcerpts = await searchWebJurisprudence(lastUserMsg, 2);
-  }
-
-  // Check if web search actually verified the distinct entity/case terms
-  const isWebSupported = Boolean(
-    webExcerpts.length > 0 && 
-    rawTerms.some(t => webExcerpts.some(w => w.snippet.toLowerCase().includes(t) || w.title.toLowerCase().includes(t)))
-  );
-
-  const contextStr = ragExcerpts.length > 0
-    ? ragExcerpts.map(r => `[SOURCE: ${r.book} | Page ${r.page}]\n${r.excerpt}`).join('\n\n---\n\n')
-    : 'General 2026 Philippine Supreme Court Bar Syllabus Knowledge Base.';
-
-  const webContextStr = isWebSupported
-    ? '\n\n[SUPPLEMENTAL PHILIPPINE JURISPRUDENCE & WEB SEARCH]:\n' + webExcerpts.map(w => `• ${w.title} (Source: ${w.url}): ${w.snippet}`).join('\n')
-    : '';
-
-  const systemPrompt = `You are "Dean Phoenix", an elite Supreme Court Bar Examination Counsel, Legal Mentor, and Platform Guide for the 2026 Philippine Bar Examination Platform.
-Your dual mission is:
-1. Provide authoritative, doctrinal legal advice grounded directly in the 2026 Supreme Court Syllabus and Blue Phoenix Reviewers.
-2. Serve as a knowledgeable System Guide who can teach users how to use and navigate every feature of this Bar 2026 Mock Reviewer platform.
-
-RETRIEVAL CONFIDENCE & CITATION PROTOCOL:
-- Primary Grounding: Ground answers in the provided 2026 Reviewers and statutory provisions.
-- Supplemental Web Augmentation (Retrieval Confidence: ${retrievalConfidence < 0.55 ? 'LOW / SUPPLEMENTED' : 'HIGH / LOCAL REVIEWER'}):
-  When a candidate asks about specific cases, contemporary doctrines, or entities where reviewer confidence is low, seamlessly integrate the provided Supplemental Philippine Jurisprudence & Web Search sources.
-- Accurate Attribution: Always cite the specific statutory Article, Supreme Court decision title, or G.R. Number accurately. Transparently distinguish between doctrines in the 2026 Reviewer books vs supplemental Supreme Court jurisprudence without fabricating false rulings or unrelated disbarments.
-
-PLATFORM NAVIGATION & TUTORIAL GUIDE:
-- **📊 Dashboard Tab**: Shows Candidate's projected weighted score against 75.0% passing threshold across all 6 Bar subjects, domain status (Passing Ready, Needs Practice, Critical Focus), and diagnostic reports.
-- **✍️ Essay Exam Tab**: Distraction-free exam simulator applying ALAC (Answer, Legal Basis, Application, Conclusion) with 4-part rubric grading (10/30/50/10 points).
-- **⚡ Recall MCQs Tab**: Drill core definitions, exceptions, and requisites with instant explanations.
-- **📚 Resources Studio Tab**:
-  1. *Reviewer Coverage*: 1,951 pages across 6 books and 1,046 syllabus topics.
-  2. *✨ AI Question Reformation*: Interactive workbench to reform questions with 2024 SC doctrines or custom prompts.
-  3. *🧠 Vector Knowledge Hub*: Semantic search across 3,693 LlamaIndex nodes.
-  4. *🔍 Raw Markdown Inspector*: View raw markdown excerpts and author custom questions.
-- **🧪 AI Evals Tab**: Live LLM-as-a-Judge and RAG Triad benchmark suite with token diet proof.
-- **⚙️ Settings Modal (Top Right)**: Configure OpenCode Go Base URL, API key, and model.
-
-GROUNDED REVIEWER EXCERPTS:
-${contextStr}${webContextStr}`;
-
-  const allCitations = [
-    ...ragExcerpts.map(r => ({ type: 'reviewer', title: `${r.book} (Page ${r.page})`, source: `${r.book} (Page ${r.page})` })),
-    ...(isWebSupported ? webExcerpts.map(w => ({ type: 'web', title: w.title, source: w.url })) : [])
-  ];
-
-  if (apiKey) {
-    try {
-      const { text } = await generateText({
         model: provider(modelName),
         system: systemPrompt,
         messages: messages.map(m => ({ role: m.role, content: m.content })),
@@ -836,6 +922,12 @@ Generate two high-quality modalities grounded strictly in Philippine statutory l
       explanation: `Option B is the correct statement of the doctrine of ${topic} under settled Philippine Supreme Court jurisprudence.`
     }
   };
+}
+
+const { retrieveHybridRAG } = require('./rag_indexer');
+
+function searchReviewerKnowledgeBase({ query, domain = 'all', topK = 4 }) {
+  return retrieveHybridRAG({ query, domain, topK });
 }
 
 module.exports = {

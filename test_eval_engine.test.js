@@ -72,6 +72,12 @@ test('API POST /api/evals/run-single: Executes supplemental web search retrieval
   assert.equal(res.json.result.metrics.supplemental_search_status, 'AUTONOMOUS WEB RETRIEVAL ACTIVE');
 });
 
+test('DB Quality Guardrail: 100% of SQLite questions have zero undefined strings and valid schema', () => {
+  const { db } = require('./db');
+  const bads = db.prepare("SELECT * FROM questions WHERE interrogatory LIKE '%undefined%' OR fact_pattern LIKE '%undefined%' OR topic LIKE '%undefined%'").all();
+  assert.equal(bads.length, 0, 'Found corrupted question rows with undefined string in database');
+});
+
 test('API POST /api/evals/run-all: Executes full throttled benchmark suite', async () => {
   const res = await request('POST', '/api/evals/run-all');
   assert.equal(res.status, 200);

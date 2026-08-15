@@ -2805,8 +2805,9 @@
 
       <!-- Quick Prompt Chips (BeautifulUI Prompt Suggestions with Platform Guides) -->
       <div class="px-3 py-2 bg-slate-50/60 border-b border-slate-200 flex items-center gap-1.5 overflow-x-auto text-[10px] whitespace-nowrap no-scrollbar">
-        <span class="text-slate-400 font-semibold">Guide & Doctrine:</span>
-        <button @click="askSuggestedQuestion('How do I reform or update a Bar question with 2024 jurisprudence on this platform?')" class="px-2.5 py-1 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-semibold transition">🎓 How to Reform Questions</button>
+        <span class="text-slate-400 font-semibold">Diagnostic & Doctrine:</span>
+        <button @click="askSuggestedQuestion('How is my progress going? Give me an analysis on my performance and readiness.')" class="px-2.5 py-1 rounded-full bg-amber-500 text-slate-950 font-bold border border-amber-600 shadow-2xs hover:bg-amber-400 transition flex items-center gap-1">📊 My Progress & Readiness</button>
+        <button @click="askSuggestedQuestion('How do I reform or update a Bar question with 2024 jurisprudence on this platform?')" class="px-2.5 py-1 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-semibold transition">🎓 How to Reform</button>
         <button @click="askSuggestedQuestion('How does the AI Essay grader evaluate ALAC answers and assign points?')" class="px-2.5 py-1 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 font-semibold transition">🎓 How Grading Works</button>
         <button @click="askSuggestedQuestion('How do I configure and test my OpenCode Go API Key?')" class="px-2.5 py-1 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 font-semibold transition">🎓 Connect OpenCode Go</button>
         <button @click="askSuggestedQuestion('Explain the Ah Chong doctrine on mistake of fact with requisites')" class="px-2.5 py-1 rounded-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition">Ah Chong Doctrine</button>
@@ -2832,8 +2833,9 @@
                     <span class="text-amber-500">⚡</span> <span>Grounded Knowledge Base Sources:</span>
                   </div>
                   <div class="flex flex-wrap gap-1.5">
-                    <template x-for="cit in msg.citations" :key="cit.book + cit.page">
-                      <span class="px-2.5 py-1 rounded-md bg-amber-50/70 border border-amber-200/80 text-amber-950 text-[9.5px] font-mono hover:border-amber-400 transition cursor-default shadow-2xs" x-text="`📖 ${cit.book} (p.${cit.page})`"></span>
+                    <template x-for="(cit, cIdx) in msg.citations" :key="cIdx">
+                      <span class="px-2.5 py-1 rounded-md bg-amber-50/70 border border-amber-200/80 text-amber-950 text-[9.5px] font-mono hover:border-amber-400 transition cursor-default shadow-2xs" 
+                            x-text="cit.title ? (cit.title.startsWith('📖') ? cit.title : `📖 ${cit.title}`) : (cit.book ? `📖 ${cit.book} (p.${cit.page || '1'})` : `📖 2026 Reviewer`)"></span>
                     </template>
                   </div>
                 </div>

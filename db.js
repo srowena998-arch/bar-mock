@@ -165,6 +165,72 @@ const getLatestEvalMap = () => {
     }
 };
 
+const getCandidateAnalytics = () => {
+    try {
+        const totalAttempts = db.prepare('SELECT COUNT(*) as count FROM candidate_attempts').get().count;
+        const avgScoreRow = db.prepare('SELECT AVG(ai_score) as avg_score FROM candidate_attempts').get();
+        const avgScore = avgScoreRow && avgScoreRow.avg_score ? Math.round(avgScoreRow.avg_score * 10) / 10 : 0;
+        
+        // Domain breakdown
+        const domainStats = db.prepare(`
+            SELECT 
+                q.domain,
+                COUNT(ca.id) as attempts,
+                ROUND(AVG(ca.ai_score), 1) as avg_score,
+                MAX(ca.ai_score) as highest_score
+            FROM candidate_attempts ca
+            JOIN questions q ON ca.question_id = q.id
+            GROUP BY q.domain
+            ORDER BY avg_score DESC
+        `).all();
+
+        // Recent attempts
+        const recentAttempts = db.prepare(`
+            SELECT 
+                ca.id,
+                ca.question_id,
+                ca.ai_score,
+                ca.ai_feedback,
+                ca.attempted_at,
+                q.domain,
+                q.topic,
+                q.type
+            FROM candidate_attempts ca
+            JOIN questions q ON ca.question_id = q.id
+            ORDER BY ca.attempted_at DESC
+            LIMIT 5
+        `).all();
+
+        // Total questions available in DB
+        const totalQuestions = db.prepare('SELECT COUNT(*) as count FROM questions').get().count;
+        const essayCount = db.prepare("SELECT COUNT(*) as count FROM questions WHERE type = 'essay'").get().count;
+        const mcqCount = db.prepare("SELECT COUNT(*) as count FROM questions WHERE type = 'mcq'").get().count;
+
+        return {
+            total_attempts: totalAttempts,
+            overall_average: avgScore,
+            passing_status: avgScore >= 75 ? 'ON TRACK TO PASS (>=75%)' : (totalAttempts === 0 ? 'NO ATTEMPTS YET' : 'NEEDS REINFORCEMENT (<75%)'),
+            domain_breakdown: domainStats,
+            recent_attempts: recentAttempts,
+            question_bank_stats: {
+                total: totalQuestions,
+                essays: essayCount,
+                mcqs: mcqCount
+            }
+        };
+    } catch (e) {
+        console.error('Error fetching candidate analytics:', e);
+        return {
+            total_attempts: 0,
+            overall_average: 0,
+            passing_status: 'NO ATTEMPTS YET',
+            domain_breakdown: [],
+            recent_attempts: [],
+            question_bank_stats: { total: 0, essays: 0, mcqs: 0 }
+        };
+    }
+};
+
 if (!getConfig('opencode_base_url')) {
     setConfig('opencode_base_url', 'https://api.opencode.com/v1');
 }
@@ -178,5 +244,6 @@ module.exports = {
     setConfig,
     recordEvalLog,
     getEvalLogs,
-    getLatestEvalMap
+    getLatestEvalMap,
+    getCandidateAnalytics
 };
