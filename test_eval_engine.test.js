@@ -58,7 +58,7 @@ test('API POST /api/evals/run-single: Executes adaptive RAG entity grounding ben
   assert.equal(res.status, 200);
   assert.equal(res.json.success, true);
   assert.equal(res.json.result.passed, true);
-  assert.equal(res.json.result.metrics.adaptive_rag_status, 'ACCURATE SOURCE ATTRIBUTION');
+  assert.equal(res.json.result.metrics.anti_hallucination_status, 'HONEST NEGATIVE GROUNDING VERIFIED');
 });
 
 test('API POST /api/evals/run-single: Executes supplemental web search retrieval benchmark', async () => {

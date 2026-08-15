@@ -2616,6 +2616,79 @@
         </div>
       </div>
 
+      <!-- Persistent Evaluation Run History (SQLite DB & JSONL Audit Log) -->
+      <div class="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-7 shadow-xs space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-2">
+              <span class="text-base">📜</span>
+              <h3 class="text-sm font-bold text-slate-900">Persistent Evaluation Run History (SQLite Audit Trail)</h3>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-indigo-50 text-indigo-700 border border-indigo-200" x-text="`${evalHistoryLogs.length} Logged Runs`"></span>
+            </div>
+            <p class="text-xs text-slate-500">Every single run is automatically persisted to SQLite (<code class="font-mono text-slate-700">eval_run_logs</code>) and <code class="font-mono text-slate-700">storage/eval_history.jsonl</code> so audits can be analyzed anytime.</p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button 
+              @click="loadEvalHistoryLogs()" 
+              class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs border border-slate-200 transition flex items-center gap-1.5"
+            >
+              <span>🔄</span> Refresh History
+            </button>
+            <button 
+              @click="showEvalLogs = !showEvalLogs" 
+              class="px-3.5 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold text-xs border border-amber-300 transition flex items-center gap-1.5"
+            >
+              <span x-text="showEvalLogs ? '▲ Collapse History' : '▼ Expand Audit Logs'"></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- History Log Table / Cards -->
+        <div x-show="showEvalLogs" x-transition class="space-y-3 pt-3 border-t border-slate-100">
+          <template x-if="evalHistoryLogs.length === 0">
+            <div class="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl">
+              No evaluation runs recorded yet. Click <strong>"Run Full Benchmark Suite"</strong> or test an individual benchmark above!
+            </div>
+          </template>
+
+          <template x-for="log in evalHistoryLogs" :key="log.id">
+            <div class="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/90 text-xs space-y-2.5">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span 
+                    :class="log.passed ? 'bg-emerald-100 text-emerald-800 border-emerald-300' : 'bg-rose-100 text-rose-800 border-rose-300'"
+                    class="px-2 py-0.5 rounded-md text-[10px] font-bold font-mono border"
+                    x-text="log.passed ? '✓ PASSED' : '✕ FAILED'"
+                  ></span>
+                  <span class="font-bold text-slate-900" x-text="log.test_name || log.test_id"></span>
+                  <span class="text-[11px] text-slate-400 font-mono" x-text="`(${log.duration_ms}ms)`"></span>
+                </div>
+                <div class="text-[11px] text-slate-500 font-mono" x-text="log.created_at"></div>
+              </div>
+
+              <!-- Metrics Row -->
+              <div class="flex flex-wrap gap-2 pt-1">
+                <template x-for="(val, key) in (log.metrics || {})" :key="key">
+                  <div class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-[10px]">
+                    <span class="text-slate-400 capitalize" x-text="key.replace(/_/g, ' ') + ': '"></span>
+                    <span class="font-bold text-slate-800 font-mono" x-text="val"></span>
+                  </div>
+                </template>
+              </div>
+
+              <!-- Inspectable Detail Payload -->
+              <template x-if="log.details && Object.keys(log.details).length > 0">
+                <details class="text-[11px] font-mono text-slate-700 bg-white p-2.5 rounded-xl border border-slate-200">
+                  <summary class="cursor-pointer font-bold text-amber-800">🔍 Inspect Logged Audit Payload & Citations</summary>
+                  <pre class="mt-2 whitespace-pre-wrap max-h-40 overflow-y-auto text-[10px] leading-relaxed text-slate-800" x-text="JSON.stringify(log.details, null, 2)"></pre>
+                </details>
+              </template>
+            </div>
+          </template>
+        </div>
+      </div>
+
     </div>
 
   </main>

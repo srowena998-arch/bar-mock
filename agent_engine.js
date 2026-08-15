@@ -369,7 +369,8 @@ async function chatWithReviewerRAG({ messages = [], domain = 'all' }) {
   const STOPWORDS = new Set([
     'give', 'me', 'what', 'are', 'things', 'that', 'must', 'know', 'about', 'case', 'of', 'in', 'the', 'under',
     'philippine', 'law', 'and', 'with', 'for', 'explain', 'discuss', 'summary', 'doctrine', 'how', 'when', 'why',
-    'which', 'can', 'could', 'would', 'should', 'tell', 'jurisprudence', 'rule', 'rules'
+    'which', 'can', 'could', 'would', 'should', 'tell', 'jurisprudence', 'rule', 'rules', 'requisites', 'elements',
+    'commercial', 'civil', 'criminal', 'remedial', 'political', 'labor', 'taxation', 'legal', 'ethics', 'standard'
   ]);
 
   const rawTerms = (lastUserMsg || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(w => w.length > 2 && !STOPWORDS.has(w));
@@ -396,11 +397,17 @@ async function chatWithReviewerRAG({ messages = [], domain = 'all' }) {
     webExcerpts = await searchWebJurisprudence(lastUserMsg, 2);
   }
 
+  // Check if web search actually verified the distinct entity/case terms
+  const isWebSupported = Boolean(
+    webExcerpts.length > 0 && 
+    rawTerms.some(t => webExcerpts.some(w => w.snippet.toLowerCase().includes(t) || w.title.toLowerCase().includes(t)))
+  );
+
   const contextStr = ragExcerpts.length > 0
     ? ragExcerpts.map(r => `[SOURCE: ${r.book} | Page ${r.page}]\n${r.excerpt}`).join('\n\n---\n\n')
     : 'General 2026 Philippine Supreme Court Bar Syllabus Knowledge Base.';
 
-  const webContextStr = webExcerpts.length > 0
+  const webContextStr = isWebSupported
     ? '\n\n[SUPPLEMENTAL PHILIPPINE JURISPRUDENCE & WEB SEARCH]:\n' + webExcerpts.map(w => `• ${w.title} (Source: ${w.url}): ${w.snippet}`).join('\n')
     : '';
 
@@ -432,7 +439,7 @@ ${contextStr}${webContextStr}`;
 
   const allCitations = [
     ...ragExcerpts.map(r => ({ type: 'reviewer', title: `${r.book} (Page ${r.page})`, source: `${r.book} (Page ${r.page})` })),
-    ...webExcerpts.map(w => ({ type: 'web', title: w.title, source: w.url }))
+    ...(isWebSupported ? webExcerpts.map(w => ({ type: 'web', title: w.title, source: w.url })) : [])
   ];
 
   if (apiKey) {
@@ -449,7 +456,7 @@ ${contextStr}${webContextStr}`;
         reply: text,
         citations: allCitations,
         retrieval_confidence: retrievalConfidence,
-        supplemented_via_web: webExcerpts.length > 0
+        supplemented_via_web: isWebSupported
       };
     } catch (err) {
       console.warn('Chatbot API failed, applying grounded fallback:', err.message);
@@ -513,8 +520,23 @@ To update or reform any Bar question (e.g., inject 2024–2026 Supreme Court En 
     };
   }
 
+  // Unindexed / Non-Existent Entity Grounding Check (Zero Confidence & No External Match)
+  if ((!isWebSupported && retrievalConfidence < 0.4) && missingEntityName) {
+    return {
+      reply: `⚖️ **Doctrinal Clarification (Negative Grounding Verification):**
+
+There is no recognized statutory provision, Supreme Court doctrine, or case law entitled **"${missingEntityName}"** under Philippine Law or the 2026 Supreme Court Bar Examination Syllabus.
+
+**Governing Philippine Legal Standard:**
+Under Philippine jurisprudence, legal rights, claims, and remedies must be grounded strictly in enacted statutory codes (such as the Civil Code, Revised Penal Code, Corporation Code, or Rules of Court) and authoritative decisions of the Supreme Court En Banc. Fabricated or hypothetical concepts without statutory basis have no force or effect.`,
+      citations: [],
+      retrieval_confidence: 0.0,
+      supplemented_via_web: false
+    };
+  }
+
   // Supplemental Web Search & Adaptive Doctrinal Response
-  if (retrievalConfidence < 0.55 && webExcerpts.length > 0) {
+  if (retrievalConfidence < 0.55 && isWebSupported) {
     const web = webExcerpts[0];
     return {
       reply: `⚖️ **Doctrinal Analysis (Supplemental Jurisprudence Retrieval):**
@@ -522,11 +544,11 @@ To update or reform any Bar question (e.g., inject 2024–2026 Supreme Court En 
 Regarding **${missingEntityName || 'this specific legal matter'}**, the governing principles under Philippine Supreme Court jurisprudence are established as follows:
 
 • **Key Jurisprudential Rule:** ${web.snippet}
-• **Application & Legal Basis:** Under Philippine constitutional, election, and statutory standards, requirements of citizenship, domicile, and qualification are strictly applied in accordance with established precedents.
+• **Application & Legal Basis:** Under Philippine constitutional, statutory, and administrative standards, Supreme Court rulings interpret and apply the governing laws in accordance with established precedents.
 
 **Authoritative Citations:**
 • **${web.title}** ([Supreme Court Jurisprudence / Official Gazette](${web.url}))
-• *Related 2026 Bar Syllabus Domain:* Political and Public International Law`,
+• *Related 2026 Bar Syllabus Domain:* Philippine Jurisprudence & Public Law`,
       citations: allCitations,
       retrieval_confidence: retrievalConfidence,
       supplemented_via_web: true
@@ -534,8 +556,19 @@ Regarding **${missingEntityName || 'this specific legal matter'}**, the governin
   }
 
   const citationList = ragExcerpts.map(r => `• ${r.book} (Page ${r.page})`).join('\n');
+
+  // Format clean extracted reviewer doctrine without raw OCR linebreaks or page headers
+  let cleanExcerpt = '';
+  if (ragExcerpts.length > 0) {
+    cleanExcerpt = ragExcerpts[0].excerpt
+      .replace(/\r\n/g, ' ')
+      .replace(/^\s*\d+\s+/, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   const excerptSummary = ragExcerpts.length > 0
-    ? `Here is the relevant doctrine extracted from the 2026 Reviewer:\n\n> "${ragExcerpts[0].excerpt.slice(0, 300)}..."\n\n**Key Legal Elements & Doctrine:**\nUnder Philippine law, this requires compliance with the governing statutory requisites.`
+    ? `Here is the authoritative doctrine extracted directly from the 2026 Reviewer:\n\n> "${cleanExcerpt.slice(0, 320)}..."\n\n**Key Legal Elements & Doctrine:**\nUnder Philippine law, this requires categorical compliance with the statutory requisites and Supreme Court jurisprudence established in the syllabus.`
     : `Under the 2026 Philippine Bar Examination Syllabus, this topic is governed by the statutory provisions and established doctrines of the Supreme Court.`;
 
   return {

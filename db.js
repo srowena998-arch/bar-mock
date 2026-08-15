@@ -67,6 +67,18 @@ CREATE TABLE IF NOT EXISTS system_config (
     key TEXT PRIMARY KEY,
     value TEXT
 );
+CREATE TABLE IF NOT EXISTS eval_run_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    run_type TEXT DEFAULT 'single',
+    test_id TEXT NOT NULL,
+    test_name TEXT,
+    category TEXT,
+    passed INTEGER NOT NULL,
+    duration_ms INTEGER,
+    metrics TEXT,
+    details TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 `);
 
 // Set default system configurations if not already set
@@ -80,6 +92,79 @@ const setConfig = (key, value) => {
       .run(key, value, value);
 };
 
+const recordEvalLog = (log) => {
+    try {
+        const stmt = db.prepare(`
+            INSERT INTO eval_run_logs (run_type, test_id, test_name, category, passed, duration_ms, metrics, details)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        stmt.run(
+            log.run_type || 'single',
+            log.test_id,
+            log.test_name || log.name || '',
+            log.category || '',
+            log.passed ? 1 : 0,
+            log.duration_ms || log.durationMs || 0,
+            typeof log.metrics === 'object' ? JSON.stringify(log.metrics) : (log.metrics || '{}'),
+            typeof log.details === 'object' ? JSON.stringify(log.details) : (log.details || '{}')
+        );
+    } catch(err) {
+        console.error('Failed to record eval log to SQLite:', err.message);
+    }
+};
+
+const getEvalLogs = (limit = 50) => {
+    try {
+        const rows = db.prepare(`
+            SELECT id, run_type, test_id, test_name, category, passed, duration_ms, metrics, details, created_at
+            FROM eval_run_logs
+            ORDER BY id DESC
+            LIMIT ?
+        `).all(limit);
+
+        return rows.map(r => ({
+            ...r,
+            passed: Boolean(r.passed),
+            metrics: r.metrics ? JSON.parse(r.metrics) : {},
+            details: r.details ? JSON.parse(r.details) : {}
+        }));
+    } catch(e) {
+        return [];
+    }
+};
+
+const getLatestEvalMap = () => {
+    try {
+        const rows = db.prepare(`
+            SELECT e1.test_id, e1.test_name, e1.category, e1.passed, e1.duration_ms, e1.metrics, e1.details, e1.created_at
+            FROM eval_run_logs e1
+            JOIN (
+                SELECT test_id, MAX(id) as max_id
+                FROM eval_run_logs
+                GROUP BY test_id
+            ) e2 ON e1.id = e2.max_id
+        `).all();
+
+        const map = {};
+        for (const r of rows) {
+            map[r.test_id] = {
+                test_id: r.test_id,
+                name: r.test_name,
+                category: r.category,
+                passed: Boolean(r.passed),
+                status: r.passed ? 'PASSED' : 'FAILED',
+                duration_ms: r.duration_ms,
+                metrics: r.metrics ? JSON.parse(r.metrics) : {},
+                details: r.details ? JSON.parse(r.details) : {},
+                timestamp: r.created_at
+            };
+        }
+        return map;
+    } catch(e) {
+        return {};
+    }
+};
+
 if (!getConfig('opencode_base_url')) {
     setConfig('opencode_base_url', 'https://api.opencode.com/v1');
 }
@@ -90,5 +175,8 @@ if (!getConfig('default_model')) {
 module.exports = {
     db,
     getConfig,
-    setConfig
+    setConfig,
+    recordEvalLog,
+    getEvalLogs,
+    getLatestEvalMap
 };

@@ -2,7 +2,7 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
-const { db, getConfig, setConfig } = require('./db');
+const { db, getConfig, setConfig, getEvalLogs, getLatestEvalMap } = require('./db');
 const { runAutonomousIngestAgent, runDiagnosticAgent, refineQuestionModality, chatWithReviewerRAG, generateQuestionModalitiesWithAI } = require('./agent_engine');
 const { retrieveHybridRAG, getVectorStoreStats, indexAllReviewerBooks, ingestCustomResource, getModalityCoverageStats } = require('./rag_indexer');
 const { EVAL_TEST_CASES, runSingleEvaluation, runAllEvaluations } = require('./eval_engine');
@@ -1115,6 +1115,29 @@ Output strictly JSON:
       return sendJSON(res, 200, {
         success: true,
         test_cases: EVAL_TEST_CASES
+      });
+    }
+
+    // ----------------------------------------------------
+    // API: GET /api/evals/latest (Persisted Latest Results Map)
+    // ----------------------------------------------------
+    if (req.method === 'GET' && pathname === '/api/evals/latest') {
+      const latestResults = getLatestEvalMap();
+      return sendJSON(res, 200, {
+        success: true,
+        results: latestResults
+      });
+    }
+
+    // ----------------------------------------------------
+    // API: GET /api/evals/history (Chronological Run Logs)
+    // ----------------------------------------------------
+    if (req.method === 'GET' && pathname === '/api/evals/history') {
+      const limit = parseInt(parsedUrl.searchParams.get('limit') || '50', 10);
+      const logs = getEvalLogs(limit);
+      return sendJSON(res, 200, {
+        success: true,
+        logs
       });
     }
 

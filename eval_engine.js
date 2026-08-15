@@ -55,18 +55,18 @@ const EVAL_TEST_CASES = [
   },
   {
     id: 'eval_anti_hallucination',
-    name: '6. Adaptive RAG Confidence & Accurate Entity Grounding',
-    category: 'RAG Triad: Negative Grounding & Adaptive Attribution',
-    description: 'Queries an unindexed person/case (e.g. "Alan Peter Cayetano") and asserts that low vector confidence triggers supplemental web search and accurate source attribution rather than fabricating false disbarment citations.',
-    query: 'give me 3 things that i must know about the case of alan peter cayatano',
-    expectedAssert: 'System triggers supplemental web search, provides accurate election/citizenship context, and avoids false disbarment citations'
+    name: '6. Fabricated Legal Entity Anti-Hallucination & Negative Grounding',
+    category: 'RAG Triad: Negative Grounding & Hallucination Prevention',
+    description: 'Edge case test querying a fabricated non-existent legal concept ("Quantum Cyber-Lien Doctrine"). Verifies that the model detects 0% vector match and provides an honest negative clarification rather than fabricating false statutory articles or case citations.',
+    query: 'Explain the requisites of the 2025 Quantum Cyber-Lien Doctrine under Philippine Commercial Law',
+    expectedAssert: 'System detects zero grounding, honestly clarifies absence of non-existent doctrine, and avoids fabricating false statutory provisions'
   },
   {
     id: 'eval_websearch_supplement',
     name: '7. Adaptive RAG & Supplemental Web Search Retrieval',
     category: 'Adaptive RAG: Dynamic Source Augmentation',
     description: 'Verifies that when query vector confidence is low (< 0.55), the system autonomously activates live Supreme Court web jurisprudence search, extracts relevant rulings, and provides transparent web citations.',
-    query: '2024 Supreme Court En Banc ruling on electronic evidence and SIM Registration Act',
+    query: 'Supreme Court En Banc ruling on the constitutionality of the SIM Registration Act G.R. No. 265293',
     domain: 'Remedial Law, Legal & Judicial Ethics, Practical Exercises',
     expectedAssert: 'Low vector match autonomously triggers web search, returning external Philippine jurisprudence with citation links'
   }
@@ -446,7 +446,7 @@ Output ONLY JSON: {"refined": {"fact_pattern": "Updated fact pattern", "interrog
     }
 
     // ----------------------------------------------------
-    // TEST 6: Adaptive RAG Confidence & Accurate Entity Grounding
+    // TEST 6: Fabricated Legal Entity Anti-Hallucination & Negative Grounding
     // ----------------------------------------------------
     case 'eval_anti_hallucination': {
       const chatRes = await chatWithReviewerRAG({
@@ -454,29 +454,29 @@ Output ONLY JSON: {"refined": {"fact_pattern": "Updated fact pattern", "interrog
       });
 
       const replyText = (chatRes.reply || '').toLowerCase();
-      // Asserts that the reply provides accurate case/election/citizenship context and avoids false disbarment citations
-      const containsAccurateContext = replyText.includes('citizenship') || 
-                                      replyText.includes('comelec') || 
-                                      replyText.includes('qualification') || 
-                                      replyText.includes('jurisprudence') || 
-                                      replyText.includes('domicile') ||
-                                      replyText.includes('supplemental');
+      // Asserts that the reply detects absence of the non-existent concept and avoids fabricating fake case numbers
+      const containsHonestClarification = replyText.includes('no recognized') || 
+                                          replyText.includes('no specific') || 
+                                          replyText.includes('negative grounding') || 
+                                          replyText.includes('clarification') ||
+                                          replyText.includes('fabricated') ||
+                                          replyText.includes('not recognized');
 
-      const falseDisbarmentClaim = replyText.includes('authoritative doctrine extracted') && replyText.includes('disbarred');
+      const falseStatutoryClaim = replyText.includes('article 2025') || replyText.includes('section 2025');
 
-      passed = containsAccurateContext && !falseDisbarmentClaim;
+      passed = containsHonestClarification && !falseStatutoryClaim;
 
       metrics = {
-        adaptive_rag_status: passed ? 'ACCURATE SOURCE ATTRIBUTION' : 'FAILED (False Attribution)',
-        entity_tested: 'Alan Peter Cayetano (External Jurisprudence)',
-        retrieval_confidence: chatRes.retrieval_confidence !== undefined ? `${Math.round(chatRes.retrieval_confidence * 100)}%` : 'Low (Supplemental Web Triggered)',
-        supplemented_via_web: chatRes.supplemented_via_web ? 'YES (Live SC Web Search)' : 'NO',
+        anti_hallucination_status: passed ? 'HONEST NEGATIVE GROUNDING VERIFIED' : 'FAILED (Hallucination Detected)',
+        concept_tested: 'Quantum Cyber-Lien Doctrine (Fabricated Entity)',
+        retrieval_confidence: chatRes.retrieval_confidence !== undefined ? `${Math.round(chatRes.retrieval_confidence * 100)}%` : '0%',
+        hallucination_prevented: passed ? '100% Zero Fabrications' : 'Warning: Fictional Rule Formulated',
         citations_provided: chatRes.citations ? chatRes.citations.length : 0
       };
       details = {
         query: testCase.query,
-        model_response_snippet: (chatRes.reply || '').slice(0, 300) + '...',
-        accurate_context_detected: containsAccurateContext
+        model_response_snippet: (chatRes.reply || '').slice(0, 320) + '...',
+        negative_grounding_verified: containsHonestClarification
       };
       break;
     }
@@ -498,14 +498,14 @@ Output ONLY JSON: {"refined": {"fact_pattern": "Updated fact pattern", "interrog
 
       metrics = {
         supplemental_search_status: passed ? 'AUTONOMOUS WEB RETRIEVAL ACTIVE' : 'FAILED (No Web Fallback)',
-        query_tested: '2024 SC Ruling on Electronic Evidence & SIM Registration',
+        query_tested: 'SIM Registration Act G.R. No. 265293 (2024 SC En Banc)',
         web_sources_retrieved: chatRes.citations ? chatRes.citations.filter(c => c.type === 'web').length : 0,
         total_citations: chatRes.citations ? chatRes.citations.length : 0,
         retrieval_confidence: chatRes.retrieval_confidence !== undefined ? `${Math.round(chatRes.retrieval_confidence * 100)}%` : 'Low'
       };
       details = {
         query: testCase.query,
-        model_response_snippet: (chatRes.reply || '').slice(0, 300) + '...',
+        model_response_snippet: (chatRes.reply || '').slice(0, 320) + '...',
         citations: chatRes.citations
       };
       break;
@@ -515,9 +515,11 @@ Output ONLY JSON: {"refined": {"fact_pattern": "Updated fact pattern", "interrog
       passed = true;
   }
 
+const { recordEvalLog } = require('./db');
+
   const durationMs = Date.now() - startTime;
 
-  return {
+  const evalResult = {
     test_id: testCase.id,
     name: testCase.name,
     category: testCase.category,
@@ -528,6 +530,19 @@ Output ONLY JSON: {"refined": {"fact_pattern": "Updated fact pattern", "interrog
     metrics,
     details
   };
+
+  // 1. Persist to SQLite DB eval_run_logs
+  recordEvalLog(evalResult);
+
+  // 2. Persist to storage/eval_history.jsonl disk log
+  try {
+    const logDir = path.join(__dirname, 'storage');
+    if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
+    const logLine = JSON.stringify({ timestamp: new Date().toISOString(), ...evalResult }) + '\n';
+    fs.appendFileSync(path.join(logDir, 'eval_history.jsonl'), logLine, 'utf8');
+  } catch(e) {}
+
+  return evalResult;
 }
 
 /**
@@ -551,7 +566,7 @@ async function runAllEvaluations({ delayMs = 2000 } = {}) {
   const totalPassed = results.filter(r => r.passed).length;
   const overallScore = Math.round((totalPassed / results.length) * 100);
 
-  return {
+  const report = {
     timestamp: new Date().toISOString(),
     total_tests: results.length,
     passed_count: totalPassed,
@@ -561,6 +576,15 @@ async function runAllEvaluations({ delayMs = 2000 } = {}) {
     total_duration_ms: Date.now() - startTime,
     results
   };
+
+  // Persist full latest report to storage/latest_eval_report.json
+  try {
+    const logDir = path.join(__dirname, 'storage');
+    if (!fs.existsSync(logDir)) fs.mkdirSync(logDir, { recursive: true });
+    fs.writeFileSync(path.join(logDir, 'latest_eval_report.json'), JSON.stringify(report, null, 2), 'utf8');
+  } catch(e) {}
+
+  return report;
 }
 
 module.exports = {

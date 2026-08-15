@@ -72,6 +72,8 @@ document.addEventListener('alpine:init', () => {
     // AI Quality Benchmarks & Evals State
     evalTestCases: [],
     evalResults: {},
+    evalHistoryLogs: [],
+    showEvalLogs: false,
     evalScorecard: null,
     isRunningEvals: false,
     activeEvalTestId: null,
@@ -179,10 +181,15 @@ document.addEventListener('alpine:init', () => {
       await this.loadExtractionProgress();
       await this.loadModalityCoverage();
       await this.loadReadinessAnalytics();
-      await this.fetchLiveModels();
       await this.loadEvalTestCases();
+      await this.loadLatestEvalResults();
+      await this.loadEvalHistoryLogs();
+      await this.loadVectorStats();
+      this.fetchLiveModels();
       this.startTimer();
       this.loadSavedEssayAnswer();
+      this.filterEssays();
+      this.filterMcqs();
 
       if (window.location.search.includes('tab=evals') || window.location.search.includes('evals=true')) {
         this.currentTab = 'evals';
@@ -450,6 +457,32 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
+    async loadLatestEvalResults() {
+      try {
+        const res = await fetch('/api/evals/latest');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.results && Object.keys(data.results).length > 0) {
+            this.evalResults = { ...data.results };
+          }
+        }
+      } catch(e) {
+        console.warn('Failed to load latest eval results', e);
+      }
+    },
+
+    async loadEvalHistoryLogs() {
+      try {
+        const res = await fetch('/api/evals/history?limit=30');
+        if (res.ok) {
+          const data = await res.json();
+          this.evalHistoryLogs = data.logs || [];
+        }
+      } catch(e) {
+        console.warn('Failed to load eval history logs', e);
+      }
+    },
+
     async runSingleEval(testId) {
       this.activeEvalTestId = testId;
       try {
@@ -462,6 +495,7 @@ document.addEventListener('alpine:init', () => {
           const data = await res.json();
           this.evalResults[testId] = data.result;
           this.showToastNotification(`✨ ${data.result.name}: ${data.result.status}`);
+          await this.loadEvalHistoryLogs();
         } else {
           this.showToastNotification(`⚠️ Eval failed for ${testId}`);
         }
@@ -487,6 +521,7 @@ document.addEventListener('alpine:init', () => {
             });
           }
           this.showToastNotification(`🎉 All Benchmarks Complete: ${data.scorecard.overall_score} Score!`);
+          await this.loadEvalHistoryLogs();
         }
       } catch (e) {
         this.showToastNotification(`⚠️ Benchmark suite error: ${e.message}`);
