@@ -88,6 +88,31 @@ document.addEventListener('alpine:init', () => {
       }
     ],
 
+    // Modality Coverage & Dynamic Document Ingestion State
+    modalityCoverage: { grand_totals: { total_vectors: 0, total_essays: 0, total_mcqs: 0, total_questions: 0 }, domains: [] },
+    showUploadModal: false,
+    uploadTitle: '',
+    uploadDomain: 'Remedial Law, Legal & Judicial Ethics, Practical Exercises',
+    uploadContent: '',
+    isUploadingResource: false,
+
+    // Question Authoring Modal State (From Chunks / Scratch)
+    showAuthorModal: false,
+    isAuthoringQuestion: false,
+    newQuestion: {
+      domain: 'Criminal Law',
+      type: 'essay',
+      topic: '',
+      difficulty: 'hard',
+      fact_pattern: '',
+      interrogatory: '',
+      suggested_answer: '',
+      extracted_rule: '',
+      options: ['', '', '', ''],
+      correct_answer: 'A',
+      explanation: ''
+    },
+
     // Refinement Modal State
     showRefineModal: false,
     isRefining: false,
@@ -121,6 +146,7 @@ document.addEventListener('alpine:init', () => {
       await this.loadDomains();
       await this.loadSettings();
       await this.loadExtractionProgress();
+      await this.loadModalityCoverage();
       await this.loadReadinessAnalytics();
       await this.fetchLiveModels();
       await this.loadEvalTestCases();
@@ -682,6 +708,145 @@ document.addEventListener('alpine:init', () => {
         }
       ];
       this.scrollChatToBottom();
+    },
+
+    // Modality Coverage Stats Loader
+    async loadModalityCoverage() {
+      try {
+        const res = await fetch('/api/resources/modality-coverage');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.stats) this.modalityCoverage = data.stats;
+        }
+      } catch (err) {
+        console.warn('Failed to load modality coverage:', err);
+      }
+    },
+
+    // Custom Resource Ingestion Actions
+    openUploadModal() {
+      this.uploadTitle = '';
+      this.uploadContent = '';
+      this.uploadDomain = this.activeDomain !== 'all' ? this.activeDomain : 'Remedial Law, Legal & Judicial Ethics, Practical Exercises';
+      this.showUploadModal = true;
+    },
+
+    async uploadCustomResource() {
+      if (!this.uploadContent.trim()) {
+        this.showToastNotification('⚠️ Please enter or paste document content to ingest.');
+        return;
+      }
+
+      this.isUploadingResource = true;
+      try {
+        const res = await fetch('/api/resources/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: this.uploadTitle.trim() || 'Custom Document',
+            domain: this.uploadDomain,
+            content: this.uploadContent.trim()
+          })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          this.showToastNotification(`🎉 Successfully indexed ${data.result.chunks_created} vector chunks into SQLite!`);
+          this.showUploadModal = false;
+          await this.loadModalityCoverage();
+          await this.loadVectorStats();
+          this.vectorSearchQuery = this.uploadTitle.trim() || '';
+          if (this.vectorSearchQuery) await this.executeVectorSearch();
+        } else {
+          this.showToastNotification(`⚠️ Ingestion failed: ${data.error || 'Unknown error'}`);
+        }
+      } catch (err) {
+        this.showToastNotification('⚠️ Network error during document ingestion.');
+      } finally {
+        this.isUploadingResource = false;
+      }
+    },
+
+    // Handle File Drop / Select for Document Upload
+    handleFileUpload(event) {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      this.uploadTitle = file.name.replace(/\.[^/.]+$/, '');
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.uploadContent = e.target.result || '';
+      };
+      reader.readAsText(file);
+    },
+
+    // Interactive Question Authoring Modal
+    openAuthorModal(chunk = null) {
+      if (chunk) {
+        this.newQuestion = {
+          domain: chunk.domain || 'Criminal Law',
+          type: 'essay',
+          topic: chunk.topic || 'Supreme Court Jurisprudence',
+          difficulty: 'hard',
+          fact_pattern: `Fact Pattern based on ${chunk.book} (Page ${chunk.page}):\n${chunk.excerpt ? chunk.excerpt.slice(0, 400) + '...' : ''}`,
+          interrogatory: `What is the legal liability and governing Supreme Court doctrine under Philippine law?`,
+          suggested_answer: 'ALAC Breakdown:\nAnswer: ...\nLegal Basis: ...\nApplication: ...\nConclusion: ...',
+          extracted_rule: 'Under Philippine law, this requires compliance with established statutory requisites.',
+          options: ['Option A (Plausible distractor)', 'Option B (Correct answer)', 'Option C (Subtle exception)', 'Option D (Procedural distinction)'],
+          correct_answer: 'B',
+          explanation: `Directly grounded in ${chunk.book} (Page ${chunk.page}).`
+        };
+      } else {
+        this.newQuestion = {
+          domain: this.activeDomain !== 'all' ? this.activeDomain : 'Criminal Law',
+          type: 'essay',
+          topic: 'Target Legal Doctrine',
+          difficulty: 'hard',
+          fact_pattern: '',
+          interrogatory: '',
+          suggested_answer: '',
+          extracted_rule: '',
+          options: ['', '', '', ''],
+          correct_answer: 'A',
+          explanation: ''
+        };
+      }
+      this.showAuthorModal = true;
+    },
+
+    async saveNewQuestion() {
+      if (!this.newQuestion.topic.trim() || !this.newQuestion.interrogatory.trim()) {
+        this.showToastNotification('⚠️ Topic and Interrogatory are required fields.');
+        return;
+      }
+
+      this.isAuthoringQuestion = true;
+      try {
+        const res = await fetch('/api/questions/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(this.newQuestion)
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          this.showToastNotification('🎉 New Bar Question committed to SQLite Question Bank!');
+          this.showAuthorModal = false;
+          await this.loadQuestions();
+          await this.loadModalityCoverage();
+          if (this.newQuestion.type === 'essay') {
+            this.currentTab = 'essay';
+          } else {
+            this.currentTab = 'mcq';
+          }
+        } else {
+          this.showToastNotification(`⚠️ Failed to commit question: ${data.error || 'Unknown error'}`);
+        }
+      } catch (err) {
+        this.showToastNotification('⚠️ Error saving new question to database.');
+      } finally {
+        this.isAuthoringQuestion = false;
+      }
     },
 
     // Autonomous Batch Ingestion

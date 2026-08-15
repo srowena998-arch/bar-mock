@@ -235,6 +235,117 @@ function getVectorStoreStats() {
     engine: 'LlamaIndex.TS + SQLite Vector Engine'
   };
 }
+/**
+ * Dynamic Custom Resource Ingestion (Markdown, Text, Pasted Case Digests)
+ */
+async function ingestCustomResource({ title, domain = 'Remedial Law, Legal & Judicial Ethics, Practical Exercises', content, source_type = 'custom_upload' }) {
+  if (!content || !content.trim()) throw new Error('Content cannot be empty');
+  const safeTitle = (title || 'Custom Resource').trim();
+  
+  const splitter = new SentenceSplitter({ chunkSize: 512, chunkOverlap: 64 });
+  const doc = new Document({ text: content, metadata: { title: safeTitle, domain } });
+  const nodes = splitter.getNodesFromDocuments([doc]);
+
+  const insertStmt = db.prepare(`
+    INSERT OR REPLACE INTO rag_chunks (id, book_id, domain, page_number, topic_title, content, embedding)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  const timestamp = Date.now();
+  let insertedCount = 0;
+
+  for (let i = 0; i < nodes.length; i++) {
+    const nodeText = (nodes[i].text || nodes[i].getContent?.() || '').trim();
+    if (!nodeText) continue;
+
+    const chunkId = `chk_custom_${timestamp}_${i}`;
+    const embedding = generateLocalEmbedding(nodeText);
+
+    insertStmt.run(
+      chunkId,
+      `📁 ${safeTitle}`,
+      domain,
+      1,
+      `${safeTitle} (Part ${i + 1})`,
+      nodeText,
+      JSON.stringify(embedding)
+    );
+    insertedCount++;
+  }
+
+  return {
+    success: true,
+    title: safeTitle,
+    domain,
+    chunks_created: insertedCount,
+    total_characters: content.length
+  };
+}
+
+/**
+ * Get Modality Coverage (Vectors vs. Essays vs. MCQs per Domain)
+ */
+function getModalityCoverageStats() {
+  const domains = [
+    { name: 'Criminal Law', weight: 10 },
+    { name: 'Civil Law and Land Titles and Deeds', weight: 20 },
+    { name: 'Remedial Law, Legal & Judicial Ethics, Practical Exercises', weight: 25 },
+    { name: 'Commercial and Taxation Laws', weight: 20 },
+    { name: 'Labor Law and Social Legislation', weight: 10 },
+    { name: 'Political and Public International Law', weight: 15 }
+  ];
+
+  const coverage = domains.map(d => {
+    // Vector nodes in SQLite
+    const vectorRow = db.prepare(`
+      SELECT COUNT(*) as chunks 
+      FROM rag_chunks 
+      WHERE domain LIKE ?
+    `).get(`%${d.name.slice(0, 8)}%`);
+
+    // Questions in Question Bank
+    const qStats = db.prepare(`
+      SELECT 
+        COUNT(*) as total_q,
+        SUM(CASE WHEN type = 'essay' THEN 1 ELSE 0 END) as essays,
+        SUM(CASE WHEN type = 'mcq' THEN 1 ELSE 0 END) as mcqs
+      FROM questions 
+      WHERE domain LIKE ?
+    `).get(`%${d.name.slice(0, 8)}%`);
+
+    const vectorChunks = vectorRow?.chunks || 0;
+    const essays = qStats?.essays || 0;
+    const mcqs = qStats?.mcqs || 0;
+    const totalQ = qStats?.total_q || 0;
+
+    // Minimum target benchmark: at least 5 essays & 10 MCQs per domain
+    const targetQ = 15;
+    const coveragePct = Math.min(100, Math.round((totalQ / targetQ) * 100));
+
+    return {
+      domain: d.name,
+      weight: d.weight,
+      vector_chunks: vectorChunks,
+      essay_count: essays,
+      mcq_count: mcqs,
+      total_questions: totalQ,
+      coverage_pct: coveragePct,
+      status: totalQ >= 10 ? 'Robust Coverage' : totalQ >= 3 ? 'In Progress' : 'Needs Authoring'
+    };
+  });
+
+  const grandTotals = coverage.reduce((acc, c) => ({
+    total_vectors: acc.total_vectors + c.vector_chunks,
+    total_essays: acc.total_essays + c.essay_count,
+    total_mcqs: acc.total_mcqs + c.mcq_count,
+    total_questions: acc.total_questions + c.total_questions
+  }), { total_vectors: 0, total_essays: 0, total_mcqs: 0, total_questions: 0 });
+
+  return {
+    grand_totals: grandTotals,
+    domains: coverage
+  };
+}
 
 module.exports = {
   indexAllReviewerBooks,
@@ -242,5 +353,8 @@ module.exports = {
   retrieveHybridRAG,
   getVectorStoreStats,
   generateLocalEmbedding,
-  cosineSimilarity
+  cosineSimilarity,
+  ingestCustomResource,
+  getModalityCoverageStats
 };
+

@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { db, getConfig, setConfig } = require('./db');
 const { runAutonomousIngestAgent, runDiagnosticAgent, refineQuestionModality, chatWithReviewerRAG } = require('./agent_engine');
-const { retrieveHybridRAG, getVectorStoreStats, indexAllReviewerBooks } = require('./rag_indexer');
+const { retrieveHybridRAG, getVectorStoreStats, indexAllReviewerBooks, ingestCustomResource, getModalityCoverageStats } = require('./rag_indexer');
 const { EVAL_TEST_CASES, runSingleEvaluation, runAllEvaluations } = require('./eval_engine');
 
 const PORT = process.env.PORT || 8080;
@@ -90,13 +90,27 @@ const server = http.createServer(async (req, res) => {
       query += ' ORDER BY type ASC, id ASC';
       const rows = db.prepare(query).all(...params);
       
-      const questions = rows.map(r => ({
-        ...r,
-        subject_hierarchy: JSON.parse(r.subject_hierarchy || '[]'),
-        suggested_answer: r.suggested_answer ? JSON.parse(r.suggested_answer) : null,
-        extracted_rule: r.extracted_rule ? JSON.parse(r.extracted_rule) : null,
-        options: r.options ? JSON.parse(r.options) : null
-      }));
+      const questions = rows.map(r => {
+        let hierarchy = [];
+        try { hierarchy = JSON.parse(r.subject_hierarchy || '[]'); } catch(e) { hierarchy = [r.domain, r.topic]; }
+
+        let suggestedAnswer = null;
+        try { suggestedAnswer = r.suggested_answer ? JSON.parse(r.suggested_answer) : null; } catch(e) { suggestedAnswer = r.suggested_answer; }
+
+        let extractedRule = null;
+        try { extractedRule = r.extracted_rule ? JSON.parse(r.extracted_rule) : null; } catch(e) { extractedRule = r.extracted_rule; }
+
+        let options = null;
+        try { options = r.options ? JSON.parse(r.options) : null; } catch(e) { options = null; }
+
+        return {
+          ...r,
+          subject_hierarchy: hierarchy,
+          suggested_answer: suggestedAnswer,
+          extracted_rule: extractedRule,
+          options: options
+        };
+      });
       
       return sendJSON(res, 200, { success: true, count: questions.length, questions });
     }
@@ -571,6 +585,103 @@ Output strictly JSON:
         message: `Successfully indexed ${result.total_chunks} LlamaIndex chunks into SQLite Vector Store!`,
         result
       });
+    }
+
+    // ----------------------------------------------------
+    // API: GET /api/resources/modality-coverage
+    // ----------------------------------------------------
+    if (req.method === 'GET' && pathname === '/api/resources/modality-coverage') {
+      const stats = getModalityCoverageStats();
+      return sendJSON(res, 200, { success: true, stats });
+    }
+
+    // ----------------------------------------------------
+    // API: POST /api/resources/upload (Custom Case Law / Markdown / Text Ingestion)
+    // ----------------------------------------------------
+    if (req.method === 'POST' && pathname === '/api/resources/upload') {
+      const body = await parseJSONBody(req);
+      const { title, domain, content } = body;
+
+      if (!content || !content.trim()) {
+        return sendJSON(res, 400, { error: 'Document text content is required' });
+      }
+
+      try {
+        const result = await ingestCustomResource({
+          title: title || 'Custom Uploaded Resource',
+          domain: domain || 'Remedial Law, Legal & Judicial Ethics, Practical Exercises',
+          content: content.trim()
+        });
+
+        return sendJSON(res, 200, {
+          success: true,
+          message: `Ingested ${result.chunks_created} vector chunks into SQLite Vector Store!`,
+          result
+        });
+      } catch (err) {
+        return sendJSON(res, 500, { success: false, error: err.message });
+      }
+    }
+
+    // ----------------------------------------------------
+    // API: POST /api/questions/create (Direct Question Authoring)
+    // ----------------------------------------------------
+    if (req.method === 'POST' && pathname === '/api/questions/create') {
+      const body = await parseJSONBody(req);
+      const {
+        domain,
+        type,
+        topic,
+        fact_pattern,
+        interrogatory,
+        suggested_answer,
+        extracted_rule,
+        options,
+        correct_answer,
+        explanation,
+        difficulty
+      } = body;
+
+      if (!domain || !type || !topic || !interrogatory) {
+        return sendJSON(res, 400, { error: 'domain, type, topic, and interrogatory are required fields' });
+      }
+
+      const qId = `q_${type}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+      const safeAnswer = typeof suggested_answer === 'object' ? JSON.stringify(suggested_answer) : (suggested_answer || '');
+      const safeRule = typeof extracted_rule === 'object' ? JSON.stringify(extracted_rule) : (extracted_rule || '');
+      const safeOptions = Array.isArray(options) ? JSON.stringify(options) : (options || '[]');
+
+      try {
+        db.prepare(`
+          INSERT INTO questions (
+            id, domain, type, topic, subject_hierarchy, difficulty,
+            fact_pattern, interrogatory, suggested_answer, extracted_rule,
+            options, correct_answer, explanation
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+          qId,
+          domain,
+          type,
+          topic,
+          JSON.stringify([domain, topic]),
+          difficulty || 'hard',
+          fact_pattern || '',
+          interrogatory,
+          safeAnswer,
+          safeRule,
+          safeOptions,
+          correct_answer || 'A',
+          explanation || ''
+        );
+
+        return sendJSON(res, 200, {
+          success: true,
+          message: `Question ${qId} successfully committed to SQLite Question Bank!`,
+          question_id: qId
+        });
+      } catch (err) {
+        return sendJSON(res, 500, { success: false, error: err.message });
+      }
     }
 
     // ----------------------------------------------------
