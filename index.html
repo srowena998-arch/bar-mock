@@ -2844,13 +2844,18 @@
           </div>
         </template>
 
-        <!-- BeautifulUI Thinking State Indicator -->
-        <div x-show="isChatLoading" class="flex justify-start">
-          <div class="bg-slate-50 border border-slate-200 rounded-2xl rounded-tl-none px-3.5 py-2.5 text-slate-700 text-xs flex items-center gap-2.5 shadow-xs">
-            <span class="inline-block w-3.5 h-3.5 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"></span>
-            <div class="flex flex-col">
-              <span class="font-bold text-slate-900 text-[11px]">Thinking & RAG Searching...</span>
-              <span class="text-[10px] text-slate-500 font-mono">Querying 1,951 Blue Phoenix reviewer pages</span>
+        <!-- BeautifulUI Thinking & Task Identification State Indicator -->
+        <div x-show="isChatLoading" x-transition class="flex justify-start">
+          <div class="bg-gradient-to-r from-slate-50 to-amber-50/40 border border-amber-200/80 rounded-2xl rounded-tl-none p-3 text-slate-700 text-xs shadow-xs space-y-1.5 max-w-[90%]">
+            <div class="flex items-center gap-2.5">
+              <span class="inline-block w-3.5 h-3.5 border-2 border-amber-600 border-t-transparent rounded-full animate-spin shrink-0"></span>
+              <div class="flex flex-col">
+                <div class="flex flex-wrap items-center gap-1.5">
+                  <span class="font-bold text-slate-900 text-[11px]" x-text="chatThinkingStep || 'Dean Phoenix Thinking...'"></span>
+                  <span class="px-1.5 py-0.2 rounded-md bg-amber-100/80 border border-amber-300/90 text-amber-950 font-mono font-bold text-[9px]" x-text="chatDetectedIntent || 'Active'"></span>
+                </div>
+                <span class="text-[10px] text-slate-500 font-mono">Orchestrating SQLite candidate analytics & 1,951 reviewer pages</span>
+              </div>
             </div>
           </div>
         </div>

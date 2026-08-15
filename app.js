@@ -745,6 +745,9 @@ document.addEventListener('alpine:init', () => {
       }, 50);
     },
 
+    chatThinkingStep: 'Identifying Task & Intent...',
+    chatDetectedIntent: 'RAG Reviewer Knowledge Retrieval',
+
     async sendChatMessage(customPrompt = null) {
       const prompt = (customPrompt || this.chatInput || '').trim();
       if (!prompt || this.isChatLoading) return;
@@ -752,6 +755,20 @@ document.addEventListener('alpine:init', () => {
       this.chatMessages.push({ role: 'user', content: prompt });
       this.chatInput = '';
       this.isChatLoading = true;
+
+      // Identify Query Task & Intent for BeautifulUI Thought Indicator
+      const lower = prompt.toLowerCase();
+      if (lower.includes('progress') || lower.includes('score') || lower.includes('doing') || lower.includes('stats') || lower.includes('weak') || lower.includes('attempt') || lower.includes('past answer') || lower.includes('previous essay')) {
+        this.chatDetectedIntent = 'Candidate Performance & Readiness Diagnostic';
+        this.chatThinkingStep = 'Querying SQLite Candidate Attempts & Evaluating Past Answers...';
+      } else if (lower.includes('reform') || lower.includes('update') || lower.includes('how to') || lower.includes('grade') || lower.includes('rubric') || lower.includes('setting')) {
+        this.chatDetectedIntent = 'Platform Guide & System Navigation';
+        this.chatThinkingStep = 'Retrieving Interactive Platform Workflows & Steps...';
+      } else {
+        this.chatDetectedIntent = 'Reviewer Doctrine & Hybrid RAG Retrieval';
+        this.chatThinkingStep = 'Searching 1,951 Reviewer Pages & Supreme Court Jurisprudence...';
+      }
+
       this.scrollChatToBottom();
 
       try {

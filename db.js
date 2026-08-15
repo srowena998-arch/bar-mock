@@ -184,21 +184,25 @@ const getCandidateAnalytics = () => {
             ORDER BY avg_score DESC
         `).all();
 
-        // Recent attempts
+        // Recent detailed attempts for deep pedagogical analysis
         const recentAttempts = db.prepare(`
             SELECT 
                 ca.id,
                 ca.question_id,
+                ca.user_answer,
                 ca.ai_score,
                 ca.ai_feedback,
+                ca.ai_breakdown,
                 ca.attempted_at,
                 q.domain,
                 q.topic,
-                q.type
+                q.type,
+                q.interrogatory,
+                q.fact_pattern
             FROM candidate_attempts ca
             JOIN questions q ON ca.question_id = q.id
             ORDER BY ca.attempted_at DESC
-            LIMIT 5
+            LIMIT 8
         `).all();
 
         // Total questions available in DB

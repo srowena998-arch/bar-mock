@@ -191,24 +191,82 @@ async function chatWithReviewerRAG(messages) {
     'progress', 'how is my progress', 'my stats', 'how am i doing', 'my score', 
     'my scores', 'weak area', 'weakness', 'strength', 'readiness', 'my attempts', 
     'my performance', 'analysis on my progress', 'how am i performing', 'diagnostic',
-    'study plan', 'recommendation', 'summary of my progress'
+    'study plan', 'recommendation', 'summary of my progress', 'my past answers', 'my previous essays',
+    'last essay', 'recent attempts'
   ];
   
   const isProgressIntent = progressKeywords.some(kw => lowerQuery.includes(kw));
   
   if (isProgressIntent) {
     const analytics = getCandidateAnalytics();
+    const recentAttempts = analytics.recent_attempts || [];
+    
+    // Synthesize concise summary of recent past answers
+    const attemptsContext = recentAttempts.length > 0
+      ? recentAttempts.map((a, idx) => {
+          const shortAns = (a.user_answer || '').slice(0, 180).replace(/\s+/g, ' ').trim();
+          let breakdownStr = '';
+          try {
+            if (a.ai_breakdown) {
+              const bd = typeof a.ai_breakdown === 'string' ? JSON.parse(a.ai_breakdown) : a.ai_breakdown;
+              breakdownStr = ` [ALAC Breakdown: Issue ${bd.issue || 0}/10, Rule ${bd.rule || 0}/30, Analysis ${bd.analysis || 0}/50, Conclusion ${bd.conclusion || 0}/10]`;
+            }
+          } catch(e) {}
+          return `• **[Attempt #${idx + 1}] ${a.domain} (${a.type.toUpperCase()}) - "${a.topic}"**\n  - Score: **${a.ai_score}/100**${breakdownStr}\n  - Interrogatory: *${(a.interrogatory || 'N/A').slice(0, 100)}*\n  - Your Answer Excerpt: _"${shortAns}${a.user_answer && a.user_answer.length > 180 ? '...' : ''}"_\n  - AI Feedback: ${a.ai_feedback || 'Completed'}`;
+        }).join('\n\n')
+      : '• *No past attempts recorded yet.*';
+
     const domainLines = analytics.domain_breakdown && analytics.domain_breakdown.length > 0
       ? analytics.domain_breakdown.map(d => `• **${d.domain}**: Avg Score **${d.avg_score}/100** (${d.attempts} attempts, Best: ${d.highest_score})`).join('\n')
       : '• *No subject domains attempted yet. Take your first Essay or MCQ Exam to populate this matrix!*';
 
+    if (apiKey) {
+      try {
+        const progressSystemPrompt = `You are "Dean Phoenix", an elite Supreme Court Bar Examination Counsel.
+The candidate is asking for an analysis of their progress, past answers, and overall exam readiness.
+Analyze their performance using their live SQLite attempt history and provide a warm, encouraging, authoritative critique.
+
+CANDIDATE STATS & ATTEMPTS HISTORY:
+• Total Attempts: ${analytics.total_attempts}
+• Overall Weighted Average: ${analytics.overall_average}/100
+• Passing Benchmark: 75.00%
+• Domain Stats:
+${domainLines}
+
+RECENT PAST ANSWERS & ATTEMPTS LEDGER:
+${attemptsContext}
+
+Instructions:
+1. Summarize their overall score and domain readiness.
+2. Directly reference specific strengths and weaknesses observed in their past answers (e.g. mention specific topics, ALAC rubric deductions, or missed statutory elements).
+3. Prescribe a high-yield study plan to reach 85%+ percentile for the 2026 Bar.`;
+
+        const { text } = await generateText({
+          model: provider(modelName),
+          system: progressSystemPrompt,
+          messages: messages.map(m => ({ role: m.role, content: m.content })),
+          temperature: 0.3,
+          abortSignal: AbortSignal.timeout(8000)
+        });
+
+        return {
+          reply: text,
+          citations: [],
+          retrieval_confidence: 1.0,
+          supplemented_via_web: false
+        };
+      } catch (err) {
+        console.warn('AI progress generation failed, using structured diagnostic fallback:', err.message);
+      }
+    }
+
     const reply = `⚖️ **Dean Phoenix Candidate Progress & Diagnostic Analysis**
 
-Here is your current 2026 Philippine Bar Examination readiness diagnostic based on live SQLite candidate attempt logs:
+Here is your comprehensive 2026 Philippine Bar Examination readiness diagnostic based on your live SQLite candidate attempt logs and recent answer submissions:
 
 ---
 
-### 📊 Performance Summary
+### 📊 Performance Scorecard
 • **Total Question Attempts:** **${analytics.total_attempts}**
 • **Composite Average Score:** **${analytics.overall_average}/100**
 • **Supreme Court Benchmark:** **75.00%** (Official Passing Grade)
@@ -218,6 +276,11 @@ Here is your current 2026 Philippine Bar Examination readiness diagnostic based 
 
 ### 📚 Subject Domain Mastery Breakdown
 ${domainLines}
+
+---
+
+### 📝 Recent Answer Submissions & Pedagogical Feedback
+${attemptsContext}
 
 ---
 
