@@ -102,31 +102,76 @@
         <!-- Target Field Selector (for Essay) -->
         <template x-if="refineItemType === 'essay'">
           <div>
-            <label class="block text-slate-700 font-semibold mb-1.5">Target Component to Modify</label>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-slate-700 font-semibold">Target Component to Modify</label>
+              <span class="text-[10px] text-slate-400 font-mono" x-text="refineTargetField === 'all' ? 'Mode: Full AI Regeneration' : 'Mode: Targeted Field'"></span>
+            </div>
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button 
                 @click="refineTargetField = 'all'" 
-                :class="refineTargetField === 'all' ? 'bg-amber-50 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
-                class="p-2 rounded-xl border text-center transition"
-              >All Components</button>
+                :class="refineTargetField === 'all' ? 'bg-amber-500 text-slate-950 font-bold border-amber-600 shadow-xs' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'"
+                class="p-2 rounded-xl border text-center transition flex items-center justify-center gap-1"
+              >
+                <span>⚡</span> All (Regenerate Essay)
+              </button>
               <button 
                 @click="refineTargetField = 'fact_pattern'" 
-                :class="refineTargetField === 'fact_pattern' ? 'bg-amber-50 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+                :class="refineTargetField === 'fact_pattern' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'"
                 class="p-2 rounded-xl border text-center transition"
               >Fact Pattern Only</button>
               <button 
                 @click="refineTargetField = 'interrogatory'" 
-                :class="refineTargetField === 'interrogatory' ? 'bg-amber-50 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+                :class="refineTargetField === 'interrogatory' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'"
                 class="p-2 rounded-xl border text-center transition"
               >Interrogatory Only</button>
               <button 
                 @click="refineTargetField = 'suggested_answer'" 
-                :class="refineTargetField === 'suggested_answer' ? 'bg-amber-50 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+                :class="refineTargetField === 'suggested_answer' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'"
                 class="p-2 rounded-xl border text-center transition"
               >Answer / ALAC Only</button>
             </div>
           </div>
         </template>
+
+        <!-- Target Field Selector (for MCQ) -->
+        <template x-if="refineItemType === 'mcq'">
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-slate-700 font-semibold">Target Component to Modify</label>
+              <span class="text-[10px] text-slate-400 font-mono" x-text="refineTargetField === 'all' ? 'Mode: Full AI Regeneration' : 'Mode: Targeted Field'"></span>
+            </div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button 
+                @click="refineTargetField = 'all'" 
+                :class="refineTargetField === 'all' ? 'bg-amber-500 text-slate-950 font-bold border-amber-600 shadow-xs' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'"
+                class="p-2 rounded-xl border text-center transition flex items-center justify-center gap-1"
+              >
+                <span>⚡</span> All (Regenerate MCQ)
+              </button>
+              <button 
+                @click="refineTargetField = 'question'" 
+                :class="refineTargetField === 'question' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'"
+                class="p-2 rounded-xl border text-center transition"
+              >Question Prompt Only</button>
+              <button 
+                @click="refineTargetField = 'options'" 
+                :class="refineTargetField === 'options' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'"
+                class="p-2 rounded-xl border text-center transition"
+              >4 Distractors Only</button>
+              <button 
+                @click="refineTargetField = 'explanation'" 
+                :class="refineTargetField === 'explanation' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'"
+                class="p-2 rounded-xl border text-center transition"
+              >Explanation Only</button>
+            </div>
+          </div>
+        </template>
+
+        <!-- Dynamic AI Mode Notification Banner in Modal -->
+        <div x-show="refineTargetField === 'all'" x-transition class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-2.5 text-xs text-amber-950">
+          <span class="text-lg shrink-0">✨</span>
+          <span class="text-[11px] leading-relaxed"><strong>Full AI Regeneration Active:</strong> The entire question will be synthesized and modernized end-to-end based on your prompt below.</span>
+        </div>
 
         <!-- Prompt Bar with Quick Preset Chips -->
         <div>
@@ -2040,19 +2085,96 @@
                     </div>
                   </div>
 
-                  <!-- Direct In-Place Field Editor (Essay Modality) -->
+                  <!-- Target Component Selector (for Essays) -->
                   <template x-if="activeRefineQuestion.type === 'essay'">
-                    <div class="space-y-3 bg-slate-50/70 border border-slate-200 rounded-2xl p-4 text-xs">
-                      <div>
+                    <div>
+                      <div class="flex items-center justify-between mb-1.5">
+                        <label class="text-[11px] font-bold text-slate-700 uppercase">AI Target Component to Modify</label>
+                        <span class="text-[10px] text-slate-400 font-mono" x-text="refineTargetField === 'all' ? 'Mode: Full AI Regeneration' : 'Mode: Targeted Field Edit'"></span>
+                      </div>
+                      <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
+                        <button 
+                          @click="refineTargetField = 'all'" 
+                          :class="refineTargetField === 'all' ? 'bg-amber-500 text-slate-950 font-bold border-amber-600 shadow-xs' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'"
+                          class="p-2 rounded-xl border text-center transition text-[11px] flex items-center justify-center gap-1"
+                        >
+                          <span>⚡</span> All (Regenerate Essay)
+                        </button>
+                        <button 
+                          @click="refineTargetField = 'fact_pattern'" 
+                          :class="refineTargetField === 'fact_pattern' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'"
+                          class="p-2 rounded-xl border text-center transition text-[11px]"
+                        >Fact Pattern Only</button>
+                        <button 
+                          @click="refineTargetField = 'interrogatory'" 
+                          :class="refineTargetField === 'interrogatory' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'"
+                          class="p-2 rounded-xl border text-center transition text-[11px]"
+                        >Interrogatory Only</button>
+                        <button 
+                          @click="refineTargetField = 'suggested_answer'" 
+                          :class="refineTargetField === 'suggested_answer' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'"
+                          class="p-2 rounded-xl border text-center transition text-[11px]"
+                        >Answer / ALAC Only</button>
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- Target Component Selector (for MCQs) -->
+                  <template x-if="activeRefineQuestion.type === 'mcq'">
+                    <div>
+                      <div class="flex items-center justify-between mb-1.5">
+                        <label class="text-[11px] font-bold text-slate-700 uppercase">AI Target Component to Modify</label>
+                        <span class="text-[10px] text-slate-400 font-mono" x-text="refineTargetField === 'all' ? 'Mode: Full AI Regeneration' : 'Mode: Targeted Field Edit'"></span>
+                      </div>
+                      <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
+                        <button 
+                          @click="refineTargetField = 'all'" 
+                          :class="refineTargetField === 'all' ? 'bg-amber-500 text-slate-950 font-bold border-amber-600 shadow-xs' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'"
+                          class="p-2 rounded-xl border text-center transition text-[11px] flex items-center justify-center gap-1"
+                        >
+                          <span>⚡</span> All (Regenerate MCQ)
+                        </button>
+                        <button 
+                          @click="refineTargetField = 'question'" 
+                          :class="refineTargetField === 'question' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'"
+                          class="p-2 rounded-xl border text-center transition text-[11px]"
+                        >Question Prompt Only</button>
+                        <button 
+                          @click="refineTargetField = 'options'" 
+                          :class="refineTargetField === 'options' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'"
+                          class="p-2 rounded-xl border text-center transition text-[11px]"
+                        >4 Distractors Only</button>
+                        <button 
+                          @click="refineTargetField = 'explanation'" 
+                          :class="refineTargetField === 'explanation' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'"
+                          class="p-2 rounded-xl border text-center transition text-[11px]"
+                        >Explanation Only</button>
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- Dynamic AI Mode Notification Banner (When 'All' is selected) -->
+                  <div x-show="refineTargetField === 'all'" x-transition class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-3 text-xs">
+                    <span class="text-xl shrink-0">✨</span>
+                    <div>
+                      <strong class="font-bold text-amber-950 block">Full AI Question Modernization Mode</strong>
+                      <p class="text-[11px] text-amber-800 leading-relaxed">Manual input fields are collapsed. Enter your high-level natural language prompt below to synthesize a cohesive, modernized Bar question.</p>
+                    </div>
+                  </div>
+
+                  <!-- Direct In-Place Field Editor (Essay Modality - Shown only when targeting specific granular components) -->
+                  <template x-if="activeRefineQuestion.type === 'essay'">
+                    <div x-show="refineTargetField !== 'all'" x-transition class="space-y-3 bg-slate-50/70 border border-slate-200 rounded-2xl p-4 text-xs">
+                      <div x-show="refineTargetField === 'fact_pattern'">
                         <label class="block text-slate-700 font-semibold mb-1">Fact Pattern / Case Scenario:</label>
                         <textarea 
                           x-model="activeRefineQuestion.fact_pattern" 
-                          rows="3" 
+                          rows="4" 
                           class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2.5 text-xs text-slate-900 leading-relaxed outline-none transition"
                         ></textarea>
                       </div>
 
-                      <div>
+                      <div x-show="refineTargetField === 'interrogatory'">
                         <label class="block text-slate-700 font-semibold mb-1">Interrogatory / Question Call:</label>
                         <input 
                           type="text" 
@@ -2061,7 +2183,7 @@
                         />
                       </div>
 
-                      <div>
+                      <div x-show="refineTargetField === 'suggested_answer'">
                         <label class="block text-slate-700 font-semibold mb-1">Suggested ALAC Breakdown:</label>
                         <template x-if="typeof activeRefineQuestion.suggested_answer === 'object' && activeRefineQuestion.suggested_answer !== null">
                           <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -2095,10 +2217,10 @@
                     </div>
                   </template>
 
-                  <!-- Direct In-Place Field Editor (MCQ Modality) -->
+                  <!-- Direct In-Place Field Editor (MCQ Modality - Shown only when targeting specific granular components) -->
                   <template x-if="activeRefineQuestion.type === 'mcq'">
-                    <div class="space-y-3 bg-slate-50/70 border border-slate-200 rounded-2xl p-4 text-xs">
-                      <div>
+                    <div x-show="refineTargetField !== 'all'" x-transition class="space-y-3 bg-slate-50/70 border border-slate-200 rounded-2xl p-4 text-xs">
+                      <div x-show="refineTargetField === 'question'">
                         <label class="block text-slate-700 font-semibold mb-1">MCQ Question / Prompt:</label>
                         <input 
                           type="text" 
@@ -2107,7 +2229,7 @@
                         />
                       </div>
 
-                      <div class="space-y-2">
+                      <div x-show="refineTargetField === 'options'" class="space-y-2">
                         <label class="block text-slate-700 font-semibold">4 Distractor Options:</label>
                         <template x-for="(opt, oIdx) in (activeRefineQuestion.options || [])" :key="oIdx">
                           <input 
@@ -2118,7 +2240,7 @@
                         </template>
                       </div>
 
-                      <div class="grid grid-cols-2 gap-3">
+                      <div x-show="refineTargetField === 'explanation'" class="grid grid-cols-2 gap-3">
                         <div>
                           <label class="block text-slate-700 font-semibold mb-1">Correct Answer Key:</label>
                           <select x-model="activeRefineQuestion.correct_answer" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold font-mono">
@@ -2136,64 +2258,6 @@
                             class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-800 outline-none"
                           />
                         </div>
-                      </div>
-                    </div>
-                  </template>
-
-                  <!-- Target Component Selector (for Essays) -->
-                  <template x-if="activeRefineQuestion.type === 'essay'">
-                    <div>
-                      <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">AI Target Component to Modify</label>
-                      <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
-                        <button 
-                          @click="refineTargetField = 'all'" 
-                          :class="refineTargetField === 'all' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
-                          class="p-2 rounded-xl border text-center transition text-[11px]"
-                        >All (Regenerate Essay)</button>
-                        <button 
-                          @click="refineTargetField = 'fact_pattern'" 
-                          :class="refineTargetField === 'fact_pattern' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
-                          class="p-2 rounded-xl border text-center transition text-[11px]"
-                        >Fact Pattern Only</button>
-                        <button 
-                          @click="refineTargetField = 'interrogatory'" 
-                          :class="refineTargetField === 'interrogatory' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
-                          class="p-2 rounded-xl border text-center transition text-[11px]"
-                        >Interrogatory Only</button>
-                        <button 
-                          @click="refineTargetField = 'suggested_answer'" 
-                          :class="refineTargetField === 'suggested_answer' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
-                          class="p-2 rounded-xl border text-center transition text-[11px]"
-                        >Answer / ALAC Only</button>
-                      </div>
-                    </div>
-                  </template>
-
-                  <!-- Target Component Selector (for MCQs) -->
-                  <template x-if="activeRefineQuestion.type === 'mcq'">
-                    <div>
-                      <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">AI Target Component to Modify</label>
-                      <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
-                        <button 
-                          @click="refineTargetField = 'all'" 
-                          :class="refineTargetField === 'all' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
-                          class="p-2 rounded-xl border text-center transition text-[11px]"
-                        >All (Regenerate MCQ)</button>
-                        <button 
-                          @click="refineTargetField = 'question'" 
-                          :class="refineTargetField === 'question' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
-                          class="p-2 rounded-xl border text-center transition text-[11px]"
-                        >Question Prompt Only</button>
-                        <button 
-                          @click="refineTargetField = 'options'" 
-                          :class="refineTargetField === 'options' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
-                          class="p-2 rounded-xl border text-center transition text-[11px]"
-                        >4 Distractors Only</button>
-                        <button 
-                          @click="refineTargetField = 'explanation'" 
-                          :class="refineTargetField === 'explanation' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
-                          class="p-2 rounded-xl border text-center transition text-[11px]"
-                        >Explanation Only</button>
                       </div>
                     </div>
                   </template>
