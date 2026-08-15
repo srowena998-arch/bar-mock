@@ -1265,22 +1265,24 @@ Output strictly JSON:
           body: JSON.stringify({
             model: model,
             messages: [{ role: 'user', content: 'Respond with exactly the word OK' }],
-            max_tokens: 10,
+            max_tokens: 120,
             temperature: 0
-          })
+          }),
+          signal: AbortSignal.timeout(10000)
         });
 
         const latencyMs = Date.now() - startTime;
 
         if (response.ok) {
           const json = await response.json();
-          const reply = json.choices?.[0]?.message?.content || 'OK';
+          const choiceMsg = json.choices?.[0]?.message;
+          const reply = (choiceMsg?.content || choiceMsg?.reasoning || 'OK').trim();
           return sendJSON(res, 200, {
             success: true,
             latency_ms: latencyMs,
             model_used: model,
             endpoint: endpointUrl,
-            reply: reply.trim()
+            reply: reply
           });
         } else {
           const errBody = await response.text();
