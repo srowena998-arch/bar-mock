@@ -153,6 +153,21 @@ document.addEventListener('alpine:init', () => {
     refineItemType: 'essay',
     activeRefineQuestion: null,
 
+    // AI & System Observability Audit Logs State
+    auditLogs: [],
+    auditLogsFilter: 'all',
+    auditLogsSearch: '',
+    isLoadingAuditLogs: false,
+    selectedAuditLog: null,
+    auditStats: {
+      total: 0,
+      avg_latency: 0,
+      success_count: 0,
+      fallback_count: 0,
+      tokens_in: 0,
+      tokens_out: 0
+    },
+
     // Settings Modal State
     showSettingsModal: false,
     isFetchingModels: false,
@@ -185,6 +200,7 @@ document.addEventListener('alpine:init', () => {
       await this.loadLatestEvalResults();
       await this.loadEvalHistoryLogs();
       await this.loadVectorStats();
+      await this.fetchAuditLogs();
       this.fetchLiveModels();
       this.startTimer();
       this.loadSavedEssayAnswer();
@@ -232,7 +248,18 @@ document.addEventListener('alpine:init', () => {
         const res = await fetch('/api/questions');
         if (res.ok) {
           const data = await res.json();
-          const qList = data.questions || [];
+          const qList = (data.questions || []).map(q => {
+            const isMcq = q.type === 'mcq' || Boolean(q.options);
+            if (isMcq) {
+              const stem = q.question || q.interrogatory || q.fact_pattern || '';
+              return {
+                ...q,
+                question: stem,
+                interrogatory: stem
+              };
+            }
+            return q;
+          });
           this.questions = qList;
           this.allEssays = qList.filter(q => q.type === 'essay').map(q => ({
             ...q,
@@ -246,7 +273,7 @@ document.addEventListener('alpine:init', () => {
           this.filterEssays();
           this.filterMcqs();
           if (this.questions.length > 0 && !this.activeRefineQuestion) {
-            this.activeRefineQuestion = JSON.parse(JSON.stringify(this.questions[0]));
+            this.selectQuestionToReform(this.questions[0]);
           }
         }
       } catch (err) {
@@ -481,6 +508,76 @@ document.addEventListener('alpine:init', () => {
       }
     },
 
+    async fetchAuditLogs() {
+      this.isLoadingAuditLogs = true;
+      try {
+        const res = await fetch('/api/logs/ai?limit=150');
+        if (res.ok) {
+          const data = await res.json();
+          this.auditLogs = data.logs || [];
+          
+          let totalLatency = 0;
+          let successCount = 0;
+          let fallbackCount = 0;
+          let tokensIn = 0;
+          let tokensOut = 0;
+
+          this.auditLogs.forEach(l => {
+            totalLatency += (l.latency_ms || 0);
+            if (l.status === 'SUCCESS') successCount++;
+            if (l.status === 'FALLBACK') fallbackCount++;
+            tokensIn += (l.tokens_in || 0);
+            tokensOut += (l.tokens_out || 0);
+          });
+
+          this.auditStats = {
+            total: this.auditLogs.length,
+            avg_latency: this.auditLogs.length > 0 ? Math.round(totalLatency / this.auditLogs.length) : 0,
+            success_count: successCount,
+            fallback_count: fallbackCount,
+            success_rate: this.auditLogs.length > 0 ? Math.round((successCount / this.auditLogs.length) * 100) : 100,
+            tokens_in: tokensIn,
+            tokens_out: tokensOut
+          };
+        }
+      } catch (err) {
+        console.warn('Error fetching audit logs:', err);
+      } finally {
+        this.isLoadingAuditLogs = false;
+      }
+    },
+
+    async clearAllAuditLogs() {
+      if (!confirm('Are you sure you want to clear all AI Observability & System Audit logs?')) return;
+      try {
+        const res = await fetch('/api/logs/ai/clear', { method: 'POST' });
+        if (res.ok) {
+          this.showToastNotification('🗑️ AI audit logs purged successfully.');
+          await this.fetchAuditLogs();
+        }
+      } catch (err) {
+        this.showToastNotification('⚠️ Error clearing audit logs.');
+      }
+    },
+
+    get filteredAuditLogs() {
+      let list = this.auditLogs || [];
+      if (this.auditLogsFilter && this.auditLogsFilter !== 'all') {
+        list = list.filter(l => l.event_type === this.auditLogsFilter);
+      }
+      if (this.auditLogsSearch && this.auditLogsSearch.trim()) {
+        const q = this.auditLogsSearch.toLowerCase();
+        list = list.filter(l => 
+          (l.action_name || '').toLowerCase().includes(q) ||
+          (l.model || '').toLowerCase().includes(q) ||
+          (l.prompt_snippet || '').toLowerCase().includes(q) ||
+          (l.response_snippet || '').toLowerCase().includes(q) ||
+          (l.id || '').toLowerCase().includes(q)
+        );
+      }
+      return list;
+    },
+
     async runSingleEval(testId) {
       this.activeEvalTestId = testId;
       try {
@@ -613,8 +710,18 @@ document.addEventListener('alpine:init', () => {
     // Targeted Refinement Actions in Resources Studio
     openRefineModalForQuestion(q) {
       if (!q) return;
-      this.activeRefineQuestion = q;
-      this.refineItemType = q.type || (q.options ? 'mcq' : 'essay');
+      const cloned = JSON.parse(JSON.stringify(q));
+      const isMcq = cloned.type === 'mcq' || Boolean(cloned.options);
+      if (isMcq) {
+        const stem = cloned.question || cloned.interrogatory || cloned.fact_pattern || '';
+        cloned.question = stem;
+        cloned.interrogatory = stem;
+        if (!Array.isArray(cloned.options) || cloned.options.length === 0) {
+          cloned.options = ['A) Option A', 'B) Option B', 'C) Option C', 'D) Option D'];
+        }
+      }
+      this.activeRefineQuestion = cloned;
+      this.refineItemType = isMcq ? 'mcq' : 'essay';
       this.refinePreviewData = null;
       this.refineInstruction = '';
       this.refineTargetField = 'all';
@@ -645,7 +752,17 @@ document.addEventListener('alpine:init', () => {
         if (res.ok) {
           const data = await res.json();
           this.refinePreviewData = data;
-          this.showToastNotification('✨ Targeted refinement synthesized! Inspect diff below.');
+          if (data.refined) {
+            const isMcq = data.refined.type === 'mcq' || Boolean(data.refined.options);
+            if (isMcq) {
+              const stem = data.refined.question || data.refined.interrogatory || '';
+              data.refined.question = stem;
+              data.refined.interrogatory = stem;
+            }
+            this.activeRefineQuestion = JSON.parse(JSON.stringify(data.refined));
+          }
+          this.showToastNotification('✨ Targeted refinement synthesized! Form fields updated.');
+          this.fetchAuditLogs();
         } else {
           this.showToastNotification('⚠️ Refinement failed.');
         }
@@ -658,10 +775,20 @@ document.addEventListener('alpine:init', () => {
 
     selectQuestionToReform(q) {
       if (!q) return;
-      this.activeRefineQuestion = JSON.parse(JSON.stringify(q));
+      const cloned = JSON.parse(JSON.stringify(q));
+      const isMcq = cloned.type === 'mcq' || Boolean(cloned.options);
+      if (isMcq) {
+        const stem = cloned.question || cloned.interrogatory || cloned.fact_pattern || '';
+        cloned.question = stem;
+        cloned.interrogatory = stem;
+        if (!Array.isArray(cloned.options) || cloned.options.length === 0) {
+          cloned.options = ['A) Option A', 'B) Option B', 'C) Option C', 'D) Option D'];
+        }
+      }
+      this.activeRefineQuestion = cloned;
       this.refinePreviewData = null;
       this.refineInstruction = '';
-      this.refineItemType = q.type || (q.options ? 'mcq' : 'essay');
+      this.refineItemType = isMcq ? 'mcq' : 'essay';
       this.refineTargetField = 'all';
     },
 
@@ -683,11 +810,12 @@ document.addEventListener('alpine:init', () => {
           this.refinePreviewData = null;
           await this.loadQuestions();
           await this.loadModalityCoverage();
+          this.fetchAuditLogs();
         } else {
-          this.showToastNotification('⚠️ Failed to commit refined question.');
+          this.showToastNotification('⚠️ Error saving to SQLite.');
         }
       } catch (e) {
-        this.showToastNotification('⚠️ Error saving refined question.');
+        this.showToastNotification('⚠️ Network error saving question.');
       }
     },
 

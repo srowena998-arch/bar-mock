@@ -79,6 +79,22 @@ CREATE TABLE IF NOT EXISTS eval_run_logs (
     details TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS ai_audit_logs (
+    id TEXT PRIMARY KEY,
+    event_type TEXT NOT NULL,
+    action_name TEXT NOT NULL,
+    model TEXT,
+    prompt_snippet TEXT,
+    params_json TEXT,
+    response_snippet TEXT,
+    tokens_in INTEGER DEFAULT 0,
+    tokens_out INTEGER DEFAULT 0,
+    latency_ms INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'SUCCESS',
+    details_json TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
 `);
 
 // Set default system configurations if not already set
@@ -316,6 +332,66 @@ const getCandidateFullEvaluationHistory = () => {
     }
 };
 
+const recordAIAuditLog = ({ event_type, action_name, model, prompt_snippet, params_json, response_snippet, tokens_in = 0, tokens_out = 0, latency_ms = 0, status = 'SUCCESS', details = {} }) => {
+    try {
+        const id = 'LOG-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+        const stmt = db.prepare(`
+            INSERT INTO ai_audit_logs 
+            (id, event_type, action_name, model, prompt_snippet, params_json, response_snippet, tokens_in, tokens_out, latency_ms, status, details_json)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        stmt.run(
+            id,
+            event_type || 'AI_CALL',
+            action_name || 'Generic AI Action',
+            model || getConfig('default_model') || 'qwen3.7-plus',
+            typeof prompt_snippet === 'string' ? prompt_snippet.slice(0, 1000) : JSON.stringify(prompt_snippet || '').slice(0, 1000),
+            typeof params_json === 'string' ? params_json : JSON.stringify(params_json || {}),
+            typeof response_snippet === 'string' ? response_snippet.slice(0, 1500) : JSON.stringify(response_snippet || '').slice(0, 1500),
+            tokens_in || (typeof prompt_snippet === 'string' ? Math.ceil(prompt_snippet.length / 4) : 0),
+            tokens_out || (typeof response_snippet === 'string' ? Math.ceil(response_snippet.length / 4) : 0),
+            latency_ms || 0,
+            status || 'SUCCESS',
+            JSON.stringify(details || {})
+        );
+        return id;
+    } catch(e) {
+        console.error('Error writing to ai_audit_logs:', e);
+        return null;
+    }
+};
+
+const getAIAuditLogs = ({ limit = 100, event_type = null } = {}) => {
+    try {
+        let sql = 'SELECT * FROM ai_audit_logs';
+        const params = [];
+        if (event_type && event_type !== 'all') {
+            sql += ' WHERE event_type = ?';
+            params.push(event_type);
+        }
+        sql += ' ORDER BY created_at DESC LIMIT ?';
+        params.push(limit);
+        const rows = db.prepare(sql).all(...params);
+        return rows.map(r => ({
+            ...r,
+            params: r.params_json ? (typeof r.params_json === 'string' ? JSON.parse(r.params_json) : r.params_json) : {},
+            details: r.details_json ? (typeof r.details_json === 'string' ? JSON.parse(r.details_json) : r.details_json) : {}
+        }));
+    } catch(e) {
+        console.error('Error fetching ai_audit_logs:', e);
+        return [];
+    }
+};
+
+const clearAIAuditLogs = () => {
+    try {
+        db.prepare('DELETE FROM ai_audit_logs').run();
+        return true;
+    } catch(e) {
+        return false;
+    }
+};
+
 if (!getConfig('opencode_base_url')) {
     setConfig('opencode_base_url', 'https://api.opencode.com/v1');
 }
@@ -331,5 +407,8 @@ module.exports = {
     getEvalLogs,
     getLatestEvalMap,
     getCandidateAnalytics,
-    getCandidateFullEvaluationHistory
+    getCandidateFullEvaluationHistory,
+    recordAIAuditLog,
+    getAIAuditLogs,
+    clearAIAuditLogs
 };

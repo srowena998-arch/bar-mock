@@ -167,21 +167,15 @@
           </div>
         </template>
 
-        <!-- Dynamic AI Mode Notification Banner in Modal -->
-        <div x-show="refineTargetField === 'all'" x-transition class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-2.5 text-xs text-amber-950">
-          <span class="text-lg shrink-0">✨</span>
-          <span class="text-[11px] leading-relaxed"><strong>Full AI Regeneration Active:</strong> The entire question will be synthesized and modernized end-to-end based on your prompt below.</span>
-        </div>
-
         <!-- Prompt Bar with Quick Preset Chips -->
-        <div>
-          <div class="flex items-center justify-between mb-1.5">
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between mb-1">
             <label class="text-slate-700 font-semibold">Natural Language Refinement Instruction</label>
             <span class="text-[10px] text-slate-400 font-mono">Vercel AI SDK Schema</span>
           </div>
 
           <!-- Quick Instruction Pills -->
-          <div class="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 text-[10px]">
+          <div class="flex items-center gap-1.5 mb-1.5 overflow-x-auto pb-1 text-[10px]">
             <span class="text-slate-400 font-semibold">Suggestions:</span>
             <button @click="refineInstruction = 'Add a third-party claim and timeline complication'" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition">+ Add Party / Timeline</button>
             <button @click="refineInstruction = 'Append sub-question (b) on procedural remedies'" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition">+ Add Sub-Question (b)</button>
@@ -191,9 +185,89 @@
           <textarea 
             x-model="refineInstruction" 
             placeholder="e.g. 'Add a third-party claim in the fact pattern and make the interrogatory test both criminal and civil liabilities separately'..."
-            class="w-full h-20 bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-2xl p-3 text-slate-900 outline-none resize-none leading-relaxed text-xs transition"
+            class="w-full h-18 bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-2xl p-2.5 text-slate-900 outline-none resize-none leading-relaxed text-xs transition"
           ></textarea>
         </div>
+
+        <!-- Manual Component Fields Inspector (Direct Editable Fields) -->
+        <details class="bg-slate-50 border border-slate-200 rounded-2xl p-3 text-xs" open>
+          <summary class="cursor-pointer font-bold text-slate-800 flex items-center justify-between text-[11px] select-none">
+            <span class="flex items-center gap-1.5">
+              <span>✏️</span> <span>Manual Field Editor (Edit before or after AI synthesis)</span>
+            </span>
+            <span class="text-[10px] text-amber-700 font-mono">Live Editable Form</span>
+          </summary>
+          
+          <div class="mt-3 pt-2.5 border-t border-slate-200/80 space-y-3">
+            <!-- MCQ Fields in Modal -->
+            <template x-if="refineItemType === 'mcq' || activeRefineQuestion?.options">
+              <div class="space-y-2.5">
+                <div>
+                  <label class="block text-slate-700 font-semibold mb-1">Question Prompt / Stem:</label>
+                  <textarea 
+                    x-model="activeRefineQuestion.question" 
+                    rows="2" 
+                    class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2 text-xs text-slate-900 outline-none"
+                  ></textarea>
+                </div>
+                <div class="space-y-1">
+                  <label class="block text-slate-700 font-semibold text-[11px]">4 Distractor Options:</label>
+                  <template x-for="(opt, oIdx) in (activeRefineQuestion?.options || [])" :key="oIdx">
+                    <div class="flex items-center gap-1.5">
+                      <span class="w-5 font-bold font-mono text-amber-800 text-[10px]" x-text="['A)', 'B)', 'C)', 'D)'][oIdx]"></span>
+                      <input 
+                        type="text" 
+                        x-model="activeRefineQuestion.options[oIdx]" 
+                        class="flex-1 bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-1.5 text-xs text-slate-800 outline-none"
+                      />
+                    </div>
+                  </template>
+                </div>
+                <div class="grid grid-cols-3 gap-2 pt-1">
+                  <div>
+                    <label class="block text-slate-700 font-semibold mb-0.5 text-[10px]">Key:</label>
+                    <select x-model="activeRefineQuestion.correct_answer" class="w-full bg-white border border-slate-200 rounded-xl p-1.5 text-xs font-bold font-mono outline-none">
+                      <option value="A">A</option>
+                      <option value="B">B</option>
+                      <option value="C">C</option>
+                      <option value="D">D</option>
+                    </select>
+                  </div>
+                  <div class="col-span-2">
+                    <label class="block text-slate-700 font-semibold mb-0.5 text-[10px]">Explanation:</label>
+                    <input 
+                      type="text" 
+                      x-model="activeRefineQuestion.explanation" 
+                      class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-1.5 text-xs text-slate-800 outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            </template>
+
+            <!-- Essay Fields in Modal -->
+            <template x-if="refineItemType === 'essay' && !activeRefineQuestion?.options">
+              <div class="space-y-2.5">
+                <div>
+                  <label class="block text-slate-700 font-semibold mb-1">Fact Pattern / Case Scenario:</label>
+                  <textarea 
+                    x-model="activeRefineQuestion.fact_pattern" 
+                    rows="3" 
+                    class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2 text-xs text-slate-900 outline-none leading-relaxed"
+                  ></textarea>
+                </div>
+                <div>
+                  <label class="block text-slate-700 font-semibold mb-1">Interrogatory / Question Call:</label>
+                  <textarea 
+                    x-model="activeRefineQuestion.interrogatory" 
+                    rows="2" 
+                    class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2 text-xs text-slate-900 outline-none font-semibold"
+                  ></textarea>
+                </div>
+              </div>
+            </template>
+          </div>
+        </details>
 
         <!-- BeautifulUI Split Diff Table / Approval Card -->
         <div x-show="refinePreviewData" class="space-y-2 p-4 rounded-2xl bg-slate-50 border border-slate-200 max-h-64 overflow-y-auto">
@@ -1242,6 +1316,17 @@
             <span>🧪</span>
             <span>AI Evals</span>
           </button>
+
+          <button 
+            @click="currentTab = 'logs'; fetchAuditLogs();" 
+            :class="currentTab === 'logs' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'" 
+            class="px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition duration-150 flex items-center gap-1.5"
+            title="AI Calls & System Observability Audit Logs"
+          >
+            <span>📋</span>
+            <span>AI Logs</span>
+            <span class="px-1.5 py-0.2 rounded-full bg-indigo-500/20 text-indigo-700 text-[10px] font-mono" x-text="auditLogs.length"></span>
+          </button>
         </nav>
 
         <!-- Settings Button -->
@@ -2162,114 +2247,137 @@
                     </div>
                   </template>
 
-                  <!-- Dynamic AI Mode Notification Banner (When 'All' is selected) -->
-                  <div x-show="refineTargetField === 'all'" x-transition class="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-3 text-xs">
-                    <span class="text-xl shrink-0">✨</span>
-                    <div>
-                      <strong class="font-bold text-amber-950 block">Full AI Question Modernization Mode</strong>
-                      <p class="text-[11px] text-amber-800 leading-relaxed">Manual input fields are collapsed. Enter your high-level natural language prompt below to synthesize a cohesive, modernized Bar question.</p>
+                  <!-- Manual Component Fields Editor (Always available for direct editing & tweaking) -->
+                  <div class="space-y-3 bg-slate-50/80 border border-slate-200 rounded-2xl p-4 text-xs">
+                    <div class="flex items-center justify-between pb-1 border-b border-slate-200/80">
+                      <span class="font-bold text-slate-700 uppercase text-[10px] tracking-wider flex items-center gap-1.5">
+                        <span>✏️</span> <span>Direct In-Place Field Editor</span>
+                      </span>
+                      <span class="text-[10px] text-slate-400 font-mono" x-text="refineTargetField === 'all' ? 'All Fields Editable' : `Target Focus: ${refineTargetField}`"></span>
                     </div>
-                  </div>
 
-                  <!-- Direct In-Place Field Editor (Essay Modality - Shown only when targeting specific granular components) -->
-                  <template x-if="activeRefineQuestion.type === 'essay'">
-                    <div x-show="refineTargetField !== 'all'" x-transition class="space-y-3 bg-slate-50/70 border border-slate-200 rounded-2xl p-4 text-xs">
-                      <div x-show="refineTargetField === 'fact_pattern'">
-                        <label class="block text-slate-700 font-semibold mb-1">Fact Pattern / Case Scenario:</label>
-                        <textarea 
-                          x-model="activeRefineQuestion.fact_pattern" 
-                          rows="4" 
-                          class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2.5 text-xs text-slate-900 leading-relaxed outline-none transition"
-                        ></textarea>
-                      </div>
-
-                      <div x-show="refineTargetField === 'interrogatory'">
-                        <label class="block text-slate-700 font-semibold mb-1">Interrogatory / Question Call:</label>
-                        <input 
-                          type="text" 
-                          x-model="activeRefineQuestion.interrogatory" 
-                          class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2.5 text-xs text-slate-900 font-semibold outline-none transition"
-                        />
-                      </div>
-
-                      <div x-show="refineTargetField === 'suggested_answer'">
-                        <label class="block text-slate-700 font-semibold mb-1">Suggested ALAC Breakdown:</label>
-                        <template x-if="typeof activeRefineQuestion.suggested_answer === 'object' && activeRefineQuestion.suggested_answer !== null">
-                          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1">
-                              <span class="text-[10px] font-bold text-amber-800 uppercase">Issue:</span>
-                              <textarea x-model="activeRefineQuestion.suggested_answer.issue" rows="2" class="w-full text-xs text-slate-800 outline-none resize-none bg-transparent"></textarea>
-                            </div>
-                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1">
-                              <span class="text-[10px] font-bold text-indigo-800 uppercase">Legal Basis:</span>
-                              <textarea x-model="activeRefineQuestion.suggested_answer.rule" rows="2" class="w-full text-xs text-slate-800 outline-none resize-none bg-transparent"></textarea>
-                            </div>
-                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1">
-                              <span class="text-[10px] font-bold text-emerald-800 uppercase">Application:</span>
-                              <textarea x-model="activeRefineQuestion.suggested_answer.analysis" rows="2" class="w-full text-xs text-slate-800 outline-none resize-none bg-transparent"></textarea>
-                            </div>
-                            <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1">
-                              <span class="text-[10px] font-bold text-slate-800 uppercase">Conclusion:</span>
-                              <textarea x-model="activeRefineQuestion.suggested_answer.conclusion" rows="2" class="w-full text-xs text-slate-800 outline-none resize-none bg-transparent"></textarea>
-                            </div>
-                          </div>
-                        </template>
-
-                        <template x-if="typeof activeRefineQuestion.suggested_answer !== 'object' || activeRefineQuestion.suggested_answer === null">
+                    <!-- Essay Modality Fields -->
+                    <template x-if="activeRefineQuestion.type === 'essay'">
+                      <div class="space-y-3">
+                        <div :class="refineTargetField === 'fact_pattern' ? 'p-2.5 rounded-xl bg-amber-500/10 border border-amber-400' : ''" class="transition">
+                          <label class="block text-slate-700 font-semibold mb-1 flex items-center justify-between">
+                            <span>Fact Pattern / Case Scenario:</span>
+                            <span class="text-[10px] text-slate-400 font-mono">Full Scenario</span>
+                          </label>
                           <textarea 
-                            x-model="activeRefineQuestion.suggested_answer" 
+                            x-model="activeRefineQuestion.fact_pattern" 
                             rows="4" 
-                            class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2.5 text-xs text-slate-900 font-mono leading-relaxed outline-none"
+                            placeholder="Enter the factual background and dispute scenario..."
+                            class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2.5 text-xs text-slate-900 leading-relaxed outline-none transition"
                           ></textarea>
-                        </template>
-                      </div>
-                    </div>
-                  </template>
-
-                  <!-- Direct In-Place Field Editor (MCQ Modality - Shown only when targeting specific granular components) -->
-                  <template x-if="activeRefineQuestion.type === 'mcq'">
-                    <div x-show="refineTargetField !== 'all'" x-transition class="space-y-3 bg-slate-50/70 border border-slate-200 rounded-2xl p-4 text-xs">
-                      <div x-show="refineTargetField === 'question'">
-                        <label class="block text-slate-700 font-semibold mb-1">MCQ Question / Prompt:</label>
-                        <input 
-                          type="text" 
-                          x-model="activeRefineQuestion.question" 
-                          class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2.5 text-xs text-slate-900 font-semibold outline-none transition"
-                        />
-                      </div>
-
-                      <div x-show="refineTargetField === 'options'" class="space-y-2">
-                        <label class="block text-slate-700 font-semibold">4 Distractor Options:</label>
-                        <template x-for="(opt, oIdx) in (activeRefineQuestion.options || [])" :key="oIdx">
-                          <input 
-                            type="text" 
-                            x-model="activeRefineQuestion.options[oIdx]" 
-                            class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2 text-xs text-slate-800 outline-none transition"
-                          />
-                        </template>
-                      </div>
-
-                      <div x-show="refineTargetField === 'explanation'" class="grid grid-cols-2 gap-3">
-                        <div>
-                          <label class="block text-slate-700 font-semibold mb-1">Correct Answer Key:</label>
-                          <select x-model="activeRefineQuestion.correct_answer" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold font-mono">
-                            <option value="A">A</option>
-                            <option value="B">B</option>
-                            <option value="C">C</option>
-                            <option value="D">D</option>
-                          </select>
                         </div>
-                        <div>
-                          <label class="block text-slate-700 font-semibold mb-1">Doctrinal Rationale:</label>
-                          <input 
-                            type="text" 
-                            x-model="activeRefineQuestion.explanation" 
-                            class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-800 outline-none"
-                          />
+
+                        <div :class="refineTargetField === 'interrogatory' ? 'p-2.5 rounded-xl bg-amber-500/10 border border-amber-400' : ''" class="transition">
+                          <label class="block text-slate-700 font-semibold mb-1 flex items-center justify-between">
+                            <span>Interrogatory / Question Call:</span>
+                            <span class="text-[10px] text-slate-400 font-mono">Specific Question</span>
+                          </label>
+                          <textarea 
+                            x-model="activeRefineQuestion.interrogatory" 
+                            rows="2"
+                            placeholder="e.g. (a) Is the contention sustainable? (b) What is the procedural remedy?"
+                            class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2.5 text-xs text-slate-900 font-semibold outline-none transition"
+                          ></textarea>
+                        </div>
+
+                        <div :class="refineTargetField === 'suggested_answer' ? 'p-2.5 rounded-xl bg-amber-500/10 border border-amber-400' : ''" class="transition">
+                          <label class="block text-slate-700 font-semibold mb-1">Suggested ALAC Benchmark Breakdown:</label>
+                          <template x-if="typeof activeRefineQuestion.suggested_answer === 'object' && activeRefineQuestion.suggested_answer !== null">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1">
+                                <span class="text-[10px] font-bold text-amber-800 uppercase">Issue (10%):</span>
+                                <textarea x-model="activeRefineQuestion.suggested_answer.issue" rows="2" class="w-full text-xs text-slate-800 outline-none resize-none bg-transparent" placeholder="Direct categorical issue..."></textarea>
+                              </div>
+                              <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1">
+                                <span class="text-[10px] font-bold text-indigo-800 uppercase">Legal Basis (30%):</span>
+                                <textarea x-model="activeRefineQuestion.suggested_answer.rule" rows="2" class="w-full text-xs text-slate-800 outline-none resize-none bg-transparent" placeholder="Statutory Articles & Case doctrines..."></textarea>
+                              </div>
+                              <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1">
+                                <span class="text-[10px] font-bold text-emerald-800 uppercase">Application (50%):</span>
+                                <textarea x-model="activeRefineQuestion.suggested_answer.analysis" rows="2" class="w-full text-xs text-slate-800 outline-none resize-none bg-transparent" placeholder="Matching facts to elements..."></textarea>
+                              </div>
+                              <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1">
+                                <span class="text-[10px] font-bold text-slate-800 uppercase">Conclusion (10%):</span>
+                                <textarea x-model="activeRefineQuestion.suggested_answer.conclusion" rows="2" class="w-full text-xs text-slate-800 outline-none resize-none bg-transparent" placeholder="Final legal disposition..."></textarea>
+                              </div>
+                            </div>
+                          </template>
+
+                          <template x-if="typeof activeRefineQuestion.suggested_answer !== 'object' || activeRefineQuestion.suggested_answer === null">
+                            <textarea 
+                              x-model="activeRefineQuestion.suggested_answer" 
+                              rows="4" 
+                              class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2.5 text-xs text-slate-900 font-mono leading-relaxed outline-none"
+                            ></textarea>
+                          </template>
                         </div>
                       </div>
-                    </div>
-                  </template>
+                    </template>
+
+                    <!-- MCQ Modality Fields -->
+                    <template x-if="activeRefineQuestion.type === 'mcq' || activeRefineQuestion.options">
+                      <div class="space-y-3">
+                        <div :class="refineTargetField === 'question' ? 'p-2.5 rounded-xl bg-amber-500/10 border border-amber-400' : ''" class="transition">
+                          <label class="block text-slate-700 font-semibold mb-1 flex items-center justify-between">
+                            <span>MCQ Question / Prompt:</span>
+                            <span class="text-[10px] text-slate-400 font-mono">Question Stem</span>
+                          </label>
+                          <textarea 
+                            x-model="activeRefineQuestion.question" 
+                            rows="3" 
+                            placeholder="Enter the MCQ question stem / interrogatory..."
+                            class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2.5 text-xs text-slate-900 font-semibold outline-none transition leading-relaxed"
+                          ></textarea>
+                        </div>
+
+                        <div :class="refineTargetField === 'options' ? 'p-2.5 rounded-xl bg-amber-500/10 border border-amber-400' : ''" class="space-y-2 transition">
+                          <label class="block text-slate-700 font-semibold flex items-center justify-between">
+                            <span>4 Distractor Options:</span>
+                            <span class="text-[10px] text-slate-400 font-mono">Options A, B, C, D</span>
+                          </label>
+                          <div class="space-y-1.5">
+                            <template x-for="(opt, oIdx) in (activeRefineQuestion.options || [])" :key="oIdx">
+                              <div class="flex items-center gap-2">
+                                <span class="w-6 text-[11px] font-bold font-mono text-amber-800 shrink-0" x-text="['A)', 'B)', 'C)', 'D)'][oIdx]"></span>
+                                <input 
+                                  type="text" 
+                                  x-model="activeRefineQuestion.options[oIdx]" 
+                                  placeholder="Option text..."
+                                  class="flex-1 bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2 text-xs text-slate-800 outline-none transition"
+                                />
+                              </div>
+                            </template>
+                          </div>
+                        </div>
+
+                        <div :class="refineTargetField === 'explanation' ? 'p-2.5 rounded-xl bg-amber-500/10 border border-amber-400' : ''" class="grid grid-cols-1 sm:grid-cols-3 gap-3 transition">
+                          <div>
+                            <label class="block text-slate-700 font-semibold mb-1">Correct Key:</label>
+                            <select x-model="activeRefineQuestion.correct_answer" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold font-mono outline-none">
+                              <option value="A">A</option>
+                              <option value="B">B</option>
+                              <option value="C">C</option>
+                              <option value="D">D</option>
+                            </select>
+                          </div>
+                          <div class="sm:col-span-2">
+                            <label class="block text-slate-700 font-semibold mb-1">Doctrinal Explanation:</label>
+                            <input 
+                              type="text" 
+                              x-model="activeRefineQuestion.explanation" 
+                              placeholder="Explanation under Supreme Court jurisprudence..."
+                              class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2 text-xs text-slate-800 outline-none transition"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                  </div>
 
                   <!-- Direct Prompt Input Box with 1-Click Presets -->
                   <div class="space-y-2">
@@ -2760,6 +2868,192 @@
             </div>
           </template>
         </div>
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 6: AI & SYSTEM OBSERVABILITY AUDIT LOGS              -->
+    <!-- ======================================================== -->
+    <div x-show="currentTab === 'logs'" class="space-y-7">
+      
+      <!-- Observability Header -->
+      <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-6 border border-slate-700/60">
+        <div class="space-y-2 max-w-2xl">
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-wider font-mono">
+              Live SQLite Telemetry
+            </span>
+            <span class="text-xs text-slate-400 font-mono">Table: ai_audit_logs</span>
+          </div>
+          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">AI Calls & System Observability</h2>
+          <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
+            Forensic audit stream tracking model latencies, token consumption, prompt inputs, ALAC grading scores, and full payload JSON across all AI endpoints.
+          </p>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+          <button 
+            @click="fetchAuditLogs()" 
+            :disabled="isLoadingAuditLogs"
+            class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold text-xs shadow-xs transition flex items-center gap-2"
+          >
+            <span :class="isLoadingAuditLogs ? 'animate-spin' : ''">🔄</span>
+            <span>Refresh</span>
+          </button>
+
+          <button 
+            @click="clearAllAuditLogs()" 
+            class="px-4 py-2.5 rounded-xl bg-rose-900/40 hover:bg-rose-900/60 border border-rose-700/60 text-rose-200 font-bold text-xs shadow-xs transition flex items-center gap-1.5"
+          >
+            <span>🗑️</span>
+            <span>Purge Logs</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Telemetry KPI Metrics -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Recorded Events</span>
+          <div class="text-2xl font-black text-slate-900 font-mono" x-text="auditStats.total"></div>
+          <p class="text-[10px] text-slate-400 font-mono">All logged AI interactions</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+          <span class="text-[11px] font-bold text-indigo-700 uppercase tracking-wider">Average Latency</span>
+          <div class="text-2xl font-black text-indigo-900 font-mono" x-text="`${auditStats.avg_latency} ms`"></div>
+          <p class="text-[10px] text-slate-400 font-mono">End-to-end inference speed</p>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+          <span class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Success Rate</span>
+          <div class="text-2xl font-black text-emerald-700 font-mono" x-text="`${auditStats.success_rate}%`"></div>
+          <p class="text-[10px] text-slate-400 font-mono" x-text="`${auditStats.success_count} success / ${auditStats.fallback_count} fallbacks`"></p>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+          <span class="text-[11px] font-bold text-amber-700 uppercase tracking-wider">Tokens Processed (Est.)</span>
+          <div class="text-lg font-bold text-amber-900 font-mono" x-text="`↑ ${auditStats.tokens_in} / ↓ ${auditStats.tokens_out}`"></div>
+          <p class="text-[10px] text-slate-400 font-mono">Prompt & response volume</p>
+        </div>
+      </div>
+
+      <!-- Filter & Search Bar -->
+      <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <!-- Event Type Filters -->
+        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+          <button 
+            @click="auditLogsFilter = 'all'" 
+            :class="auditLogsFilter === 'all' ? 'bg-slate-900 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" 
+            class="px-3 py-1.5 rounded-xl transition font-mono text-[11px]"
+          >All Events</button>
+          
+          <button 
+            @click="auditLogsFilter = 'QUESTION_REFINEMENT'" 
+            :class="auditLogsFilter === 'QUESTION_REFINEMENT' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" 
+            class="px-3 py-1.5 rounded-xl transition text-[11px]"
+          >✨ Refinements</button>
+
+          <button 
+            @click="auditLogsFilter = 'ALAC_GRADING'" 
+            :class="auditLogsFilter === 'ALAC_GRADING' ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" 
+            class="px-3 py-1.5 rounded-xl transition text-[11px]"
+          >✍️ ALAC Grading</button>
+
+          <button 
+            @click="auditLogsFilter = 'RAG_CHAT'" 
+            :class="auditLogsFilter === 'RAG_CHAT' ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" 
+            class="px-3 py-1.5 rounded-xl transition text-[11px]"
+          >⚖️ RAG Chat</button>
+        </div>
+
+        <!-- Search Box -->
+        <div class="relative w-full md:w-72">
+          <input 
+            type="text" 
+            x-model="auditLogsSearch" 
+            placeholder="Search action, prompt, model..."
+            class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 outline-none transition"
+          />
+          <span class="absolute left-2.5 top-2 text-slate-400 text-xs">🔍</span>
+        </div>
+      </div>
+
+      <!-- Audit Logs Stream List -->
+      <div class="space-y-3">
+        <template x-if="filteredAuditLogs.length === 0">
+          <div class="p-12 text-center bg-white rounded-3xl border border-slate-200/80 shadow-xs space-y-2">
+            <span class="text-3xl">📋</span>
+            <h4 class="text-sm font-bold text-slate-800">No Observability Logs Match Query</h4>
+            <p class="text-xs text-slate-500">Perform an AI action (Refine Question, Grade Essay, or Ask Dean Phoenix) to populate the audit stream.</p>
+          </div>
+        </template>
+
+        <template x-for="log in filteredAuditLogs" :key="log.id">
+          <div class="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs hover:border-slate-300 transition space-y-3">
+            
+            <!-- Log Card Top Header -->
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+              <div class="flex items-center gap-2 flex-wrap">
+                <!-- Event Badge -->
+                <span 
+                  class="px-2.5 py-0.5 rounded-md text-[10px] font-bold font-mono uppercase"
+                  :class="log.event_type === 'QUESTION_REFINEMENT' ? 'bg-amber-100 text-amber-900 border border-amber-300' : (log.event_type === 'ALAC_GRADING' ? 'bg-emerald-100 text-emerald-900 border border-emerald-300' : 'bg-indigo-100 text-indigo-900 border border-indigo-300')"
+                  x-text="log.event_type"
+                ></span>
+
+                <h4 class="text-xs sm:text-sm font-bold text-slate-900" x-text="log.action_name"></h4>
+                
+                <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-mono" x-text="`Model: ${log.model}`"></span>
+              </div>
+
+              <div class="flex items-center gap-2 font-mono text-[10px]">
+                <span 
+                  class="px-2 py-0.5 rounded-md font-bold"
+                  :class="log.status === 'SUCCESS' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (log.status === 'FALLBACK' ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-rose-50 text-rose-700 border border-rose-200')"
+                  x-text="log.status === 'SUCCESS' ? '✓ SUCCESS' : (log.status === 'FALLBACK' ? '🟡 FALLBACK' : '✕ ERROR')"
+                ></span>
+                <span class="text-slate-500" x-text="`${log.latency_ms}ms`"></span>
+                <span class="text-slate-400" x-text="`[Tokens: ↑${log.tokens_in} / ↓${log.tokens_out}]`"></span>
+                <span class="text-slate-400" x-text="log.created_at"></span>
+              </div>
+            </div>
+
+            <!-- Prompt & Response Snippets -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-1">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Input Prompt / Instruction:</span>
+                <p class="text-slate-800 font-mono text-[11px] line-clamp-3 leading-relaxed" x-text="log.prompt_snippet"></p>
+              </div>
+
+              <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-1">
+                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Response Output Snippet:</span>
+                <p class="text-slate-800 font-mono text-[11px] line-clamp-3 leading-relaxed" x-text="log.response_snippet"></p>
+              </div>
+            </div>
+
+            <!-- Expandable JSON Payload Inspector -->
+            <details class="text-xs bg-slate-900 text-slate-200 p-3 rounded-xl font-mono">
+              <summary class="cursor-pointer font-bold text-amber-400 flex items-center justify-between text-[11px]">
+                <span>🔍 Inspect Raw Parameters & Telemetry Payload (JSON)</span>
+                <span class="text-[9.5px] text-slate-400" x-text="log.id"></span>
+              </summary>
+              <div class="mt-2.5 pt-2 border-t border-slate-800 space-y-2">
+                <div>
+                  <span class="text-slate-400 text-[10px] block">Parameters:</span>
+                  <pre class="text-[10px] text-emerald-400 whitespace-pre-wrap max-h-32 overflow-y-auto" x-text="JSON.stringify(log.params, null, 2)"></pre>
+                </div>
+                <div>
+                  <span class="text-slate-400 text-[10px] block">Metadata & Details:</span>
+                  <pre class="text-[10px] text-indigo-300 whitespace-pre-wrap max-h-32 overflow-y-auto" x-text="JSON.stringify(log.details, null, 2)"></pre>
+                </div>
+              </div>
+            </details>
+
+          </div>
+        </template>
       </div>
 
     </div>

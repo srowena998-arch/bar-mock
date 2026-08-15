@@ -4,7 +4,7 @@ const path = require('node:path');
 const { createOpenAI } = require('@ai-sdk/openai');
 const { generateText, generateObject, tool } = require('ai');
 const { z } = require('zod');
-const { db, getConfig, getCandidateAnalytics, getCandidateFullEvaluationHistory } = require('./db');
+const { db, getConfig, getCandidateAnalytics, getCandidateFullEvaluationHistory, recordAIAuditLog } = require('./db');
 
 /**
  * Configure AI SDK Provider (DeepSeek / OpenCode / OpenAI / OpenRouter)
@@ -445,12 +445,26 @@ ${contextStr}${webContextStr}`;
 
   if (apiKey) {
     try {
+      const startTime = Date.now();
       const { text } = await generateText({
         model: provider(modelName),
         system: systemPrompt,
         messages: messages.map(m => ({ role: m.role, content: m.content })),
         temperature: 0.2,
         abortSignal: AbortSignal.timeout(15000)
+      });
+
+      const latencyMs = Date.now() - startTime;
+      recordAIAuditLog({
+        event_type: 'RAG_CHAT',
+        action_name: `Dean Phoenix RAG (${taskInfo.intent})`,
+        model: modelName,
+        prompt_snippet: lastUserMsg,
+        params_json: { task_intent: taskInfo.intent, citations_count: allCitations.length, model: modelName },
+        response_snippet: text.slice(0, 300),
+        latency_ms: latencyMs,
+        status: 'SUCCESS',
+        details: { confidence: retrievalConfidence, web_supplemented: isWebSupported }
       });
 
       return {
@@ -534,11 +548,12 @@ async function refineQuestionModality({ original_question, refinement_instructio
   const provider = getAIProvider();
   const modelName = getModelName();
   const apiKey = getConfig('opencode_api_key') || process.env.OPENCODE_API_KEY || '';
+  const startTime = Date.now();
 
   const isMcq = original_question.type === 'mcq' || (original_question.type !== 'essay' && Array.isArray(original_question.options) && original_question.options.length > 0);
 
   // Normalize fields defensively to prevent any 'undefined' strings
-  const currentInterrogatory = (original_question.interrogatory || original_question.question || '').replace(/^undefined\s*/gi, '').trim() ||
+  const currentInterrogatory = (original_question.interrogatory || original_question.question || original_question.fact_pattern || '').replace(/^undefined\s*/gi, '').trim() ||
     `Is the legal contention of the petitioner sustainable under Philippine ${original_question.domain || 'Law'}? Explain with legal basis.`;
   const currentFactPattern = (original_question.fact_pattern || '').replace(/^undefined\s*/gi, '').trim() ||
     `In a dispute arising in Manila, the parties contested the statutory requisites governing ${original_question.topic || 'the legal doctrine'} under Philippine Law.`;
@@ -565,6 +580,7 @@ Options: ${JSON.stringify(original_question.options || [])}
 Correct Answer: ${original_question.correct_answer || 'A'}
 Explanation: ${original_question.explanation || ''}
 
+[TARGET COMPONENT TO MODIFY]: ${target_field}
 [REFINEMENT INSTRUCTION]: ${refinement_instruction}
 
 Apply the requested refinement strictly adhering to Philippine Supreme Court Bar Exam standards. Keep distractors plausible and explanation rigorous.`;
@@ -574,10 +590,31 @@ Apply the requested refinement strictly adhering to Philippine Supreme Court Bar
           schema: mcqSchema,
           system: `You are an expert Supreme Court Bar Examiner refining existing Bar MCQ questions.`,
           prompt: prompt,
-          abortSignal: AbortSignal.timeout(6000)
+          abortSignal: AbortSignal.timeout(10000)
         });
 
-        return { ...original_question, ...object };
+        const finalQuestionStem = object.question || object.interrogatory || currentInterrogatory;
+        const refinedResult = {
+          ...original_question,
+          ...object,
+          question: finalQuestionStem,
+          interrogatory: finalQuestionStem
+        };
+
+        const latencyMs = Date.now() - startTime;
+        recordAIAuditLog({
+          event_type: 'QUESTION_REFINEMENT',
+          action_name: 'Refine MCQ Modality (AI SDK)',
+          model: modelName,
+          prompt_snippet: `Instruction: "${refinement_instruction}" | Target: ${target_field} | Topic: ${currentTopic}`,
+          params_json: { target_field, model: modelName, is_mcq: true },
+          response_snippet: `Q: ${finalQuestionStem.slice(0, 100)} | Key: ${object.correct_answer}`,
+          latency_ms: latencyMs,
+          status: 'SUCCESS',
+          details: { original_id: original_question.id, refined_topic: object.topic }
+        });
+
+        return refinedResult;
       } catch (err) {
         console.warn('MCQ refinement API failed, applying fallback:', err.message);
       }
@@ -585,11 +622,27 @@ Apply the requested refinement strictly adhering to Philippine Supreme Court Bar
 
     // Fallback deterministic MCQ refinement
     const updatedMcq = JSON.parse(JSON.stringify(original_question));
-    updatedMcq.question = currentInterrogatory;
-    if (!updatedMcq.question.includes('According to')) {
-      updatedMcq.question = `${currentInterrogatory} Which statement correctly applies the governing Supreme Court rule?`;
+    let stem = currentInterrogatory;
+    if (!stem.includes('According to') && !stem.includes('Which')) {
+      stem = `${currentInterrogatory} Which statement correctly applies the governing Supreme Court rule?`;
     }
+    updatedMcq.question = stem;
+    updatedMcq.interrogatory = stem;
     updatedMcq.explanation = `${original_question.explanation || 'Under Philippine jurisprudence, the rule is strictly applied.'} (Doctrinally refined under 2026 Bar syllabus standards).`;
+    
+    const latencyMs = Date.now() - startTime;
+    recordAIAuditLog({
+      event_type: 'QUESTION_REFINEMENT',
+      action_name: 'Refine MCQ Modality (Deterministic Fallback)',
+      model: 'local-rule-engine',
+      prompt_snippet: `Instruction: "${refinement_instruction}" | Target: ${target_field}`,
+      params_json: { target_field, is_mcq: true, fallback: true },
+      response_snippet: `Q: ${stem.slice(0, 100)}`,
+      latency_ms: latencyMs,
+      status: 'FALLBACK',
+      details: { original_id: original_question.id }
+    });
+
     return updatedMcq;
   }
 
@@ -628,13 +681,28 @@ Apply the requested refinement strictly adhering to Philippine Supreme Court Bar
         system: `You are an expert Supreme Court Bar Examiner refining existing Bar examination questions.
 Apply TARGETED EDITS based on user instructions while preserving the legal accuracy, Filipino names, and ALAC/IRAC formatting.`,
         prompt: prompt,
-        abortSignal: AbortSignal.timeout(6000)
+        abortSignal: AbortSignal.timeout(10000)
       });
 
-      return {
+      const refinedEssay = {
         ...original_question,
         ...object
       };
+
+      const latencyMs = Date.now() - startTime;
+      recordAIAuditLog({
+        event_type: 'QUESTION_REFINEMENT',
+        action_name: 'Refine Essay Modality (AI SDK)',
+        model: modelName,
+        prompt_snippet: `Instruction: "${refinement_instruction}" | Target: ${target_field} | Topic: ${currentTopic}`,
+        params_json: { target_field, model: modelName, is_essay: true },
+        response_snippet: `Interrogatory: ${(object.interrogatory || '').slice(0, 100)}`,
+        latency_ms: latencyMs,
+        status: 'SUCCESS',
+        details: { original_id: original_question.id, refined_topic: object.topic }
+      });
+
+      return refinedEssay;
     } catch (err) {
       console.warn('AI SDK targeted refinement API failed, applying targeted deterministic transformation:', err.message);
     }
@@ -678,142 +746,20 @@ Apply TARGETED EDITS based on user instructions while preserving the legal accur
     updated.suggested_answer = baseAns;
   }
 
+  const latencyMs = Date.now() - startTime;
+  recordAIAuditLog({
+    event_type: 'QUESTION_REFINEMENT',
+    action_name: 'Refine Essay Modality (Deterministic Fallback)',
+    model: 'local-rule-engine',
+    prompt_snippet: `Instruction: "${refinement_instruction}" | Target: ${target_field}`,
+    params_json: { target_field, is_essay: true, fallback: true },
+    response_snippet: `Interrogatory: ${(updated.interrogatory || '').slice(0, 100)}`,
+    latency_ms: latencyMs,
+    status: 'FALLBACK',
+    details: { original_id: original_question.id }
+  });
+
   return updated;
-}
-
-/**
-        model: provider(modelName),
-        system: systemPrompt,
-        messages: messages.map(m => ({ role: m.role, content: m.content })),
-        temperature: 0.2,
-        abortSignal: AbortSignal.timeout(8000)
-      });
-
-      return {
-        reply: text,
-        citations: allCitations,
-        retrieval_confidence: retrievalConfidence,
-        supplemented_via_web: isWebSupported
-      };
-    } catch (err) {
-      console.warn('Chatbot API failed, applying grounded fallback:', err.message);
-    }
-  }
-
-  // Platform Guide & Tutorial Query Detection
-  const lowerQuery = (lastUserMsg || '').toLowerCase();
-  if (lowerQuery.includes('reform') || lowerQuery.includes('update question') || lowerQuery.includes('edit question') || lowerQuery.includes('change question') || lowerQuery.includes('modernize') || lowerQuery.includes('how do i')) {
-    return {
-      reply: `⚖️ **Platform Tutorial: How to Reform or Update Questions with Modern Jurisprudence**
-
-To update or reform any Bar question (e.g., inject 2024–2026 Supreme Court En Banc rulings, add procedural timeline twists, or expand MCQ distractors):
-
-1. **Navigate to "📚 Resources Studio"** in the top navigation bar.
-2. **Select the "✨ AI Question Reformation" tab**.
-3. **Select a Question**: Browse or search topics in the left column and click on any Essay or MCQ.
-4. **Choose Target Component** (for Essays): Select *All Components*, *Fact Pattern Only*, *Interrogatory Only*, or *Answer / ALAC Only*.
-5. **Enter Your Natural Language Prompt**: In the dedicated prompt box, type instructions like:
-   - *"Update fact pattern with 2024 Supreme Court jurisprudence on warrantless arrests and add a sub-question (b) on damages."*
-   - *"Expand this MCQ with 4 tricky distractors testing subtle exceptions."*
-6. **Click "⚡ Synthesize Refinement with AI SDK"**: The system will generate the updated version adhering to Bar standards.
-7. **Inspect the Side-by-Side Diff**: Review the before vs. after comparison.
-8. **Click "💾 Apply & Save to SQLite"**: The modified question is immediately committed to the live SQLite question bank!`,
-      citations: []
-    };
-  }
-
-  if (lowerQuery.includes('grade') || lowerQuery.includes('score') || lowerQuery.includes('alac') || lowerQuery.includes('evaluation')) {
-    return {
-      reply: `⚖️ **Platform Tutorial: How the Supreme Court AI Grader Works**
-
-1. **Go to the "✍️ Essay Exam" tab**.
-2. Read the legal fact pattern and the specific interrogatory.
-3. In the Candidate Exam Workspace, structure your response applying strict **ALAC** (Answer, Legal Basis, Application, Conclusion).
-4. Click **"✨ Grade Answer with AI"**.
-5. The platform scores your answer against the official **100-Point Supreme Court Rubric**:
-   - **Issue & Direct Answer**: 10 Points (Categorical stance)
-   - **Legal Basis (Rule)**: 30 Points (Exact statutory Articles & case doctrines)
-   - **Application (Analysis)**: 50 Points (Methodical element-by-fact matching)
-   - **Conclusion**: 10 Points (Final legal result)
-6. All attempts and scores are saved to your SQLite database history and update your composite Bar readiness index!`,
-      citations: []
-    };
-  }
-
-  if (lowerQuery.includes('api key') || lowerQuery.includes('opencode') || lowerQuery.includes('settings') || lowerQuery.includes('connect')) {
-    return {
-      reply: `⚖️ **Platform Tutorial: How to Configure OpenCode Go or DeepSeek API**
-
-1. Click the **⚙️ Settings icon** at the top right of the navigation bar.
-2. Choose a preset or enter your credentials:
-   - **⚡ OpenCode Go**: Base URL \`https://opencode.ai/zen/go/v1\`, Model \`deepseek-v4-flash\`
-   - **🔷 DeepSeek Direct**: Base URL \`https://api.deepseek.com\`, Model \`deepseek-chat\`
-   - **🌐 OpenRouter**: Base URL \`https://openrouter.ai/api/v1\`, Model \`deepseek/deepseek-chat\`
-3. Paste your full API Key into the API Key input.
-4. Click **"🔌 Test Connection"** to run a real-time health check diagnostic.
-5. Click **"🔄 Fetch Live Models"** to pull all active models from your provider endpoint.
-6. Click **"Save & Connect"** to persist your configuration to SQLite!`,
-      citations: []
-    };
-  }
-
-  // Unindexed / Non-Existent Entity Grounding Check (Zero Confidence & No External Match)
-  if ((!isWebSupported && retrievalConfidence < 0.4) && missingEntityName) {
-    return {
-      reply: `⚖️ **Doctrinal Clarification (Negative Grounding Verification):**
-
-There is no recognized statutory provision, Supreme Court doctrine, or case law entitled **"${missingEntityName}"** under Philippine Law or the 2026 Supreme Court Bar Examination Syllabus.
-
-**Governing Philippine Legal Standard:**
-Under Philippine jurisprudence, legal rights, claims, and remedies must be grounded strictly in enacted statutory codes (such as the Civil Code, Revised Penal Code, Corporation Code, or Rules of Court) and authoritative decisions of the Supreme Court En Banc. Fabricated or hypothetical concepts without statutory basis have no force or effect.`,
-      citations: [],
-      retrieval_confidence: 0.0,
-      supplemented_via_web: false
-    };
-  }
-
-  // Supplemental Web Search & Adaptive Doctrinal Response
-  if (retrievalConfidence < 0.55 && isWebSupported) {
-    const web = webExcerpts[0];
-    return {
-      reply: `⚖️ **Doctrinal Analysis (Supplemental Jurisprudence Retrieval):**
-
-Regarding **${missingEntityName || 'this specific legal matter'}**, the governing principles under Philippine Supreme Court jurisprudence are established as follows:
-
-• **Key Jurisprudential Rule:** ${web.snippet}
-• **Application & Legal Basis:** Under Philippine constitutional, statutory, and administrative standards, Supreme Court rulings interpret and apply the governing laws in accordance with established precedents.
-
-**Authoritative Citations:**
-• **${web.title}** ([Supreme Court Jurisprudence / Official Gazette](${web.url}))
-• *Related 2026 Bar Syllabus Domain:* Philippine Jurisprudence & Public Law`,
-      citations: allCitations,
-      retrieval_confidence: retrievalConfidence,
-      supplemented_via_web: true
-    };
-  }
-
-  const citationList = ragExcerpts.map(r => `• ${r.book} (Page ${r.page})`).join('\n');
-
-  // Format clean extracted reviewer doctrine without raw OCR linebreaks or page headers
-  let cleanExcerpt = '';
-  if (ragExcerpts.length > 0) {
-    cleanExcerpt = ragExcerpts[0].excerpt
-      .replace(/\r\n/g, ' ')
-      .replace(/^\s*\d+\s+/, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-  }
-
-  const excerptSummary = ragExcerpts.length > 0
-    ? `Here is the authoritative doctrine extracted directly from the 2026 Reviewer:\n\n> "${cleanExcerpt.slice(0, 320)}..."\n\n**Key Legal Elements & Doctrine:**\nUnder Philippine law, this requires categorical compliance with the statutory requisites and Supreme Court jurisprudence established in the syllabus.`
-    : `Under the 2026 Philippine Bar Examination Syllabus, this topic is governed by the statutory provisions and established doctrines of the Supreme Court.`;
-
-  return {
-    reply: `${excerptSummary}\n\n**Citations from Source Reviewers:**\n${citationList || '• 2026 Philippine Supreme Court Syllabus'}`,
-    citations: allCitations,
-    retrieval_confidence: retrievalConfidence,
-    supplemented_via_web: false
-  };
 }
 
 /**

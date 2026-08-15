@@ -2,7 +2,7 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
-const { db, getConfig, setConfig, getEvalLogs, getLatestEvalMap } = require('./db');
+const { db, getConfig, setConfig, getEvalLogs, getLatestEvalMap, recordAIAuditLog, getAIAuditLogs, clearAIAuditLogs } = require('./db');
 const { runAutonomousIngestAgent, runDiagnosticAgent, refineQuestionModality, chatWithReviewerRAG, generateQuestionModalitiesWithAI } = require('./agent_engine');
 const { retrieveHybridRAG, getVectorStoreStats, indexAllReviewerBooks, ingestCustomResource, getModalityCoverageStats } = require('./rag_indexer');
 const { EVAL_TEST_CASES, runSingleEvaluation, runAllEvaluations } = require('./eval_engine');
@@ -103,8 +103,11 @@ const server = http.createServer(async (req, res) => {
         let options = null;
         try { options = r.options ? JSON.parse(r.options) : null; } catch(e) { options = null; }
 
+        const qStem = r.interrogatory || r.question || r.fact_pattern || '';
         return {
           ...r,
+          question: qStem,
+          interrogatory: qStem,
           subject_hierarchy: hierarchy,
           suggested_answer: suggestedAnswer,
           extracted_rule: extractedRule,
@@ -1239,6 +1242,24 @@ Output strictly JSON:
     }
 
     // ----------------------------------------------------
+    // API: GET /api/logs/ai (AI & System Observability Audit Logs)
+    // ----------------------------------------------------
+    if (req.method === 'GET' && pathname === '/api/logs/ai') {
+      const limit = parseInt(parsedUrl.searchParams.get('limit') || '100', 10);
+      const eventType = parsedUrl.searchParams.get('event_type') || null;
+      const logs = getAIAuditLogs({ limit, event_type: eventType });
+      return sendJSON(res, 200, { success: true, count: logs.length, logs });
+    }
+
+    // ----------------------------------------------------
+    // API: POST /api/logs/ai/clear (Purge Audit Logs)
+    // ----------------------------------------------------
+    if (req.method === 'POST' && pathname === '/api/logs/ai/clear') {
+      clearAIAuditLogs();
+      return sendJSON(res, 200, { success: true, message: 'AI Observability Audit Logs cleared successfully' });
+    }
+
+    // ----------------------------------------------------
     // API: POST /api/test-connection (Live AI Health Check)
     // ----------------------------------------------------
     if (req.method === 'POST' && pathname === '/api/test-connection') {
@@ -1528,6 +1549,17 @@ Please evaluate the candidate's answer and output strictly valid JSON.`;
         JSON.stringify({ strengths: evaluationResult.strengths, deficiencies: evaluationResult.deficiencies, prescribed_polish: evaluationResult.prescribed_polish, deep_dive_concept: evaluationResult.deep_dive_concept }),
         JSON.stringify(evaluationResult.breakdown)
       );
+
+      recordAIAuditLog({
+        event_type: 'ALAC_GRADING',
+        action_name: 'Essay ALAC Evaluation (100-Pt Rubric)',
+        model: model,
+        prompt_snippet: `Question: "${qRow.topic}" | Candidate Answer: "${user_answer.slice(0, 200)}"`,
+        params_json: { question_id, model, domain: qRow.domain },
+        response_snippet: `Score: ${evaluationResult.score}/100 | Breakdown: Issue ${evaluationResult.breakdown?.issue_or_answer || 0}/10, Rule ${evaluationResult.breakdown?.legal_basis || 0}/30, Analysis ${evaluationResult.breakdown?.application || 0}/50, Conclusion ${evaluationResult.breakdown?.conclusion || 0}/10`,
+        status: 'SUCCESS',
+        details: { score: evaluationResult.score, breakdown: evaluationResult.breakdown, attempt_id: attemptId }
+      });
 
       return sendJSON(res, 200, {
         success: true,
