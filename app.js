@@ -88,6 +88,19 @@ document.addEventListener('alpine:init', () => {
       }
     ],
 
+    // Live Stepped Scout & Critique Workbench State
+    showScoutModal: false,
+    scoutState: 'idle', // 'idle' | 'scouting' | 'streaming' | 'ready'
+    scoutDomain: 'all',
+    scoutSection: null,
+    scoutGenerated: null,
+    scoutActiveTab: 'essay', // 'essay' | 'mcq' | 'source'
+    scoutCritiquePrompt: '',
+    isScoutIterating: false,
+    isScoutCommitting: false,
+    scoutStreamExcerpt: '',
+    scoutLogs: [],
+
     // Modality Coverage & Dynamic Document Ingestion State
     modalityCoverage: { grand_totals: { total_vectors: 0, total_essays: 0, total_mcqs: 0, total_questions: 0 }, domains: [] },
     showUploadModal: false,
@@ -1142,6 +1155,145 @@ Grade the candidate's answer from 0% to 100%. Candidates may write in either sta
       }, 1000);
     },
     
+    // Live Stepped Scout & Critique Workbench
+    async openScoutModal(domain = 'all') {
+      this.scoutDomain = domain;
+      this.showScoutModal = true;
+      this.scoutState = 'scouting';
+      this.scoutSection = null;
+      this.scoutGenerated = null;
+      this.scoutActiveTab = 'essay';
+      this.scoutCritiquePrompt = '';
+      this.scoutStreamExcerpt = '';
+      this.scoutLogs = [
+        `[${new Date().toLocaleTimeString()}] 🔍 Searching 2026 Supreme Court Syllabus sections in ${domain === 'all' ? 'all 6 domains' : domain}...`
+      ];
+
+      try {
+        const res = await fetch('/api/scout-preview', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domain })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          this.showToastNotification(`⚠️ Scouting failed: ${err.error || 'Unknown error'}`);
+          this.showScoutModal = false;
+          return;
+        }
+
+        const data = await res.json();
+        this.scoutSection = data.section;
+        this.scoutGenerated = data.generated;
+
+        this.scoutLogs.push(`[${new Date().toLocaleTimeString()}] 📖 Discovered section: "${data.section.topic_title}" (Page ${data.section.page_number})`);
+        this.scoutLogs.push(`[${new Date().toLocaleTimeString()}] 🧠 Streaming Blue Phoenix Reviewer excerpts and generating modalities...`);
+        this.scoutState = 'streaming';
+
+        // Streaming text typewriter effect
+        const fullExcerpt = data.section.excerpt || 'Reviewer doctrine text loaded.';
+        let charIndex = 0;
+        const step = Math.max(12, Math.floor(fullExcerpt.length / 20));
+        
+        const streamInterval = setInterval(() => {
+          charIndex += step;
+          this.scoutStreamExcerpt = fullExcerpt.slice(0, charIndex);
+          if (charIndex >= fullExcerpt.length) {
+            clearInterval(streamInterval);
+            this.scoutStreamExcerpt = fullExcerpt;
+            this.scoutLogs.push(`[${new Date().toLocaleTimeString()}] ✨ ALAC Essay & MCQ generated! Ready for candidate review.`);
+            this.scoutState = 'ready';
+          }
+        }, 30);
+
+      } catch (err) {
+        this.showToastNotification('⚠️ Network error while scouting.');
+        this.showScoutModal = false;
+      }
+    },
+
+    async iterateScoutPreview() {
+      if (!this.scoutCritiquePrompt.trim()) {
+        this.showToastNotification('⚠️ Please enter a critique or prompt.');
+        return;
+      }
+      this.isScoutIterating = true;
+      try {
+        const res = await fetch('/api/scout-iterate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            section: this.scoutSection,
+            generated: this.scoutGenerated,
+            critique: this.scoutCritiquePrompt
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          this.scoutGenerated = data.generated;
+          this.scoutLogs.push(`[${new Date().toLocaleTimeString()}] ⚡ Refined with critique: "${this.scoutCritiquePrompt}"`);
+          this.scoutCritiquePrompt = '';
+          this.showToastNotification('✨ Questions re-synthesized with your critique!');
+        } else {
+          this.showToastNotification('⚠️ Refinement failed.');
+        }
+      } catch (e) {
+        this.showToastNotification('⚠️ Error refining preview.');
+      } finally {
+        this.isScoutIterating = false;
+      }
+    },
+
+    async commitScoutPreview() {
+      if (!this.scoutGenerated) return;
+      this.isScoutCommitting = true;
+      try {
+        const res = await fetch('/api/scout-commit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            section_id: this.scoutSection?.id,
+            essay: this.scoutGenerated.essay,
+            mcq: this.scoutGenerated.mcq
+          })
+        });
+
+        if (res.ok) {
+          this.showToastNotification('🎉 Successfully committed Essay & MCQ to Question Bank!');
+          this.showScoutModal = false;
+          await this.loadQuestions();
+          await this.loadModalityCoverage();
+          await this.loadExtractionProgress();
+        } else {
+          this.showToastNotification('⚠️ Error committing question.');
+        }
+      } catch (e) {
+        this.showToastNotification('⚠️ Network error committing question.');
+      } finally {
+        this.isScoutCommitting = false;
+      }
+    },
+
+    async resetCandidateProgress() {
+      if (!confirm('Are you sure you want to reset all your candidate practice attempt history? This will reset domain analytics back to fresh status.')) {
+        return;
+      }
+      try {
+        const res = await fetch('/api/progress/reset', { method: 'POST' });
+        if (res.ok) {
+          this.showToastNotification('🔄 Candidate attempts reset to fresh clean status!');
+          await this.loadReadinessAnalytics();
+          await this.loadQuestions();
+        } else {
+          this.showToastNotification('⚠️ Reset failed.');
+        }
+      } catch (e) {
+        this.showToastNotification('⚠️ Network error resetting progress.');
+      }
+    },
+
     showToastNotification(msg) {
       this.toastMessage = msg;
       this.toastVisible = true;

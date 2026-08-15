@@ -685,6 +685,182 @@ Output strictly JSON:
     }
 
     // ----------------------------------------------------
+    // API: POST /api/progress/reset (Reset Candidate Attempts & Bad Stats)
+    // ----------------------------------------------------
+    if (req.method === 'POST' && pathname === '/api/progress/reset') {
+      try {
+        db.exec('DELETE FROM candidate_attempts;');
+        return sendJSON(res, 200, {
+          success: true,
+          message: 'Candidate attempts and diagnostic stats have been reset to fresh status!'
+        });
+      } catch (err) {
+        return sendJSON(res, 500, { success: false, error: err.message });
+      }
+    }
+
+    // ----------------------------------------------------
+    // API: POST /api/scout-preview (Interactive Scout & Generate with Live Status)
+    // ----------------------------------------------------
+    if (req.method === 'POST' && pathname === '/api/scout-preview') {
+      try {
+        const body = await parseJSONBody(req);
+        const domainFilter = body.domain || 'all';
+        const customPrompt = body.custom_prompt || '';
+
+        let query = "SELECT * FROM syllabus_sections WHERE is_extracted = 0";
+        let params = [];
+        if (domainFilter !== 'all') {
+          query += " AND domain LIKE ?";
+          params.push(`%${domainFilter.slice(0, 8)}%`);
+        }
+        query += " ORDER BY RANDOM() LIMIT 1";
+
+        let sec = db.prepare(query).get(...params);
+        if (!sec) {
+          sec = db.prepare("SELECT * FROM syllabus_sections ORDER BY RANDOM() LIMIT 1").get();
+        }
+
+        if (!sec) {
+          return sendJSON(res, 404, { error: 'No syllabus sections available for scouting.' });
+        }
+
+        const mdPath = path.join(__dirname, 'storage', 'converted_md', `${sec.book_id}.md`);
+        let excerpt = '';
+        if (fs.existsSync(mdPath)) {
+          const content = fs.readFileSync(mdPath, 'utf-8');
+          const pages = content.split(/<!-- PAGE (\d+) -->/g);
+          for (let i = 1; i < pages.length; i += 2) {
+            if (parseInt(pages[i], 10) === sec.page_number) {
+              excerpt = (pages[i + 1] || '').slice(0, 1800).trim();
+              break;
+            }
+          }
+        }
+
+        const { generateQuestionModalitiesWithAI } = require('./agent_engine');
+        const generated = await generateQuestionModalitiesWithAI({
+          domain: sec.domain,
+          topic: sec.topic_title,
+          page: sec.page_number,
+          excerpt: excerpt || `Discussion of ${sec.topic_title}`,
+          instruction: customPrompt
+        });
+
+        return sendJSON(res, 200, {
+          success: true,
+          section: {
+            id: sec.id,
+            book_id: sec.book_id,
+            domain: sec.domain,
+            topic_title: sec.topic_title,
+            page_number: sec.page_number,
+            excerpt: excerpt || `Discussion of ${sec.topic_title} in 2026 Reviewer.`
+          },
+          generated
+        });
+      } catch (err) {
+        return sendJSON(res, 500, { success: false, error: err.message });
+      }
+    }
+
+    // ----------------------------------------------------
+    // API: POST /api/scout-iterate (Refine Scouted Preview with User Critique)
+    // ----------------------------------------------------
+    if (req.method === 'POST' && pathname === '/api/scout-iterate') {
+      try {
+        const body = await parseJSONBody(req);
+        const { section, generated, critique } = body;
+
+        if (!critique || !critique.trim()) {
+          return sendJSON(res, 400, { error: 'Critique or refinement prompt is required.' });
+        }
+
+        const { generateQuestionModalitiesWithAI } = require('./agent_engine');
+        const iterated = await generateQuestionModalitiesWithAI({
+          domain: section?.domain || 'Philippine Law',
+          topic: section?.topic_title || 'Bar Review Topic',
+          page: section?.page_number || 1,
+          excerpt: section?.excerpt || '',
+          instruction: `Existing Draft:\nEssay Fact: ${generated?.essay?.fact_pattern}\nMCQ: ${generated?.mcq?.question}\n\nUSER CRITIQUE: ${critique}`
+        });
+
+        return sendJSON(res, 200, {
+          success: true,
+          generated: iterated
+        });
+      } catch (err) {
+        return sendJSON(res, 500, { success: false, error: err.message });
+      }
+    }
+
+    // ----------------------------------------------------
+    // API: POST /api/scout-commit (Commit Accepted Preview to SQLite DB)
+    // ----------------------------------------------------
+    if (req.method === 'POST' && pathname === '/api/scout-commit') {
+      try {
+        const body = await parseJSONBody(req);
+        const { section_id, essay, mcq } = body;
+
+        const timestamp = Date.now();
+        let committed = [];
+
+        if (essay) {
+          const essayId = `q_essay_${timestamp}_${Math.random().toString(36).slice(2, 6)}`;
+          db.prepare(`
+            INSERT INTO questions (
+              id, domain, type, topic, subject_hierarchy, difficulty,
+              fact_pattern, interrogatory, suggested_answer, extracted_rule
+            ) VALUES (?, ?, 'essay', ?, ?, ?, ?, ?, ?, ?)
+          `).run(
+            essayId,
+            essay.domain,
+            essay.topic,
+            JSON.stringify([essay.domain, essay.topic]),
+            essay.difficulty || 'hard',
+            essay.fact_pattern || '',
+            essay.interrogatory || '',
+            typeof essay.suggested_answer === 'object' ? JSON.stringify(essay.suggested_answer) : (essay.suggested_answer || ''),
+            typeof essay.extracted_rule === 'object' ? JSON.stringify(essay.extracted_rule) : (essay.extracted_rule || '')
+          );
+          committed.push(essayId);
+        }
+
+        if (mcq) {
+          const mcqId = `q_mcq_${timestamp}_${Math.random().toString(36).slice(2, 6)}`;
+          db.prepare(`
+            INSERT INTO questions (
+              id, domain, type, topic, subject_hierarchy, difficulty,
+              interrogatory, options, correct_answer, explanation
+            ) VALUES (?, ?, 'mcq', ?, ?, 'medium', ?, ?, ?, ?)
+          `).run(
+            mcqId,
+            mcq.domain,
+            mcq.topic,
+            JSON.stringify([mcq.domain, mcq.topic]),
+            mcq.question || mcq.interrogatory || '',
+            Array.isArray(mcq.options) ? JSON.stringify(mcq.options) : (mcq.options || '[]'),
+            mcq.correct_answer || 'A',
+            mcq.explanation || ''
+          );
+          committed.push(mcqId);
+        }
+
+        if (section_id) {
+          db.prepare('UPDATE syllabus_sections SET is_extracted = 1 WHERE id = ?').run(section_id);
+        }
+
+        return sendJSON(res, 200, {
+          success: true,
+          message: `Committed ${committed.length} modalities (Essay + MCQ) to SQLite Question Bank!`,
+          question_ids: committed
+        });
+      } catch (err) {
+        return sendJSON(res, 500, { success: false, error: err.message });
+      }
+    }
+
+    // ----------------------------------------------------
     // API: GET /api/evals/test-cases
     // ----------------------------------------------------
     if (req.method === 'GET' && pathname === '/api/evals/test-cases') {

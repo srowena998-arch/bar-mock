@@ -379,6 +379,275 @@
     </div>
   </div>
 
+  <!-- Live Stepped Scout, Stream & Critique Workbench Modal -->
+  <div 
+    x-show="showScoutModal" 
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0 scale-95"
+    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100 scale-100"
+    x-transition:leave-end="opacity-0 scale-95"
+    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
+  >
+    <div 
+      @click.away="showScoutModal = false" 
+      class="bg-white border border-slate-200 rounded-3xl max-w-4xl w-full p-5 sm:p-7 space-y-5 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
+    >
+      <!-- Modal Header with 4-Step Pipeline Indicators -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4 shrink-0">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-emerald-600 flex items-center justify-center text-white text-lg font-bold shadow-xs">
+            🚀
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-bold text-slate-900 text-base tracking-tight">AI Scout & Critique Workbench</h3>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono" :class="scoutState === 'ready' ? 'bg-emerald-100 text-emerald-900' : 'bg-amber-100 text-amber-900 animate-pulse'" x-text="scoutState === 'ready' ? '✓ Ready for Review' : '⚡ Pipeline Active'"></span>
+            </div>
+            <p class="text-xs text-slate-500">Autonomous 2026 Bar syllabus scouting, live excerpt streaming, and interactive candidate critique</p>
+          </div>
+        </div>
+
+        <button @click="showScoutModal = false" class="self-end sm:self-center w-8 h-8 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center text-sm transition">✕</button>
+      </div>
+
+      <!-- 4-Stage Stepped Visual Pipeline Status -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-50 border border-slate-200/90 rounded-2xl p-2.5 shrink-0 text-xs">
+        <div class="flex items-center gap-2 p-1.5 rounded-xl" :class="scoutState !== 'idle' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-400'">
+          <span class="text-xs">🔍</span>
+          <div class="truncate">
+            <span class="block text-[9px] uppercase font-bold text-slate-400">Step 1</span>
+            <span class="truncate text-[11px]">Scout Syllabus</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 p-1.5 rounded-xl" :class="['streaming', 'ready'].includes(scoutState) ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-400'">
+          <span class="text-xs">📖</span>
+          <div class="truncate">
+            <span class="block text-[9px] uppercase font-bold text-slate-400">Step 2</span>
+            <span class="truncate text-[11px]">Stream Excerpt</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 p-1.5 rounded-xl" :class="['streaming', 'ready'].includes(scoutState) ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-400'">
+          <span class="text-xs">🧠</span>
+          <div class="truncate">
+            <span class="block text-[9px] uppercase font-bold text-slate-400">Step 3</span>
+            <span class="truncate text-[11px]">Synthesize Modalities</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 p-1.5 rounded-xl" :class="scoutState === 'ready' ? 'bg-emerald-50 text-emerald-950 border border-emerald-200 font-bold shadow-xs' : 'text-slate-400'">
+          <span class="text-xs">✨</span>
+          <div class="truncate">
+            <span class="block text-[9px] uppercase font-bold text-slate-400">Step 4</span>
+            <span class="truncate text-[11px]">Critique & Accept</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Body Container -->
+      <div class="flex-1 overflow-y-auto space-y-4 pr-1 text-xs">
+        
+        <!-- Live Agent Feed & Terminal Output -->
+        <div class="bg-slate-900 text-slate-200 rounded-2xl p-3.5 font-mono text-[11px] space-y-1 max-h-32 overflow-y-auto border border-slate-800">
+          <template x-for="(log, idx) in scoutLogs" :key="idx">
+            <div class="text-slate-300 flex items-start gap-2">
+              <span class="text-emerald-400 font-bold">›</span>
+              <span x-text="log"></span>
+            </div>
+          </template>
+        </div>
+
+        <!-- Live Reviewer Excerpt Stream Container -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+              <span>📖</span>
+              <span x-text="`Grounded Reviewer Stream: ${scoutSection?.topic_title || 'Scouting Section...'}`"></span>
+            </span>
+            <span class="text-amber-800 font-mono font-bold" x-show="scoutSection?.page_number" x-text="`Page ${scoutSection?.page_number}`"></span>
+          </div>
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 font-serif text-xs text-slate-800 leading-relaxed max-h-40 overflow-y-auto relative">
+            <p x-text="scoutStreamExcerpt"></p>
+            <span x-show="scoutState === 'streaming'" class="inline-block w-2 h-3.5 bg-amber-500 animate-pulse ml-0.5 align-middle"></span>
+          </div>
+        </div>
+
+        <!-- Interactive Candidate Critique & Review Workbench (Shown when Ready) -->
+        <div x-show="scoutState === 'ready'" x-transition class="space-y-4 pt-2 border-t border-slate-200">
+          
+          <!-- Sub-Tab Switcher for Generated Modalities -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100 border border-slate-200">
+              <button 
+                type="button" 
+                @click="scoutActiveTab = 'essay'" 
+                :class="scoutActiveTab === 'essay' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                class="px-3.5 py-1.5 rounded-xl transition text-xs flex items-center gap-1.5"
+              >
+                <span>✍️</span> Generated Essay
+              </button>
+
+              <button 
+                type="button" 
+                @click="scoutActiveTab = 'mcq'" 
+                :class="scoutActiveTab === 'mcq' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+                class="px-3.5 py-1.5 rounded-xl transition text-xs flex items-center gap-1.5"
+              >
+                <span>⚡</span> Generated MCQ
+              </button>
+            </div>
+
+            <span class="text-[11px] font-mono text-emerald-700 font-semibold bg-emerald-50 px-2.5 py-1 rounded-xl border border-emerald-200">
+              ✓ Grounded in 2026 Blue Phoenix
+            </span>
+          </div>
+
+          <!-- Essay Modality Edit & Inspect Card -->
+          <div x-show="scoutActiveTab === 'essay'" class="space-y-3 bg-slate-50/70 border border-slate-200 rounded-2xl p-4">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-amber-900" x-text="scoutGenerated?.essay?.topic"></span>
+              <span class="px-2 py-0.5 rounded-md text-[10px] font-mono bg-white border border-slate-200 uppercase font-bold text-slate-600" x-text="scoutGenerated?.essay?.difficulty || 'hard'"></span>
+            </div>
+
+            <div>
+              <label class="block text-slate-600 font-semibold mb-1 text-[11px]">Fact Pattern (Editable):</label>
+              <textarea 
+                x-model="scoutGenerated.essay.fact_pattern" 
+                rows="3" 
+                class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2.5 text-xs text-slate-900 leading-relaxed outline-none"
+              ></textarea>
+            </div>
+
+            <div>
+              <label class="block text-slate-600 font-semibold mb-1 text-[11px]">Interrogatory / Question Call:</label>
+              <input 
+                type="text" 
+                x-model="scoutGenerated.essay.interrogatory" 
+                class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2.5 text-xs text-slate-900 font-semibold outline-none"
+              />
+            </div>
+
+            <div>
+              <label class="block text-slate-600 font-semibold mb-1 text-[11px]">Suggested ALAC Breakdown:</label>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1">
+                  <span class="text-[10px] font-bold text-amber-800 uppercase">Issue:</span>
+                  <p class="text-slate-800" x-text="scoutGenerated?.essay?.suggested_answer?.issue"></p>
+                </div>
+                <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1">
+                  <span class="text-[10px] font-bold text-indigo-800 uppercase">Legal Basis:</span>
+                  <p class="text-slate-800" x-text="scoutGenerated?.essay?.suggested_answer?.rule"></p>
+                </div>
+                <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1">
+                  <span class="text-[10px] font-bold text-emerald-800 uppercase">Application:</span>
+                  <p class="text-slate-800" x-text="scoutGenerated?.essay?.suggested_answer?.analysis"></p>
+                </div>
+                <div class="bg-white p-2.5 rounded-xl border border-slate-200 space-y-1">
+                  <span class="text-[10px] font-bold text-slate-800 uppercase">Conclusion:</span>
+                  <p class="text-slate-800" x-text="scoutGenerated?.essay?.suggested_answer?.conclusion"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MCQ Modality Edit & Inspect Card -->
+          <div x-show="scoutActiveTab === 'mcq'" class="space-y-3 bg-slate-50/70 border border-slate-200 rounded-2xl p-4">
+            <div>
+              <label class="block text-slate-600 font-semibold mb-1 text-[11px]">MCQ Question / Prompt:</label>
+              <input 
+                type="text" 
+                x-model="scoutGenerated.mcq.question" 
+                class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2.5 text-xs text-slate-900 font-semibold outline-none"
+              />
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-slate-600 font-semibold text-[11px]">4 Distractor Options:</label>
+              <template x-for="(opt, oIdx) in (scoutGenerated?.mcq?.options || [])" :key="oIdx">
+                <input 
+                  type="text" 
+                  x-model="scoutGenerated.mcq.options[oIdx]" 
+                  class="w-full bg-white border border-slate-200 focus:border-amber-500 rounded-xl p-2 text-xs text-slate-800 outline-none"
+                />
+              </template>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-slate-600 font-semibold mb-1 text-[11px]">Correct Answer Key:</label>
+                <select x-model="scoutGenerated.mcq.correct_answer" class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold font-mono">
+                  <option value="A">A</option>
+                  <option value="B">B</option>
+                  <option value="C">C</option>
+                  <option value="D">D</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-600 font-semibold mb-1 text-[11px]">Doctrinal Rationale:</label>
+                <input 
+                  type="text" 
+                  x-model="scoutGenerated.mcq.explanation" 
+                  class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs text-slate-800 outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Interactive Candidate Critique & Prompt Iteration Bar -->
+          <div class="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-3.5 space-y-2">
+            <label class="block text-xs font-bold text-amber-950">
+              💬 Critique or Guide AI Examiner (Optional Iteration):
+            </label>
+            <div class="flex items-center gap-2">
+              <input 
+                type="text" 
+                x-model="scoutCritiquePrompt" 
+                @keyup.enter="iterateScoutPreview()"
+                placeholder="e.g. 'Add a third-party claim in the fact pattern', 'Make distractor C more tricky'..." 
+                class="flex-1 bg-white border border-amber-300 focus:border-amber-500 rounded-xl px-3.5 py-2 text-xs text-slate-900 outline-none placeholder:text-slate-400 transition"
+              />
+              <button 
+                @click="iterateScoutPreview()" 
+                :disabled="isScoutIterating || !scoutCritiquePrompt.trim()"
+                class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-40 text-slate-950 font-bold text-xs shadow-xs transition flex items-center gap-1.5 shrink-0"
+              >
+                <span x-show="!isScoutIterating">⚡ Iterate</span>
+                <span x-show="isScoutIterating">Refining...</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Modal Action Footer -->
+      <div class="flex items-center justify-between pt-3 border-t border-slate-100 shrink-0">
+        <button 
+          @click="openScoutModal(scoutDomain)" 
+          class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition flex items-center gap-1.5"
+        >
+          <span>🔄</span> Scout Another Section
+        </button>
+
+        <div class="flex items-center gap-2">
+          <button @click="showScoutModal = false" class="px-4 py-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold">Discard</button>
+          <button 
+            @click="commitScoutPreview()" 
+            :disabled="scoutState !== 'ready' || isScoutCommitting" 
+            class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-bold shadow-xs transition flex items-center gap-1.5"
+          >
+            <span x-show="!isScoutCommitting">💾 Accept & Save to Question Bank</span>
+            <span x-show="isScoutCommitting">Saving...</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Custom Document & Case Digest Ingestion Modal -->
   <div 
     x-show="showUploadModal" 
@@ -769,6 +1038,14 @@
               class="px-3.5 py-1.5 rounded-full text-xs font-extrabold border font-mono tracking-wider uppercase"
               x-text="readinessData?.is_passing ? '✓ PASSING READY' : '⚠️ CONDITIONAL'"
             ></span>
+
+            <button 
+              @click="resetCandidateProgress()" 
+              title="Reset all past attempt history and domain mastery analytics"
+              class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 border border-slate-200 text-slate-600 text-xs font-semibold transition flex items-center gap-1 ml-2"
+            >
+              <span>🔄</span> Reset Progress
+            </button>
           </div>
         </div>
 
@@ -1164,14 +1441,14 @@
               :class="resourcesTab === 'progress' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
               class="px-3.5 py-1.5 rounded-xl transition whitespace-nowrap"
             >
-              📊 Reviewer Coverage
+              📊 Reviewer & Modality Studio
             </button>
             <button 
               @click="resourcesTab = 'reformation'"
               :class="resourcesTab === 'reformation' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
               class="px-3.5 py-1.5 rounded-xl transition whitespace-nowrap"
             >
-              ✨ AI Question Reformation
+              ✨ Question Bank & Reformation
             </button>
             <button 
               @click="resourcesTab = 'vector_hub'; loadRagStats();"
@@ -1180,13 +1457,6 @@
             >
               <span>🧠</span>
               <span>Vector Hub (3,693 Chunks)</span>
-            </button>
-            <button 
-              @click="resourcesTab = 'inspector'"
-              :class="resourcesTab === 'inspector' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
-              class="px-3.5 py-1.5 rounded-xl transition whitespace-nowrap"
-            >
-              🔍 Raw Markdown Inspector
             </button>
           </div>
         </div>
@@ -1219,15 +1489,10 @@
               </button>
 
               <button 
-                @click="runBatchAutoIngest(3)" 
-                :disabled="isBatchIngesting"
-                class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5"
+                @click="openScoutModal()" 
+                class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5"
               >
-                <span x-show="!isBatchIngesting">🚀 Auto-Scout Next Batch</span>
-                <span x-show="isBatchIngesting" class="flex items-center gap-1.5">
-                  <span class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  <span>Scouting...</span>
-                </span>
+                <span>🚀</span> Scout & Generate Modality (Live Preview)
               </button>
             </div>
           </div>
@@ -1298,13 +1563,21 @@
                   </div>
                 </div>
 
-                <!-- Direct Authoring Button -->
-                <button 
-                  @click="openAuthorModal({ domain: d.domain || d.name, topic: d.domain || d.name })" 
-                  class="w-full py-1.5 rounded-xl bg-white hover:bg-amber-50 hover:text-amber-900 hover:border-amber-300 border border-slate-200 text-slate-700 text-[11px] font-semibold transition flex items-center justify-center gap-1.5"
-                >
-                  <span>✨</span> Author Question for Domain
-                </button>
+                <!-- Action Buttons: Author + Live AI Scout -->
+                <div class="grid grid-cols-2 gap-2 pt-1">
+                  <button 
+                    @click="openAuthorModal({ domain: d.domain || d.name, topic: d.domain || d.name })" 
+                    class="py-1.5 rounded-xl bg-white hover:bg-amber-50 hover:text-amber-900 hover:border-amber-300 border border-slate-200 text-slate-700 text-[11px] font-semibold transition flex items-center justify-center gap-1"
+                  >
+                    <span>✨</span> Author
+                  </button>
+                  <button 
+                    @click="openScoutModal(d.domain || d.name)" 
+                    class="py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold transition flex items-center justify-center gap-1 shadow-2xs"
+                  >
+                    <span>🚀</span> AI Scout
+                  </button>
+                </div>
               </div>
             </template>
           </div>
