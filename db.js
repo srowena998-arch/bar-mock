@@ -235,6 +235,87 @@ const getCandidateAnalytics = () => {
     }
 };
 
+const getCandidateFullEvaluationHistory = () => {
+    try {
+        const essayAttempts = db.prepare(`
+            SELECT 
+                ca.id,
+                ca.question_id,
+                ca.user_answer,
+                ca.ai_score,
+                ca.ai_feedback,
+                ca.ai_breakdown,
+                ca.attempted_at,
+                q.domain,
+                q.topic,
+                q.interrogatory,
+                q.fact_pattern,
+                q.extracted_rule
+            FROM candidate_attempts ca
+            JOIN questions q ON ca.question_id = q.id
+            WHERE q.type = 'essay'
+            ORDER BY ca.attempted_at DESC
+            LIMIT 15
+        `).all();
+
+        const mcqAttempts = db.prepare(`
+            SELECT 
+                ca.id,
+                ca.question_id,
+                ca.user_answer,
+                ca.ai_score,
+                ca.ai_feedback,
+                ca.attempted_at,
+                q.domain,
+                q.topic,
+                q.question,
+                q.options,
+                q.correct_answer,
+                q.explanation
+            FROM candidate_attempts ca
+            JOIN questions q ON ca.question_id = q.id
+            WHERE q.type = 'mcq'
+            ORDER BY ca.attempted_at DESC
+            LIMIT 15
+        `).all();
+
+        const essayAvgRow = db.prepare(`
+            SELECT AVG(ca.ai_score) as avg_score, COUNT(ca.id) as count 
+            FROM candidate_attempts ca 
+            JOIN questions q ON ca.question_id = q.id 
+            WHERE q.type = 'essay'
+        `).get();
+
+        const mcqAvgRow = db.prepare(`
+            SELECT AVG(ca.ai_score) as avg_score, COUNT(ca.id) as count 
+            FROM candidate_attempts ca 
+            JOIN questions q ON ca.question_id = q.id 
+            WHERE q.type = 'mcq'
+        `).get();
+
+        return {
+            total_attempts: (essayAvgRow?.count || 0) + (mcqAvgRow?.count || 0),
+            essays: {
+                total: essayAvgRow?.count || 0,
+                average_score: essayAvgRow && essayAvgRow.avg_score ? Math.round(essayAvgRow.avg_score * 10) / 10 : 0,
+                attempts: essayAttempts
+            },
+            mcqs: {
+                total: mcqAvgRow?.count || 0,
+                average_score: mcqAvgRow && mcqAvgRow.avg_score ? Math.round(mcqAvgRow.avg_score * 10) / 10 : 0,
+                attempts: mcqAttempts
+            }
+        };
+    } catch (e) {
+        console.error('Error fetching full candidate evaluation history:', e);
+        return {
+            total_attempts: 0,
+            essays: { total: 0, average_score: 0, attempts: [] },
+            mcqs: { total: 0, average_score: 0, attempts: [] }
+        };
+    }
+};
+
 if (!getConfig('opencode_base_url')) {
     setConfig('opencode_base_url', 'https://api.opencode.com/v1');
 }
@@ -249,5 +330,6 @@ module.exports = {
     recordEvalLog,
     getEvalLogs,
     getLatestEvalMap,
-    getCandidateAnalytics
+    getCandidateAnalytics,
+    getCandidateFullEvaluationHistory
 };

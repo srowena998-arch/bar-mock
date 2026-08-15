@@ -4,7 +4,7 @@ const path = require('node:path');
 const { createOpenAI } = require('@ai-sdk/openai');
 const { generateText, generateObject, tool } = require('ai');
 const { z } = require('zod');
-const { db, getConfig, getCandidateAnalytics } = require('./db');
+const { db, getConfig, getCandidateAnalytics, getCandidateFullEvaluationHistory } = require('./db');
 
 /**
  * Configure AI SDK Provider (DeepSeek / OpenCode / OpenAI / OpenRouter)
@@ -176,6 +176,45 @@ const commitToDatabaseTool = tool({
 });
 
 /**
+ * Dynamic Task & Intent Classifier
+ * Evaluates candidate query and determines:
+ * - 'candidate_progress' -> Evaluates candidate SQLite attempt history & essays
+ * - 'platform_guide' -> Provides system tutorials and how-to steps
+ * - 'legal_doctrine' -> Executes Hybrid RAG on 1,951 Reviewer pages
+ */
+async function classifyChatTaskIntent({ query }) {
+  const q = (query || '').toLowerCase().trim();
+
+  // Robust fuzzy pattern matching catching typos like "progres", "esssays", "my stat", etc.
+  const isProgressFuzzy = /\b(progres+|progess|score|stat|grade|doing|weak|strength|readiness|attempt|essay|esssay|mcq|answer|perform|diagnostic|study\s*plan|recommend|past|last|ledger|benchmark|how\s*am\s*i|my\s*exam|my\s*bar)\b/i.test(q) &&
+    (q.includes('my') || q.includes('me') || q.includes('i') || q.includes('progres') || q.includes('score') || q.includes('doing') || q.includes('essay') || q.includes('attempt') || q.includes('grade') || q.includes('perform'));
+
+  const isGuideFuzzy = /\b(how\s*to\s*reform|how\s*to\s*use|how\s*grading\s*works|alac\s*rubric|how\s*does\s*grading|settings|api\s*key|opencode\s*go|platform\s*guide|how\s*do\s*i\s*reform)\b/i.test(q);
+
+  if (isProgressFuzzy) {
+    return {
+      intent: 'candidate_progress',
+      label: 'Candidate Performance & Readiness Diagnostic',
+      thought_step: 'Querying SQLite Candidate Attempts & Evaluating Past Answers...'
+    };
+  }
+
+  if (isGuideFuzzy) {
+    return {
+      intent: 'platform_guide',
+      label: 'Platform Guide & System Navigation',
+      thought_step: 'Retrieving Interactive Platform Workflows & Steps...'
+    };
+  }
+
+  return {
+    intent: 'legal_doctrine',
+    label: 'Reviewer Doctrine & Hybrid RAG Retrieval',
+    thought_step: 'Searching 1,951 Reviewer Pages & Supreme Court Jurisprudence...'
+  };
+}
+
+/**
  * AI Dean Phoenix RAG Chatbot: Answers legal questions grounded in 2026 Reviewers & SQLite
  */
 async function chatWithReviewerRAG(args) {
@@ -194,25 +233,19 @@ async function chatWithReviewerRAG(args) {
 
   const userMessages = messages.filter(m => m.role === 'user');
   const lastUserMsg = userMessages.length > 0 ? userMessages[userMessages.length - 1].content : (messages.length > 0 ? messages[messages.length - 1].content : '');
-  const lowerQuery = (lastUserMsg || '').toLowerCase();
+  
+  // 1. INITIAL TASK & INTENT IDENTIFICATION
+  const taskInfo = await classifyChatTaskIntent({ query: lastUserMsg });
 
-  // 1. INTENT ORCHESTRATION: Candidate Performance & Progress Analytics Intent
-  const progressKeywords = [
-    'progress', 'stat', 'doing', 'score', 'weak', 'strength', 'readiness', 'attempt',
-    'performance', 'perform', 'diagnostic', 'study plan', 'recommend', 'past answer',
-    'previous essay', 'last essay', 'recent attempt', 'history', 'how am i'
-  ];
-  
-  const isProgressIntent = progressKeywords.some(kw => lowerQuery.includes(kw));
-  
-  if (isProgressIntent) {
+  if (taskInfo.intent === 'candidate_progress') {
     const analytics = getCandidateAnalytics();
+    const fullHistory = getCandidateFullEvaluationHistory();
     const recentAttempts = analytics.recent_attempts || [];
     
     // Synthesize concise summary of recent past answers
     const attemptsContext = recentAttempts.length > 0
       ? recentAttempts.map((a, idx) => {
-          const shortAns = (a.user_answer || '').slice(0, 180).replace(/\s+/g, ' ').trim();
+          const shortAns = (a.user_answer || '').slice(0, 200).replace(/\s+/g, ' ').trim();
           let breakdownStr = '';
           try {
             if (a.ai_breakdown) {
@@ -220,7 +253,7 @@ async function chatWithReviewerRAG(args) {
               breakdownStr = ` [ALAC Breakdown: Issue ${bd.issue || 0}/10, Rule ${bd.rule || 0}/30, Analysis ${bd.analysis || 0}/50, Conclusion ${bd.conclusion || 0}/10]`;
             }
           } catch(e) {}
-          return `• **[Attempt #${idx + 1}] ${a.domain} (${a.type.toUpperCase()}) - "${a.topic}"**\n  - Score: **${a.ai_score}/100**${breakdownStr}\n  - Interrogatory: *${(a.interrogatory || 'N/A').slice(0, 100)}*\n  - Your Answer Excerpt: _"${shortAns}${a.user_answer && a.user_answer.length > 180 ? '...' : ''}"_\n  - AI Feedback: ${a.ai_feedback || 'Completed'}`;
+          return `• **[Attempt #${idx + 1}] ${a.domain} (${a.type.toUpperCase()}) - "${a.topic}"**\n  - Score: **${a.ai_score}/100**${breakdownStr}\n  - Interrogatory: *${(a.interrogatory || 'N/A').slice(0, 120)}*\n  - Your Answer Excerpt: _"${shortAns}${a.user_answer && a.user_answer.length > 200 ? '...' : ''}"_\n  - AI Feedback: ${a.ai_feedback || 'Completed'}`;
         }).join('\n\n')
       : '• *No past attempts recorded yet.*';
 
@@ -231,23 +264,26 @@ async function chatWithReviewerRAG(args) {
     if (apiKey) {
       try {
         const progressSystemPrompt = `You are "Dean Phoenix", an elite Supreme Court Bar Examination Counsel.
-The candidate is asking for an analysis of their progress, past answers, and overall exam readiness.
-Analyze their performance using their live SQLite attempt history and provide a warm, encouraging, authoritative critique.
+You ARE wired directly to the candidate's live SQLite database (tables: candidate_attempts & questions).
+You have full, real-time access to their exam scores, essay submissions, MCQ answers, and ALAC grading rubrics.
+NEVER say you do not have access to their tracker or past attempts.
 
-CANDIDATE STATS & ATTEMPTS HISTORY:
-• Total Attempts: ${analytics.total_attempts}
-• Overall Weighted Average: ${analytics.overall_average}/100
-• Passing Benchmark: 75.00%
-• Domain Stats:
+LIVE CANDIDATE DATABASE STATUS:
+• Total Recorded Attempts: ${analytics.total_attempts} (Essays: ${fullHistory.essays.total}, MCQs: ${fullHistory.mcqs.total})
+• Composite Weighted Average: ${analytics.overall_average}/100
+• Official Supreme Court Passing Benchmark: 75.00%
+• Question Bank Inventory: ${analytics.question_bank_stats.total} total questions (${analytics.question_bank_stats.essays} Essays, ${analytics.question_bank_stats.mcqs} MCQs)
+
+SUBJECT DOMAIN MASTERY:
 ${domainLines}
 
-RECENT PAST ANSWERS & ATTEMPTS LEDGER:
+RECENT PAST ESSAY & MCQ SUBMISSIONS (FROM SQLITE):
 ${attemptsContext}
 
 Instructions:
-1. Summarize their overall score and domain readiness.
-2. Directly reference specific strengths and weaknesses observed in their past answers (e.g. mention specific topics, ALAC rubric deductions, or missed statutory elements).
-3. Prescribe a high-yield study plan to reach 85%+ percentile for the 2026 Bar.`;
+1. Acknowledge your live connection to their SQLite candidate history.
+2. If total attempts is 0, warmly state that their record is currently a blank canvas (0 attempts logged so far), note that 109 questions are loaded in the bank, and guide them to take their first drill in the "✍️ Essay Exam" or "⚡ Recall MCQs" tab.
+3. If attempts exist, provide an authoritative, deep critique of their past answers, citing specific strengths, lost points (e.g. missing elements in Legal Basis or Application), and a targeted 2026 Bar syllabus action plan.`;
 
         const { text } = await generateText({
           model: provider(modelName),
@@ -261,7 +297,8 @@ Instructions:
           reply: text,
           citations: [],
           retrieval_confidence: 1.0,
-          supplemented_via_web: false
+          supplemented_via_web: false,
+          identified_task: taskInfo
         };
       } catch (err) {
         console.warn('AI progress generation timed out/failed, using structured diagnostic fallback:', err.message);
@@ -270,15 +307,17 @@ Instructions:
 
     const reply = `⚖️ **Dean Phoenix Candidate Progress & Diagnostic Analysis**
 
-Here is your comprehensive 2026 Philippine Bar Examination readiness diagnostic based on your live SQLite candidate attempt logs and recent answer submissions:
+*Live SQLite Database Connection: Active (\`candidate_attempts\`)*
+
+Here is your comprehensive 2026 Philippine Bar Examination readiness diagnostic based on your live SQLite candidate attempt logs and answer submissions:
 
 ---
 
 ### 📊 Performance Scorecard
-• **Total Question Attempts:** **${analytics.total_attempts}**
+• **Total Question Attempts:** **${analytics.total_attempts}** (Essays: **${fullHistory.essays.total}**, MCQs: **${fullHistory.mcqs.total}**)
 • **Composite Average Score:** **${analytics.overall_average}/100**
 • **Supreme Court Benchmark:** **75.00%** (Official Passing Grade)
-• **Bar Readiness Status:** ${analytics.overall_average >= 75 ? '🟢 **ON TRACK TO PASS** (Meeting SC Bar Standards)' : (analytics.total_attempts === 0 ? '⚪ **NO ATTEMPTS RECORDED** (Ready for Initial Baseline)' : '🟡 **REINFORCEMENT REQUIRED** (Score currently below 75.00%)')}
+• **Bar Readiness Status:** ${analytics.overall_average >= 75 ? '🟢 **ON TRACK TO PASS** (Meeting SC Bar Standards)' : (analytics.total_attempts === 0 ? '⚪ **NO ATTEMPTS RECORDED YET** (109 Questions Waiting in Question Bank)' : '🟡 **REINFORCEMENT REQUIRED** (Score currently below 75.00%)')}
 
 ---
 
@@ -303,12 +342,13 @@ ${attemptsContext}
       reply: reply,
       citations: [],
       retrieval_confidence: 1.0,
-      supplemented_via_web: false
+      supplemented_via_web: false,
+      identified_task: taskInfo
     };
   }
 
   // 2. INTENT ORCHESTRATION: Platform Guide & Tutorial Query Detection
-  if (lowerQuery.includes('reform') || lowerQuery.includes('update question') || lowerQuery.includes('edit question') || lowerQuery.includes('change question') || lowerQuery.includes('modernize') || (lowerQuery.includes('how do i') && !lowerQuery.includes('study'))) {
+  if (taskInfo.intent === 'platform_guide') {
     return {
       reply: `⚖️ **Platform Tutorial: How to Reform or Update Questions with Modern Jurisprudence**
 
@@ -324,25 +364,10 @@ To update or reform any Bar question (e.g., inject 2024–2026 Supreme Court En 
 6. **Click "⚡ Synthesize Refinement with AI SDK"**: The system will generate the updated version adhering to Bar standards.
 7. **Inspect the Side-by-Side Diff**: Review the before vs. after comparison.
 8. **Click "💾 Apply & Save to SQLite"**: The modified question is immediately committed to the live SQLite question bank!`,
-      citations: []
-    };
-  }
-
-  if (lowerQuery.includes('how does grading') || lowerQuery.includes('how grading works') || lowerQuery.includes('rubric') || (lowerQuery.includes('alac') && lowerQuery.includes('how'))) {
-    return {
-      reply: `⚖️ **Platform Tutorial: How the Supreme Court AI Grader Works**
-
-1. **Go to the "✍️ Essay Exam" tab**.
-2. Read the legal fact pattern and the specific interrogatory.
-3. In the Candidate Exam Workspace, structure your response applying strict **ALAC** (Answer, Legal Basis, Application, Conclusion).
-4. Click **"✨ Grade Answer with AI"**.
-5. The platform scores your answer against the official **100-Point Supreme Court Rubric**:
-   - **Issue & Direct Answer**: 10 Points (Categorical stance)
-   - **Legal Basis (Rule)**: 30 Points (Exact statutory Articles & case doctrines)
-   - **Application (Analysis)**: 50 Points (Methodical element-by-fact matching)
-   - **Conclusion**: 10 Points (Final legal result)
-6. All attempts and scores are saved to your SQLite database history and update your composite Bar readiness index!`,
-      citations: []
+      citations: [],
+      retrieval_confidence: 1.0,
+      supplemented_via_web: false,
+      identified_task: taskInfo
     };
   }
 
@@ -432,7 +457,8 @@ ${contextStr}${webContextStr}`;
         reply: text,
         citations: allCitations,
         retrieval_confidence: retrievalConfidence,
-        supplemented_via_web: isWebSupported
+        supplemented_via_web: isWebSupported,
+        identified_task: taskInfo
       };
     } catch (err) {
       console.warn('Chatbot API timed out/failed, applying grounded doctrinal fallback:', err.message);
@@ -450,7 +476,8 @@ There is no recognized statutory provision, Supreme Court doctrine, or case law 
 Under Philippine jurisprudence, legal rights, claims, and remedies must be grounded strictly in enacted statutory codes and authoritative decisions of the Supreme Court En Banc. Fabricated or hypothetical concepts without statutory basis have no force or effect.`,
       citations: [],
       retrieval_confidence: 0.0,
-      supplemented_via_web: false
+      supplemented_via_web: false,
+      identified_task: taskInfo
     };
   }
 
@@ -470,7 +497,8 @@ Regarding **${missingEntityName || 'this specific legal matter'}**, the governin
 • *Related 2026 Bar Syllabus Domain:* Philippine Jurisprudence & Public Law`,
       citations: allCitations,
       retrieval_confidence: retrievalConfidence,
-      supplemented_via_web: true
+      supplemented_via_web: true,
+      identified_task: taskInfo
     };
   }
 
@@ -494,7 +522,8 @@ Regarding **${missingEntityName || 'this specific legal matter'}**, the governin
     reply: `${excerptSummary}\n\n**Citations from Source Reviewers:**\n${citationList || '• 2026 Philippine Supreme Court Syllabus'}`,
     citations: allCitations,
     retrieval_confidence: retrievalConfidence,
-    supplemented_via_web: false
+    supplemented_via_web: false,
+    identified_task: taskInfo
   };
 }
 

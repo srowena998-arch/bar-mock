@@ -756,12 +756,17 @@ document.addEventListener('alpine:init', () => {
       this.chatInput = '';
       this.isChatLoading = true;
 
-      // Identify Query Task & Intent for BeautifulUI Thought Indicator
+      // Intelligent Pre-flight Task & Intent Identification (Fuzzy regex catching typos like 'progres', 'esssays', etc.)
       const lower = prompt.toLowerCase();
-      if (lower.includes('progress') || lower.includes('score') || lower.includes('doing') || lower.includes('stats') || lower.includes('weak') || lower.includes('attempt') || lower.includes('past answer') || lower.includes('previous essay')) {
+      const isProgressFuzzy = /\b(progres+|progess|score|stat|grade|doing|weak|strength|readiness|attempt|essay|esssay|mcq|answer|perform|diagnostic|study\s*plan|recommend|past|last|ledger|benchmark|how\s*am\s*i|my\s*exam|my\s*bar)\b/i.test(lower) &&
+        (lower.includes('my') || lower.includes('me') || lower.includes('i') || lower.includes('progres') || lower.includes('score') || lower.includes('doing') || lower.includes('essay') || lower.includes('attempt') || lower.includes('grade') || lower.includes('perform'));
+
+      const isGuideFuzzy = /\b(how\s*to\s*reform|how\s*to\s*use|how\s*grading\s*works|alac\s*rubric|how\s*does\s*grading|settings|api\s*key|opencode\s*go|platform\s*guide|how\s*do\s*i\s*reform)\b/i.test(lower);
+
+      if (isProgressFuzzy) {
         this.chatDetectedIntent = 'Candidate Performance & Readiness Diagnostic';
         this.chatThinkingStep = 'Querying SQLite Candidate Attempts & Evaluating Past Answers...';
-      } else if (lower.includes('reform') || lower.includes('update') || lower.includes('how to') || lower.includes('grade') || lower.includes('rubric') || lower.includes('setting')) {
+      } else if (isGuideFuzzy) {
         this.chatDetectedIntent = 'Platform Guide & System Navigation';
         this.chatThinkingStep = 'Retrieving Interactive Platform Workflows & Steps...';
       } else {
@@ -783,10 +788,14 @@ document.addEventListener('alpine:init', () => {
 
         if (res.ok) {
           const data = await res.json();
+          if (data.identified_task) {
+            this.chatDetectedIntent = data.identified_task.label;
+          }
           this.chatMessages.push({
             role: 'assistant',
             content: data.reply,
-            citations: data.citations || []
+            citations: data.citations || [],
+            task_label: data.identified_task?.label || this.chatDetectedIntent
           });
         } else {
           this.chatMessages.push({

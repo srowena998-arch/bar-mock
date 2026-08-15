@@ -537,7 +537,8 @@ Output strictly JSON:
       return sendJSON(res, 200, {
         success: true,
         reply: result.reply,
-        citations: result.citations || []
+        citations: result.citations || [],
+        identified_task: result.identified_task
       });
     }
 
