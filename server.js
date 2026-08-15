@@ -729,23 +729,29 @@ Output strictly JSON:
 
       if (apiKey) {
         try {
-          const endpointUrl = formatApiUrl(baseUrl);
-          const systemPrompt = `You are a distinguished Supreme Court Bar Examiner grading candidate answers for the 2026 Philippine Bar Examination.
+          const systemPrompt = `You are a distinguished Supreme Court Bar Examiner grading candidate essay booklets for the 2026 Philippine Bar Examination.
 Grade with uncompromising Bar Examiner rigor from 0 to 100.
-Evaluate using either ALAC (Answer, Legal Basis, Application, Conclusion) or IRAC (Issue, Rule, Analysis, Conclusion) answering methodologies.
-You MUST output ONLY valid JSON matching this exact schema:
+Evaluate using the official 100-Point Supreme Court ALAC (Answer, Legal Basis, Application, Conclusion) / IRAC methodology.
+
+SCORING CRITERIA (Total 100):
+- Issue & Direct Answer (10 pts): Must provide an immediate, categorical stance ("Yes" / "No" / "The action will prosper").
+- Legal Basis (Rule) (30 pts): Must cite exact statutory Articles (RPC, Civil Code, Rules of Court, Constitution) and landmark Supreme Court doctrines.
+- Application (Analysis) (50 pts): Must methodically match each statutory requisite to the specific facts, dates, and named parties.
+- Conclusion (10 pts): Clear, unambiguous legal disposition.
+
+REQUIRED OUTPUT SCHEMA (JSON ONLY):
 {
-  "score": 85,
+  "score": 40,
   "breakdown": {
-    "issue_or_answer": 9,
-    "legal_basis": 26,
-    "application": 42,
+    "issue_or_answer": 7,
+    "legal_basis": 10,
+    "application": 15,
     "conclusion": 8
   },
-  "strengths": "Brief 1-2 sentence description of what the candidate handled correctly.",
-  "deficiencies": "Specific doctrines, statutory provisions, or requisites omitted or misapplied.",
-  "prescribed_polish": "Specific suggestion on how to rephrase the answer for maximum points under 2026 Bar standards.",
-  "deep_dive_concept": "Explain the core underlying legal doctrine, statutory cross-references, and why the Supreme Court rule applies."
+  "strengths": "State precisely what the candidate spotted or structured correctly.",
+  "deficiencies": "Itemize exact point deductions with missing statutory articles, omitted requisites, and factual misapplications (e.g. '-20 pts in Legal Basis: Failed to cite Article 21, RPC; -35 pts in Application: Failed to match elements to party acts').",
+  "prescribed_polish": "Provide the EXACT VERBATIM 100-POINT MODEL ANSWER (written in clean 4-paragraph ALAC format) showing the candidate how to write the perfect answer.",
+  "deep_dive_concept": "Enumerate the numbered requisites, statutory cross-references, landmark Supreme Court En Banc doctrines, and tactical Bar examiner speed-reading rules."
 }`;
 
           const userPrompt = `[BAR EXAM SUBJECT]: ${qRow.domain}
