@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50 text-slate-900 selection:bg-amber-500/30 selection:text-amber-900">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bar 2026 Mock Reviewer — Supreme Court AI Platform & Resources Studio</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans, Newsreader Serif & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            serif: ['"Newsreader"', 'serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            gold: {
+              400: '#fbbf24',
+              500: '#f59e0b',
+              600: '#d97706',
+              700: '#b45309'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <style>
+    [x-cloak] { display: none !important; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .legal-paper {
+      background-color: #ffffff;
+      background-image: radial-gradient(#e2e8f0 0.75px, transparent 0.75px);
+      background-size: 16px 16px;
+    }
+  </style>
+</head>
+
+<body x-data="barApp" x-cloak class="min-h-full flex flex-col font-sans bg-slate-50 text-slate-900 antialiased selection:bg-amber-100">
+
+  <!-- Toast Notification -->
+  <div 
+    x-show="toastVisible" 
+    x-transition:enter="transition ease-out duration-300 transform"
+    x-transition:enter-start="opacity-0 translate-y-4"
+    x-transition:enter-end="opacity-100 translate-y-0"
+    x-transition:leave="transition ease-in duration-200 transform"
+    x-transition:leave-start="opacity-100 translate-y-0"
+    x-transition:leave-end="opacity-0 translate-y-4"
+    class="fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-slate-900 border border-slate-800 text-white px-5 py-3.5 rounded-2xl shadow-2xl text-xs font-semibold"
+  >
+    <span class="text-amber-400 text-base">⚖️</span>
+    <span x-text="toastMessage"></span>
+  </div>
+
+  <!-- Targeted AI Refinement & Approval Card Modal -->
+  <div 
+    x-show="showRefineModal" 
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0 scale-95"
+    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100 scale-100"
+    x-transition:leave-end="opacity-0 scale-95"
+    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+  >
+    <div 
+      @click.away="showRefineModal = false" 
+      class="bg-white border border-slate-200 rounded-3xl max-w-3xl w-full p-6 sm:p-7 space-y-5 shadow-2xl overflow-hidden"
+    >
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 text-base font-bold">
+            ✨
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-base tracking-tight" x-text="refineItemType === 'mcq' ? 'AI MCQ Refinement & Expansion Studio' : 'Targeted AI Essay Refinement & Polish'"></h3>
+            <p class="text-xs text-slate-500">In-place AI SDK transformation adhering to Supreme Court Bar standards</p>
+          </div>
+        </div>
+        <button @click="showRefineModal = false" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center text-sm transition">✕</button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <!-- Target Field Selector (for Essay) -->
+        <template x-if="refineItemType === 'essay'">
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1.5">Target Component to Modify</label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              <button 
+                @click="refineTargetField = 'all'" 
+                :class="refineTargetField === 'all' ? 'bg-amber-50 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+                class="p-2 rounded-xl border text-center transition"
+              >All Components</button>
+              <button 
+                @click="refineTargetField = 'fact_pattern'" 
+                :class="refineTargetField === 'fact_pattern' ? 'bg-amber-50 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+                class="p-2 rounded-xl border text-center transition"
+              >Fact Pattern Only</button>
+              <button 
+                @click="refineTargetField = 'interrogatory'" 
+                :class="refineTargetField === 'interrogatory' ? 'bg-amber-50 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+                class="p-2 rounded-xl border text-center transition"
+              >Interrogatory Only</button>
+              <button 
+                @click="refineTargetField = 'suggested_answer'" 
+                :class="refineTargetField === 'suggested_answer' ? 'bg-amber-50 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+                class="p-2 rounded-xl border text-center transition"
+              >Answer / ALAC Only</button>
+            </div>
+          </div>
+        </template>
+
+        <!-- Prompt Bar with Quick Preset Chips -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="text-slate-700 font-semibold">Natural Language Refinement Instruction</label>
+            <span class="text-[10px] text-slate-400 font-mono">Vercel AI SDK Schema</span>
+          </div>
+
+          <!-- Quick Instruction Pills -->
+          <div class="flex items-center gap-1.5 mb-2 overflow-x-auto pb-1 text-[10px]">
+            <span class="text-slate-400 font-semibold">Suggestions:</span>
+            <button @click="refineInstruction = 'Add a third-party claim and timeline complication'" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition">+ Add Party / Timeline</button>
+            <button @click="refineInstruction = 'Append sub-question (b) on procedural remedies'" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition">+ Add Sub-Question (b)</button>
+            <button @click="refineInstruction = 'Format benchmark strictly into categorical ALAC with statutory articles'" class="px-2.5 py-1 rounded-full bg-slate-100 hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition">+ Strict ALAC Format</button>
+          </div>
+
+          <textarea 
+            x-model="refineInstruction" 
+            placeholder="e.g. 'Add a third-party claim in the fact pattern and make the interrogatory test both criminal and civil liabilities separately'..."
+            class="w-full h-20 bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-2xl p-3 text-slate-900 outline-none resize-none leading-relaxed text-xs transition"
+          ></textarea>
+        </div>
+
+        <!-- BeautifulUI Split Diff Table / Approval Card -->
+        <div x-show="refinePreviewData" class="space-y-2 p-4 rounded-2xl bg-slate-50 border border-slate-200 max-h-64 overflow-y-auto">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+            <span class="font-bold text-amber-700 uppercase text-[10px] tracking-wider flex items-center gap-1.5">
+              <span>📋</span> Side-by-Side Diff & Approval Preview
+            </span>
+            <span class="text-[10px] text-emerald-700 font-mono font-bold">Ready to commit</span>
+          </div>
+          
+          <!-- MCQ Diff -->
+          <template x-if="refineItemType === 'mcq'">
+            <div class="space-y-3 pt-1">
+              <div>
+                <strong class="text-slate-500 block text-[10px] uppercase">Refined Question Stem:</strong>
+                <p class="text-slate-900 font-medium bg-white p-3 rounded-xl border border-slate-200" x-text="refinePreviewData?.refined?.question"></p>
+              </div>
+              <div>
+                <strong class="text-amber-800 block text-[10px] uppercase mb-1">Refined Options (A-D):</strong>
+                <div class="space-y-1">
+                  <template x-for="(opt, idx) in (refinePreviewData?.refined?.options || [])" :key="idx">
+                    <div class="p-2 rounded-lg bg-white border border-slate-200 text-slate-800 font-mono text-xs" x-text="opt"></div>
+                  </template>
+                </div>
+              </div>
+              <div>
+                <strong class="text-emerald-800 block text-[10px] uppercase">Doctrinal Explanation:</strong>
+                <p class="text-slate-700 text-xs p-3 rounded-xl bg-white border border-slate-200 leading-relaxed" x-text="refinePreviewData?.refined?.explanation"></p>
+              </div>
+            </div>
+          </template>
+
+          <!-- Essay Diff -->
+          <template x-if="refineItemType === 'essay'">
+            <div class="space-y-3 pt-1">
+              <div>
+                <strong class="text-slate-500 block text-[10px] uppercase">Fact Pattern:</strong>
+                <p class="text-slate-800 font-serif leading-relaxed bg-white p-3 rounded-xl border border-slate-200" x-text="refinePreviewData?.refined?.fact_pattern"></p>
+              </div>
+              <div>
+                <strong class="text-amber-800 block text-[10px] uppercase">Interrogatory:</strong>
+                <p class="text-slate-900 font-semibold bg-white p-3 rounded-xl border border-slate-200" x-text="refinePreviewData?.refined?.interrogatory"></p>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+        <button 
+          @click="executeRefineQuestion()" 
+          :disabled="isRefining"
+          class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-xs shadow-md transition flex items-center gap-2"
+        >
+          <span x-show="!isRefining">⚡ Synthesize with AI SDK</span>
+          <span x-show="isRefining" class="flex items-center gap-1.5">
+            <span class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            <span>Synthesizing...</span>
+          </span>
+        </button>
+
+        <div class="flex items-center gap-2">
+          <button @click="showRefineModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">Cancel</button>
+          <button 
+            @click="applyRefinedQuestion()" 
+            :disabled="!refinePreviewData"
+            class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-bold shadow-md transition flex items-center gap-1.5"
+          >
+            <span>💾</span> Apply & Save to SQLite
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal (Live Models & Endpoints) -->
+  <div 
+    x-show="showSettingsModal" 
+    x-transition 
+    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
+  >
+    <div 
+      @click.away="showSettingsModal = false" 
+      class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl"
+    >
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <span class="text-amber-600 text-lg">⚙️</span>
+          <h3 class="font-bold text-slate-900 text-base">Live AI Provider Configuration</h3>
+        </div>
+        <button @click="showSettingsModal = false" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center text-xs">✕</button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <!-- Quick Provider Presets -->
+        <div>
+          <label class="block text-slate-700 font-semibold mb-1.5">Quick Provider Presets</label>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button 
+              @click="settings.opencode_base_url = 'https://opencode.ai/zen/go/v1'; settings.default_model = 'deepseek-v4-flash'; connectionResult = null;" 
+              :class="settings.opencode_base_url.includes('opencode.ai') ? 'bg-amber-50 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+              class="p-2 rounded-xl border text-center transition text-[11px]"
+            >
+              ⚡ OpenCode Go
+            </button>
+
+            <button 
+              @click="settings.opencode_base_url = 'https://api.deepseek.com'; settings.default_model = 'deepseek-chat'; connectionResult = null;" 
+              :class="settings.opencode_base_url.includes('deepseek.com') ? 'bg-amber-50 border-amber-400 text-amber-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+              class="p-2 rounded-xl border text-center transition text-[11px]"
+            >
+              🔷 DeepSeek
+            </button>
+
+            <button 
+              @click="settings.opencode_base_url = 'https://openrouter.ai/api/v1'; settings.default_model = 'deepseek/deepseek-chat'; connectionResult = null;" 
+              :class="settings.opencode_base_url.includes('openrouter.ai') ? 'bg-indigo-50 border-indigo-400 text-indigo-900 font-bold' : 'bg-slate-50 border-slate-200 text-slate-600'"
+              class="p-2 rounded-xl border text-center transition text-[11px]"
+            >
+              🌐 OpenRouter
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-700 font-semibold mb-1">Base API URL (Endpoint)</label>
+          <input 
+            type="text" 
+            x-model="settings.opencode_base_url" 
+            placeholder="https://opencode.ai/zen/go/v1" 
+            class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl p-2.5 text-slate-900 outline-none font-mono text-xs transition"
+          />
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-slate-700 font-semibold">API Key</label>
+            <button 
+              @click="showApiKey = !showApiKey" 
+              class="text-[10px] text-slate-500 hover:text-amber-700 transition"
+              x-text="showApiKey ? '🙈 Hide' : '👁️ Show Full Key'"
+            ></button>
+          </div>
+          <input 
+            :type="showApiKey ? 'text' : 'password'" 
+            x-model="settings.opencode_api_key" 
+            placeholder="sk-... (Paste your full API Key here)" 
+            class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl p-2.5 text-slate-900 outline-none font-mono text-xs transition"
+          />
+        </div>
+
+        <!-- Connection Test Panel -->
+        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-slate-700">Live AI Health Check:</span>
+            <button 
+              @click="testConnection()" 
+              :disabled="isTestingConnection"
+              class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-[11px] shadow-xs transition flex items-center gap-1"
+            >
+              <span x-show="!isTestingConnection">🔌 Test Connection</span>
+              <span x-show="isTestingConnection">Pinging...</span>
+            </button>
+          </div>
+
+          <div x-show="connectionResult" class="text-[11px]">
+            <div 
+              x-show="connectionResult?.success" 
+              class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-1.5 font-mono text-[10px]"
+            >
+              <span>🟢</span>
+              <span x-text="`Connected! (${connectionResult?.latency_ms}ms) Model: ${connectionResult?.model_used}`"></span>
+            </div>
+
+            <div 
+              x-show="!connectionResult?.success" 
+              class="p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 space-y-0.5 text-[10px]"
+            >
+              <div class="font-bold flex items-center gap-1"><span>🔴</span> Connection Failed:</div>
+              <p class="font-mono break-all text-rose-700" x-text="connectionResult?.error"></p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-slate-700 font-semibold">Active Model</label>
+            <button 
+              @click="fetchLiveModels()" 
+              :disabled="isFetchingModels"
+              class="text-[11px] text-amber-700 hover:text-amber-800 font-bold flex items-center gap-1 disabled:opacity-50"
+            >
+              <span x-show="!isFetchingModels">🔄 Fetch Live Models</span>
+              <span x-show="isFetchingModels">Fetching...</span>
+            </button>
+          </div>
+
+          <select 
+            x-model="settings.default_model" 
+            class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl p-2.5 text-slate-900 outline-none font-mono cursor-pointer mb-2 text-xs"
+          >
+            <template x-for="m in availableModels" :key="m">
+              <option :value="m" x-text="m"></option>
+            </template>
+          </select>
+
+          <!-- Custom Model Input -->
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] text-slate-500 font-medium">Custom Model ID:</span>
+            <input 
+              type="text" 
+              x-model="settings.default_model" 
+              placeholder="e.g. deepseek-v4-flash" 
+              class="flex-1 bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-lg px-2.5 py-1 text-slate-900 text-xs font-mono outline-none"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+        <span class="text-[10px] text-emerald-700 font-mono font-bold" x-show="availableModels.length > 0" x-text="`✓ ${availableModels.length} models ready`"></span>
+        <div class="flex items-center gap-2 ml-auto">
+          <button @click="showSettingsModal = false" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold">Cancel</button>
+          <button @click="saveSettings()" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-sm">Save & Connect</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Navigation Bar -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/90 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center space-x-3 cursor-pointer group" @click="currentTab = 'dashboard'; loadReadinessAnalytics();">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/20 text-white font-bold text-xl group-hover:scale-105 transition transform">
+          ⚖️
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-slate-900">BAR 2026</h1>
+            <span class="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">Mock Reviewer</span>
+          </div>
+          <p class="text-[11px] text-slate-500 font-medium hidden sm:block">Supreme Court Essay Simulation & Resources Studio</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs & Settings -->
+      <div class="flex items-center space-x-2">
+        <nav class="flex items-center space-x-1 sm:space-x-1.5">
+          <button 
+            @click="currentTab = 'dashboard'; loadReadinessAnalytics();" 
+            :class="currentTab === 'dashboard' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'" 
+            class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition duration-150 flex items-center gap-1.5"
+          >
+            <span>📊</span>
+            <span>Dashboard</span>
+          </button>
+
+          <button 
+            @click="currentTab = 'essay'" 
+            :class="currentTab === 'essay' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'" 
+            class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition duration-150 flex items-center gap-1.5"
+          >
+            <span>✍️</span>
+            <span>Essay Exam</span>
+          </button>
+
+          <button 
+            @click="currentTab = 'mcq'" 
+            :class="currentTab === 'mcq' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'" 
+            class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition duration-150 flex items-center gap-1.5"
+          >
+            <span>⚡</span>
+            <span>Recall MCQs</span>
+          </button>
+
+          <button 
+            @click="currentTab = 'studio'; loadExtractionProgress();" 
+            :class="currentTab === 'studio' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'" 
+            class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition duration-150 flex items-center gap-1.5"
+          >
+            <span>📚</span>
+            <span class="font-bold">Resources Studio</span>
+          </button>
+        </nav>
+
+        <!-- Settings Button -->
+        <button 
+          @click="showSettingsModal = true" 
+          class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 hover:text-slate-900 transition ml-1"
+          title="Configure AI Provider & Model"
+        >
+          <span class="text-sm">⚙️</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-7">
+
+    <!-- 1. DASHBOARD & DIAGNOSTIC VIEW -->
+    <div x-show="currentTab === 'dashboard'" class="space-y-7">
+      
+      <!-- Top Numbers Summary Bar -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Book Pages</div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono mt-1" x-text="`${extractionData.summary?.total_pages || 1951}`"></div>
+          <div class="text-[11px] text-amber-700 font-medium mt-0.5">Across 6 Official Reviewers</div>
+        </div>
+
+        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Syllabus Topics</div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono mt-1" x-text="`${extractionData.summary?.total_sections || 1046}`"></div>
+          <div class="text-[11px] text-emerald-700 font-medium mt-0.5" x-text="`${extractionData.summary?.extracted_sections || 3} Extracted into Questions`"></div>
+        </div>
+
+        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Active Question Pool</div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono mt-1" x-text="`${allEssays.length + allMcqs.length}`"></div>
+          <div class="text-[11px] text-indigo-700 font-medium mt-0.5" x-text="`${allEssays.length} Essays • ${allMcqs.length} MCQs`"></div>
+        </div>
+
+        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs">
+          <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">Passing Threshold</div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-amber-600 font-mono mt-1">75.0%</div>
+          <div class="text-[11px] text-slate-500 font-medium mt-0.5">Supreme Court En Banc Standard</div>
+        </div>
+      </div>
+
+      <!-- Holistic Bar Readiness Diagnostic Radar Card -->
+      <div class="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🎯</span>
+              <h3 class="text-lg font-bold text-slate-900">Projected Bar Readiness & Domain Mastery</h3>
+            </div>
+            <p class="text-xs text-slate-500">Weighted diagnostic score calculated dynamically against the 75% passing mark</p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="text-right">
+              <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Composite Projected Score</div>
+              <div 
+                :class="readinessData?.projected_score >= 75 ? 'text-emerald-700' : 'text-amber-700'" 
+                class="text-3xl font-extrabold font-mono"
+                x-text="`${readinessData?.projected_score || 0}%`"
+              ></div>
+            </div>
+            <span 
+              :class="readinessData?.is_passing ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'"
+              class="px-3.5 py-1.5 rounded-full text-xs font-extrabold border font-mono tracking-wider uppercase"
+              x-text="readinessData?.is_passing ? '✓ PASSING READY' : '⚠️ CONDITIONAL'"
+            ></span>
+          </div>
+        </div>
+
+        <!-- 6 Bar Domain Readiness Breakdown Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <template x-for="d in readinessData?.domain_breakdown || []" :key="d.domain">
+            <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="font-bold text-slate-900 text-xs truncate max-w-[70%]" x-text="d.domain"></span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold font-mono bg-white border border-slate-200 text-slate-700" x-text="`${d.weight}% Weight`"></span>
+              </div>
+
+              <div class="flex items-baseline justify-between">
+                <div class="text-xl font-extrabold font-mono text-slate-900" x-text="`${d.average_score}%`"></div>
+                <span 
+                  :class="{
+                    'text-emerald-700 bg-emerald-50 border-emerald-200': d.status === 'Passing Ready',
+                    'text-amber-700 bg-amber-50 border-amber-200': d.status === 'Needs Practice',
+                    'text-rose-700 bg-rose-50 border-rose-200': d.status === 'Critical Focus',
+                    'text-slate-500 bg-slate-100 border-slate-200': d.status === 'No Attempts Yet'
+                  }"
+                  class="text-[10px] font-extrabold px-2 py-0.5 rounded-full border font-mono"
+                  x-text="d.status"
+                ></span>
+              </div>
+
+              <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                <div 
+                  class="h-full rounded-full transition-all duration-500"
+                  :class="d.average_score >= 75 ? 'bg-emerald-500' : (d.average_score >= 50 ? 'bg-amber-500' : 'bg-rose-500')"
+                  :style="`width: ${Math.max(5, d.average_score)}%`"
+                ></div>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <!-- Qualitative AI Diagnostic Report -->
+        <div x-show="aiDiagnosis" class="mt-4 p-5 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-3 text-xs">
+          <div class="flex items-center justify-between">
+            <h4 class="font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5 text-[11px]">
+              <span>🧠</span> Dean Phoenix Holistic Diagnostic Report
+            </h4>
+            <span class="text-[10px] text-amber-800 font-mono font-bold" x-text="aiDiagnosis?.overall_readiness_status"></span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-700">
+            <div class="p-3 bg-white rounded-xl border border-amber-200/60 space-y-1">
+              <strong class="text-emerald-800 block font-semibold text-[11px]">Key Candidate Strengths:</strong>
+              <ul class="list-disc list-inside space-y-0.5 text-slate-700">
+                <template x-for="st in aiDiagnosis?.key_strengths || []" :key="st">
+                  <li x-text="st"></li>
+                </template>
+              </ul>
+            </div>
+
+            <div class="p-3 bg-white rounded-xl border border-amber-200/60 space-y-1">
+              <strong class="text-rose-800 block font-semibold text-[11px]">Critical Blind Spots to Drill:</strong>
+              <ul class="list-disc list-inside space-y-0.5 text-slate-700">
+                <template x-for="bs in aiDiagnosis?.critical_blind_spots || []" :key="bs">
+                  <li x-text="bs"></li>
+                </template>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- 2. ESSAY EXAM VIEW (Strict Candidate Answering Workspace) -->
+    <div x-show="currentTab === 'essay'" class="space-y-6">
+      
+      <!-- Filter and Jump Header -->
+      <div class="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+        <div class="flex items-center space-x-3">
+          <label class="text-xs font-bold text-slate-600 uppercase tracking-wider">Subject:</label>
+          <select 
+            x-model="selectedDomain" 
+            @change="filterEssays()" 
+            class="bg-slate-50 text-slate-900 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 focus:border-amber-500 outline-none cursor-pointer"
+          >
+            <option value="all">All 6 Bar Subjects</option>
+            <template x-for="d in (domains.length ? domains : window.BAR_DATA)" :key="d.domain">
+              <option :value="d.domain" x-text="`${d.domain} (${d.weight_percentage}%)`"></option>
+            </template>
+          </select>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button 
+            @click="prevEssay()" 
+            :disabled="currentEssayIdx === 0"
+            class="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 disabled:opacity-40 border border-slate-200 text-slate-700 transition"
+          >← Prev</button>
+          
+          <span class="text-xs font-mono font-bold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800 border border-slate-200" x-text="`Question ${currentEssayIdx + 1} of ${essayList.length}`"></span>
+
+          <button 
+            @click="nextEssay()" 
+            :disabled="currentEssayIdx >= essayList.length - 1"
+            class="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 disabled:opacity-40 border border-slate-200 text-slate-700 transition"
+          >Next →</button>
+        </div>
+      </div>
+
+      <!-- Main Two-Column Exam Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: Fact Pattern & Problem Stem (6 Cols) -->
+        <div class="lg:col-span-6 space-y-4">
+          <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-xs space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-500" x-text="currentEssay.domain"></h3>
+              </div>
+              <span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200" x-text="`Topic: ${currentEssay.topic}`"></span>
+            </div>
+
+            <!-- Supreme Court Legal Fact Pattern -->
+            <div class="legal-paper border border-slate-200 rounded-2xl p-5 sm:p-6 text-slate-800 font-serif text-sm sm:text-base leading-relaxed whitespace-pre-wrap" x-text="currentEssay.fact_pattern"></div>
+
+            <!-- Interrogatory Stem -->
+            <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-1">
+              <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 block">Interrogatory:</span>
+              <p class="text-slate-900 font-bold text-sm leading-snug whitespace-pre-wrap" x-text="currentEssay.interrogatory"></p>
+            </div>
+
+            <!-- Toggle Benchmark Solution -->
+            <div class="pt-2 border-t border-slate-100">
+              <button 
+                @click="showBenchmark = !showBenchmark" 
+                class="text-xs font-bold text-slate-600 hover:text-amber-800 flex items-center gap-1.5 transition"
+              >
+                <span x-text="showBenchmark ? '🙈 Hide Benchmark ALAC Solution' : '👁️ Reveal Official Benchmark Solution'"></span>
+              </button>
+
+              <div x-show="showBenchmark" x-transition class="mt-3 p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5 text-xs">
+                <div>
+                  <strong class="text-amber-800 block text-[10px] uppercase font-bold">Answer / Issue:</strong>
+                  <p class="text-slate-800" x-text="currentEssay.suggested_answer?.issue"></p>
+                </div>
+                <div>
+                  <strong class="text-amber-800 block text-[10px] uppercase font-bold">Legal Basis (Rule):</strong>
+                  <p class="text-slate-800 font-serif" x-text="currentEssay.suggested_answer?.rule"></p>
+                </div>
+                <div>
+                  <strong class="text-amber-800 block text-[10px] uppercase font-bold">Application (Analysis):</strong>
+                  <p class="text-slate-800 font-serif" x-text="currentEssay.suggested_answer?.analysis"></p>
+                </div>
+                <div>
+                  <strong class="text-emerald-800 block text-[10px] uppercase font-bold">Conclusion:</strong>
+                  <p class="text-slate-900 font-bold" x-text="currentEssay.suggested_answer?.conclusion"></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Typing Box & In-App AI Grader (6 Cols) -->
+        <div class="lg:col-span-6 space-y-4">
+          <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-xs flex flex-col">
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                <span>📝</span> Candidate Exam Workspace
+              </h4>
+              <div class="text-xs font-mono text-slate-500">
+                Words: <span class="text-slate-900 font-bold" x-text="wordCount"></span>
+              </div>
+            </div>
+
+            <!-- Plain Distraction-free Textarea -->
+            <textarea 
+              x-model="userAnswer" 
+              @input="saveAnswer()" 
+              placeholder="Type your answer here under strict Bar exam conditions applying ALAC (Answer, Legal Basis, Application, Conclusion)..." 
+              class="w-full min-h-[320px] bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-2xl p-4 text-slate-900 font-mono text-sm leading-relaxed outline-none transition resize-y"
+            ></textarea>
+
+            <!-- Action Controls: Grade Answer & Copy Prompt -->
+            <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+              <button 
+                @click="gradeWithAI()" 
+                :disabled="isEvaluating"
+                class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold text-xs shadow-md transition flex items-center gap-2"
+              >
+                <span x-show="!isEvaluating">✨ Grade Answer with AI</span>
+                <span x-show="isEvaluating" class="flex items-center gap-1.5">
+                  <span class="inline-block w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
+                  <span>Evaluating under Bar Rubric...</span>
+                </span>
+              </button>
+
+              <button 
+                @click="copyEvaluationPrompt()" 
+                class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-semibold text-xs transition flex items-center gap-1.5"
+              >
+                <span>📋</span> Copy Evaluation Prompt
+              </button>
+            </div>
+          </div>
+
+          <!-- Live AI Evaluation Scorecard -->
+          <div 
+            x-show="evaluationResult" 
+            x-transition 
+            class="bg-white border border-amber-300 rounded-3xl p-6 shadow-md space-y-4"
+          >
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">🎯</span>
+                <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Supreme Court Evaluation Scorecard</h4>
+              </div>
+              <span 
+                :class="evaluationResult?.score >= 75 ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'" 
+                class="text-xs font-extrabold px-3 py-1 rounded-full border font-mono"
+                x-text="`Score: ${evaluationResult?.score || 0}% (${evaluationResult?.score >= 75 ? 'PASSING' : 'CONDITIONAL'})`"
+              ></span>
+            </div>
+
+            <!-- Component Score Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                <div class="text-slate-500 text-[10px] uppercase font-bold">Issue / Direct Ans</div>
+                <div class="text-slate-900 font-mono font-bold text-sm mt-0.5" x-text="`${evaluationResult?.breakdown?.issue_or_answer || 0} / 10`"></div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                <div class="text-slate-500 text-[10px] uppercase font-bold">Legal Basis (Rule)</div>
+                <div class="text-slate-900 font-mono font-bold text-sm mt-0.5" x-text="`${evaluationResult?.breakdown?.legal_basis || 0} / 30`"></div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                <div class="text-slate-500 text-[10px] uppercase font-bold">Application (Analysis)</div>
+                <div class="text-slate-900 font-mono font-bold text-sm mt-0.5" x-text="`${evaluationResult?.breakdown?.application || 0} / 50`"></div>
+              </div>
+              <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+                <div class="text-slate-500 text-[10px] uppercase font-bold">Conclusion</div>
+                <div class="text-slate-900 font-mono font-bold text-sm mt-0.5" x-text="`${evaluationResult?.breakdown?.conclusion || 0} / 10`"></div>
+              </div>
+            </div>
+
+            <!-- Detailed Feedback Breakdown -->
+            <div class="space-y-2.5 text-xs text-slate-700">
+              <div class="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200">
+                <strong class="text-emerald-900 block mb-0.5 font-bold">✅ Strengths:</strong>
+                <p x-text="evaluationResult?.strengths"></p>
+              </div>
+
+              <div class="p-3 rounded-2xl bg-rose-50/70 border border-rose-200">
+                <strong class="text-rose-900 block mb-0.5 font-bold">⚠️ Critical Deficiencies / Missed Requisites:</strong>
+                <p x-text="evaluationResult?.deficiencies"></p>
+              </div>
+
+              <div class="p-3 rounded-2xl bg-amber-50/70 border border-amber-200">
+                <strong class="text-amber-900 block mb-0.5 font-bold">💡 Prescribed Model Polish:</strong>
+                <p x-text="evaluationResult?.prescribed_polish"></p>
+              </div>
+
+              <div x-show="evaluationResult?.deep_dive_concept" class="p-3 rounded-2xl bg-indigo-50/70 border border-indigo-200">
+                <strong class="text-indigo-900 block mb-0.5 font-bold">🧠 Deep-Dive Doctrinal Analysis:</strong>
+                <p x-text="evaluationResult?.deep_dive_concept"></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Previous Attempt History -->
+          <div x-show="recentAttempts.length > 0" class="bg-white border border-slate-200 rounded-3xl p-4 text-xs space-y-2 shadow-xs">
+            <h5 class="font-bold text-slate-700 flex items-center justify-between">
+              <span>📜 Previous In-App Attempts (Saved in SQLite)</span>
+              <span class="text-[10px] text-slate-400 font-mono" x-text="`${recentAttempts.length} attempt(s)`"></span>
+            </h5>
+            <div class="space-y-1.5 max-h-32 overflow-y-auto">
+              <template x-for="att in recentAttempts" :key="att.id">
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[11px]">
+                  <span class="text-slate-500 font-mono" x-text="new Date(att.attempted_at).toLocaleString()"></span>
+                  <span 
+                    :class="att.ai_score >= 75 ? 'text-emerald-700 font-bold' : 'text-rose-700 font-bold'" 
+                    class="font-mono" 
+                    x-text="`Score: ${att.ai_score}%`"
+                  ></span>
+                </div>
+              </template>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 3. RECALL MCQ VIEW (Strict Candidate Answering Workspace) -->
+    <div x-show="currentTab === 'mcq'" class="space-y-6">
+      
+      <!-- MCQ Bar -->
+      <div class="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+        <div>
+          <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <span>⚡</span> Quick Recall Drills
+          </h2>
+          <p class="text-xs text-slate-500">Test core definitions, exceptions, and requisites</p>
+        </div>
+
+        <div class="flex items-center space-x-3">
+          <select 
+            x-model="mcqSelectedDomain" 
+            @change="filterMcqs()" 
+            class="bg-slate-50 text-slate-900 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 focus:border-amber-500 outline-none cursor-pointer"
+          >
+            <option value="all">All Subjects (Randomized)</option>
+            <template x-for="d in (domains.length ? domains : window.BAR_DATA)" :key="d.domain">
+              <option :value="d.domain" x-text="d.domain"></option>
+            </template>
+          </select>
+
+          <div class="text-xs font-mono font-bold px-3 py-2 rounded-xl bg-amber-50 text-amber-900 border border-amber-200" x-text="`Score: ${mcqScore} / ${Object.keys(mcqAnswers).length}`"></div>
+        </div>
+      </div>
+
+      <!-- MCQ Card -->
+      <div class="max-w-3xl mx-auto bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+        <div class="flex items-center justify-between text-xs">
+          <span class="text-amber-800 font-bold" x-text="`${currentMcq.domainName} > ${currentMcq.topic}`"></span>
+          <span class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 border border-slate-200" x-text="`Question ${currentMcqIdx + 1} of ${mcqList.length}`"></span>
+        </div>
+
+        <h3 class="text-base sm:text-lg font-bold text-slate-900 leading-snug" x-text="currentMcq.question"></h3>
+
+        <!-- Options Container -->
+        <div class="space-y-3">
+          <template x-for="opt in currentMcq.options" :key="opt">
+            <button 
+              @click="selectMcq(opt.trim().charAt(0))"
+              :disabled="!!mcqAnswers[currentMcq.id]"
+              :class="{
+                'bg-emerald-50 border-emerald-400 text-emerald-900 font-semibold': mcqAnswers[currentMcq.id] && opt.trim().charAt(0) === currentMcq.correct_answer,
+                'bg-rose-50 border-rose-400 text-rose-900 font-semibold': mcqAnswers[currentMcq.id] && mcqAnswers[currentMcq.id].selected === opt.trim().charAt(0) && !mcqAnswers[currentMcq.id].isCorrect,
+                'bg-slate-50 border-slate-200 text-slate-800 hover:border-amber-400 hover:bg-amber-50/50': !mcqAnswers[currentMcq.id]
+              }"
+              class="w-full text-left p-4 rounded-2xl border text-sm font-medium transition duration-150 flex items-start gap-3 disabled:cursor-default"
+            >
+              <span class="font-bold text-amber-600" x-text="opt.trim().charAt(0)"></span>
+              <span x-text="opt.substring(2).trim()"></span>
+            </button>
+          </template>
+        </div>
+
+        <!-- Explanation Panel -->
+        <div x-show="mcqAnswers[currentMcq.id]" class="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-1 text-xs">
+          <div class="font-bold text-amber-900 flex items-center gap-1.5">
+            <span>💡</span> Doctrinal Explanation:
+          </div>
+          <p class="text-slate-800 leading-relaxed" x-text="currentMcq.explanation"></p>
+        </div>
+
+        <!-- Navigation Footer -->
+        <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+          <button 
+            @click="prevMcq()" 
+            :disabled="currentMcqIdx === 0"
+            class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 text-xs font-semibold transition"
+          >← Previous</button>
+
+          <button 
+            @click="nextMcq()" 
+            :disabled="currentMcqIdx >= mcqList.length - 1"
+            class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition shadow-xs"
+          >Next Question →</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 4. RESOURCES STUDIO (Unified Ingestion Lab, Reviewers & AI Question Reformation Hub) -->
+    <div x-show="currentTab === 'studio'" class="space-y-6">
+      
+      <!-- Studio Header & Sub-Tab Navigation -->
+      <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+        
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2.5">
+              <span class="text-2xl">📚</span>
+              <h2 class="text-lg font-bold text-slate-900">Resources Studio & AI Knowledge Hub</h2>
+            </div>
+            <p class="text-xs text-slate-500">Manage 1,951 reviewer pages, run autonomous agents, and reform/refine questions</p>
+          </div>
+
+          <!-- Studio Sub-Navigation Tabs -->
+          <div class="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100 border border-slate-200 text-xs">
+            <button 
+              @click="resourcesTab = 'progress'"
+              :class="resourcesTab === 'progress' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+              class="px-3.5 py-1.5 rounded-xl transition"
+            >
+              📊 Reviewer Coverage
+            </button>
+            <button 
+              @click="resourcesTab = 'reformation'"
+              :class="resourcesTab === 'reformation' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+              class="px-3.5 py-1.5 rounded-xl transition"
+            >
+              ✨ AI Question Reformation
+            </button>
+            <button 
+              @click="resourcesTab = 'inspector'"
+              :class="resourcesTab === 'inspector' ? 'bg-white text-slate-900 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900'"
+              class="px-3.5 py-1.5 rounded-xl transition"
+            >
+              🔍 Raw Markdown Inspector
+            </button>
+          </div>
+        </div>
+
+        <!-- SUB-TAB 1: REVIEWER COVERAGE & INGESTION -->
+        <div x-show="resourcesTab === 'progress'" class="space-y-6">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">6 Official Blue Phoenix Reviewers</h3>
+            <button 
+              @click="runBatchAutoIngest(3)" 
+              :disabled="isBatchIngesting"
+              class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-bold text-xs shadow-sm transition flex items-center gap-2"
+            >
+              <span x-show="!isBatchIngesting">🚀 Auto-Scout & Ingest Next Batch (3 Topics)</span>
+              <span x-show="isBatchIngesting" class="flex items-center gap-1.5">
+                <span class="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                <span>Scouting & Generating...</span>
+              </span>
+            </button>
+          </div>
+
+          <!-- Extraction Progress Overview Bars -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <template x-for="b in extractionData.books" :key="b.id">
+              <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-bold text-slate-900 truncate max-w-[70%]" x-text="b.domain"></span>
+                  <span class="text-amber-800 font-mono font-semibold" x-text="`${b.total_pages} Pages`"></span>
+                </div>
+                <div class="flex items-center justify-between text-[11px] text-slate-500">
+                  <span x-text="`${b.total_sections} Syllabus Sections`"></span>
+                  <span class="font-bold text-emerald-700" x-text="`${b.extracted_sections} Extracted (${b.percentage}%)`"></span>
+                </div>
+                <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                  <div 
+                    class="h-full bg-gradient-to-r from-amber-500 to-emerald-500 rounded-full transition-all duration-500" 
+                    :style="`width: ${Math.max(6, b.percentage)}%`"
+                  ></div>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Live Agent Activity Terminal / Logs -->
+          <div x-show="batchLogs.length > 0" class="bg-slate-900 text-white rounded-2xl p-4 text-xs font-mono space-y-1 max-h-36 overflow-y-auto">
+            <div class="text-emerald-400 font-bold mb-1 flex items-center gap-1.5">
+              <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span>Agent Pipeline Live Feed:</span>
+            </div>
+            <template x-for="(log, idx) in batchLogs" :key="idx">
+              <div class="text-slate-300 text-[11px]" x-text="log"></div>
+            </template>
+          </div>
+        </div>
+
+        <!-- SUB-TAB 2: AI QUESTION REFORMATION WORKBENCH -->
+        <div x-show="resourcesTab === 'reformation'" class="space-y-5">
+          
+          <!-- Top Description & Search Controls -->
+          <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <div>
+              <h3 class="font-bold text-slate-900 text-sm flex items-center gap-2">
+                <span>✨</span> Question Bank Management & Interactive AI Reformation
+              </h3>
+              <p class="text-xs text-slate-500">Select any question on the left to edit, update with modern 2024–2026 jurisprudence, or expand MCQs on the right</p>
+            </div>
+
+            <!-- Filter Controls -->
+            <div class="flex items-center gap-2">
+              <input 
+                type="text" 
+                x-model="reformationSearch" 
+                placeholder="Search topics / doctrines..." 
+                class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none w-44 sm:w-56"
+              />
+
+              <select 
+                x-model="reformationDomain"
+                class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none"
+              >
+                <option value="all">All Domains</option>
+                <template x-for="d in domains" :key="d.domain">
+                  <option :value="d.domain" x-text="d.domain"></option>
+                </template>
+              </select>
+
+              <select 
+                x-model="reformationType"
+                class="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs text-slate-800 outline-none"
+              >
+                <option value="all">All Types</option>
+                <option value="essay">Essays</option>
+                <option value="mcq">MCQs</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Two-Column Reformation Workbench -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- Left Column: Question Browser (5 Cols) -->
+            <div class="lg:col-span-5 space-y-2.5 max-h-[580px] overflow-y-auto pr-1">
+              <template x-for="q in allQuestions.filter(item => 
+                (reformationDomain === 'all' || item.domain === reformationDomain) && 
+                (reformationType === 'all' || item.type === reformationType) &&
+                (!reformationSearch || item.topic.toLowerCase().includes(reformationSearch.toLowerCase()) || (item.question || item.fact_pattern || '').toLowerCase().includes(reformationSearch.toLowerCase()))
+              )" :key="q.id">
+                <div 
+                  @click="openRefineModalForQuestion(q)"
+                  :class="activeRefineQuestion?.id === q.id ? 'border-amber-500 bg-amber-50/40 ring-2 ring-amber-500/20' : 'border-slate-200 bg-white hover:border-slate-300'"
+                  class="p-3.5 rounded-2xl border transition shadow-xs cursor-pointer space-y-1.5"
+                >
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                      <span 
+                        :class="q.type === 'essay' ? 'bg-indigo-50 text-indigo-800 border-indigo-200' : 'bg-amber-50 text-amber-800 border-amber-200'"
+                        class="px-2 py-0.5 rounded-md text-[9px] font-bold font-mono uppercase border"
+                        x-text="q.type"
+                      ></span>
+                      <span class="text-xs font-bold text-slate-900 truncate max-w-[170px]" x-text="q.topic"></span>
+                    </div>
+                    <span class="text-[10px] text-slate-400 font-mono" x-text="q.domain"></span>
+                  </div>
+
+                  <p class="text-[11px] text-slate-600 line-clamp-2" x-text="q.type === 'essay' ? q.fact_pattern : q.question"></p>
+                </div>
+              </template>
+            </div>
+
+            <!-- Right Column: Interactive Prompt & Reformation Canvas (7 Cols) -->
+            <div class="lg:col-span-7 bg-slate-50 border border-slate-200 rounded-3xl p-5 sm:p-6 space-y-4">
+              
+              <template x-if="!activeRefineQuestion">
+                <div class="flex flex-col items-center justify-center min-h-[360px] text-center p-6 space-y-3">
+                  <div class="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-2xl shadow-xs">
+                    👈
+                  </div>
+                  <h4 class="font-bold text-slate-800 text-sm">Select a Question to Reform</h4>
+                  <p class="text-xs text-slate-500 max-w-sm">Click on any Essay or MCQ question from the list on the left to open the in-place prompt bar, inject modern jurisprudence, or expand choices.</p>
+                </div>
+              </template>
+
+              <template x-if="activeRefineQuestion">
+                <div class="space-y-4">
+                  <!-- Selected Question Header -->
+                  <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                    <div class="flex items-center gap-2">
+                      <span 
+                        :class="activeRefineQuestion.type === 'essay' ? 'bg-indigo-100 text-indigo-900' : 'bg-amber-100 text-amber-900'"
+                        class="px-2.5 py-0.5 rounded-full text-[10px] font-bold font-mono uppercase"
+                        x-text="activeRefineQuestion.type"
+                      ></span>
+                      <h4 class="text-xs font-bold text-slate-900" x-text="activeRefineQuestion.topic"></h4>
+                    </div>
+                    <span class="text-[11px] text-slate-500 font-mono" x-text="activeRefineQuestion.domain"></span>
+                  </div>
+
+                  <!-- Active Question Preview -->
+                  <div class="p-3.5 rounded-2xl bg-white border border-slate-200 text-xs space-y-1.5">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 block">Current Text:</span>
+                    <p class="text-slate-800 leading-relaxed font-serif" x-text="activeRefineQuestion.type === 'essay' ? activeRefineQuestion.fact_pattern : activeRefineQuestion.question"></p>
+                    <div x-show="activeRefineQuestion.interrogatory" class="text-slate-900 font-semibold pt-1 border-t border-slate-100" x-text="`Interrogatory: ${activeRefineQuestion.interrogatory}`"></div>
+                  </div>
+
+                  <!-- Component Target Selector (for Essays) -->
+                  <template x-if="activeRefineQuestion.type === 'essay'">
+                    <div>
+                      <label class="block text-[11px] font-bold text-slate-700 uppercase mb-1">Target Component to Modify</label>
+                      <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-xs">
+                        <button 
+                          @click="refineTargetField = 'all'" 
+                          :class="refineTargetField === 'all' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-white border-slate-200 text-slate-600'"
+                          class="p-1.5 rounded-xl border text-center transition text-[11px]"
+                        >All Components</button>
+                        <button 
+                          @click="refineTargetField = 'fact_pattern'" 
+                          :class="refineTargetField === 'fact_pattern' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-white border-slate-200 text-slate-600'"
+                          class="p-1.5 rounded-xl border text-center transition text-[11px]"
+                        >Fact Pattern Only</button>
+                        <button 
+                          @click="refineTargetField = 'interrogatory'" 
+                          :class="refineTargetField === 'interrogatory' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-white border-slate-200 text-slate-600'"
+                          class="p-1.5 rounded-xl border text-center transition text-[11px]"
+                        >Interrogatory Only</button>
+                        <button 
+                          @click="refineTargetField = 'suggested_answer'" 
+                          :class="refineTargetField === 'suggested_answer' ? 'bg-amber-100 border-amber-400 text-amber-900 font-bold' : 'bg-white border-slate-200 text-slate-600'"
+                          class="p-1.5 rounded-xl border text-center transition text-[11px]"
+                        >Answer / ALAC Only</button>
+                      </div>
+                    </div>
+                  </template>
+
+                  <!-- Direct Prompt Input Box -->
+                  <div class="space-y-1.5">
+                    <div class="flex items-center justify-between">
+                      <label class="text-xs font-bold text-slate-800">Natural Language Reformation Prompt</label>
+                      <span class="text-[10px] text-slate-400 font-mono">OpenCode Go / AI SDK</span>
+                    </div>
+
+                    <!-- Quick Preset Chips -->
+                    <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-[10px]">
+                      <span class="text-slate-400 font-semibold">Presets:</span>
+                      <button @click="refineInstruction = 'Update jurisprudence to reflect 2024 Supreme Court En Banc doctrines'" class="px-2.5 py-1 rounded-full bg-white hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition">+ 2024 Jurisprudence</button>
+                      <button @click="refineInstruction = 'Add a third-party cross-claim and procedural timeline twist'" class="px-2.5 py-1 rounded-full bg-white hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition">+ Timeline Twist</button>
+                      <button @click="refineInstruction = 'Format suggested answer strictly into categorical ALAC with statutory articles'" class="px-2.5 py-1 rounded-full bg-white hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition">+ Strict ALAC</button>
+                      <button @click="refineInstruction = 'Expand MCQ with 4 plausible distractors testing subtle exceptions'" class="px-2.5 py-1 rounded-full bg-white hover:bg-amber-100 hover:text-amber-900 border border-slate-200 text-slate-700 transition">+ Tricky Distractors</button>
+                    </div>
+
+                    <textarea 
+                      x-model="refineInstruction" 
+                      placeholder="Type your reformation instruction here (e.g. 'Update fact pattern with a 2024 jurisprudence scenario and test sub-question (b) on damages')..."
+                      class="w-full h-24 bg-white border border-slate-200 focus:border-amber-500 rounded-2xl p-3 text-slate-900 outline-none resize-none leading-relaxed text-xs transition"
+                    ></textarea>
+                  </div>
+
+                  <!-- Synthesize Action Button -->
+                  <div class="flex items-center justify-between">
+                    <button 
+                      @click="executeRefineQuestion()" 
+                      :disabled="isRefining || !refineInstruction.trim()"
+                      class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-40 text-slate-950 font-bold text-xs shadow-md transition flex items-center gap-2"
+                    >
+                      <span x-show="!isRefining">⚡ Synthesize Refinement with AI SDK</span>
+                      <span x-show="isRefining" class="flex items-center gap-1.5">
+                        <span class="inline-block w-3.5 h-3.5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin"></span>
+                        <span>Synthesizing...</span>
+                      </span>
+                    </button>
+
+                    <button 
+                      @click="openRefineModalForQuestion(activeRefineQuestion)"
+                      class="text-xs text-indigo-700 hover:text-indigo-900 font-semibold flex items-center gap-1"
+                    >
+                      <span>🔍</span> Open Full Modal Diff View
+                    </button>
+                  </div>
+
+                  <!-- Inline Split Diff Preview & Commit -->
+                  <div x-show="refinePreviewData" x-transition class="p-4 rounded-2xl bg-white border border-amber-300 shadow-sm space-y-3">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                      <span class="text-xs font-bold text-amber-800 uppercase flex items-center gap-1.5">
+                        <span>📋</span> Synthesized Output (Ready to Commit)
+                      </span>
+                      <button 
+                        @click="applyRefinedQuestion()" 
+                        class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5"
+                      >
+                        <span>💾</span> Apply & Save to SQLite
+                      </button>
+                    </div>
+
+                    <div class="text-xs space-y-2">
+                      <p class="text-slate-800 font-serif leading-relaxed" x-text="refinePreviewData?.refined?.fact_pattern || refinePreviewData?.refined?.question"></p>
+                      <div x-show="refinePreviewData?.refined?.interrogatory" class="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-slate-900 font-semibold" x-text="refinePreviewData?.refined?.interrogatory"></div>
+                      <div x-show="refinePreviewData?.refined?.explanation" class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700" x-text="refinePreviewData?.refined?.explanation"></div>
+                    </div>
+                  </div>
+
+                </div>
+              </template>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- SUB-TAB 3: RAW MARKDOWN INSPECTOR -->
+        <div x-show="resourcesTab === 'inspector'" class="space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Select Syllabus Section to Inspect</label>
+              <select 
+                x-model="studioSectionId" 
+                @change="loadSectionSourceText()" 
+                class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 rounded-xl p-3 text-xs text-slate-900 outline-none font-mono cursor-pointer"
+              >
+                <option value="">-- Choose from 1,046 Syllabus Sections --</option>
+                <template x-for="s in extractionData.sections" :key="s.id">
+                  <option :value="s.id" x-text="`[${s.is_extracted ? '✓ Extracted' : '○ Pending'}] ${s.domain} • Page ${s.page_number} — ${s.topic_title}`"></option>
+                </template>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Authoring System Directive</label>
+              <textarea 
+                x-model="customStrategyPrompt" 
+                placeholder="Customize system prompt for this extraction..." 
+                class="w-full h-16 bg-slate-50 border border-slate-200 focus:border-amber-500 rounded-xl p-2.5 text-xs text-slate-900 outline-none resize-none font-mono"
+              ></textarea>
+            </div>
+          </div>
+
+          <!-- Raw Excerpt Text Container -->
+          <div x-show="studioSourceText" class="space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-700 uppercase">Original Reviewer Excerpt (1,951 Pages)</span>
+              <span class="text-amber-800 font-mono font-bold" x-text="`Page ${selectedSectionObj?.page_number || ''}`"></span>
+            </div>
+            <pre class="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs font-mono text-slate-800 max-h-56 overflow-y-auto whitespace-pre-wrap leading-relaxed" x-text="studioSourceText"></pre>
+
+            <button 
+              @click="generateSectionModalities()" 
+              :disabled="isGeneratingSection || !studioSectionId"
+              class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold text-xs shadow-sm transition flex items-center gap-2"
+            >
+              <span x-show="!isGeneratingSection">⚡ Generate Question Modalities</span>
+              <span x-show="isGeneratingSection">Generating...</span>
+            </button>
+          </div>
+
+          <!-- Generated Preview & Commit -->
+          <div x-show="generatedOutput" x-transition class="mt-4 pt-4 border-t border-slate-100 space-y-4">
+            <div class="flex items-center justify-between">
+              <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Preview Generated Modalities</h4>
+              <button 
+                @click="commitGeneratedQuestions()" 
+                class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5"
+              >
+                <span>💾</span> Commit to Question Bank & SQLite DB
+              </button>
+            </div>
+
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 text-xs">
+              <div class="font-bold text-amber-800" x-text="`[ESSAY] ${generatedOutput?.essay?.topic}`"></div>
+              <p class="text-slate-800 font-serif leading-relaxed" x-text="generatedOutput?.essay?.fact_pattern"></p>
+              <div class="font-semibold text-slate-900 p-3 rounded-xl bg-white border border-slate-200" x-text="generatedOutput?.essay?.interrogatory"></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Floating RAG Bar Counsel Chatbot (BeautifulUI Chat Panel Primitive) -->
+  <div class="fixed bottom-6 right-6 z-40 flex flex-col items-end">
+    
+    <!-- Chat Drawer Window -->
+    <div 
+      x-show="showChatbot" 
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0 translate-y-4 scale-95"
+      x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+      x-transition:leave="transition ease-in duration-150"
+      x-transition:leave-start="opacity-100 translate-y-0 scale-100"
+      x-transition:leave-end="opacity-0 translate-y-4 scale-95"
+      class="mb-3 w-96 sm:w-[440px] max-h-[600px] h-[540px] bg-white/95 backdrop-blur-xl border border-slate-200 rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+    >
+      <!-- Chatbot Header -->
+      <div class="p-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center text-sm text-white shadow-xs">
+            ⚖️
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h4 class="text-xs font-bold text-slate-900 tracking-tight">Dean Phoenix</h4>
+              <span class="px-1.5 py-0.2 rounded-full text-[9px] bg-emerald-100 text-emerald-800 font-mono font-bold">RAG Active</span>
+            </div>
+            <p class="text-[10px] text-slate-500">1,951 Reviewer Pages Grounded</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-1.5">
+          <button 
+            @click="clearChat()" 
+            title="Clear conversation" 
+            class="text-[10px] px-2 py-1 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-600 transition"
+          >
+            Clear
+          </button>
+          <button 
+            @click="showChatbot = false" 
+            class="w-6 h-6 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-800 text-xs hover:bg-slate-100 transition"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Prompt Chips (BeautifulUI Prompt Suggestions with Platform Guides) -->
+      <div class="px-3 py-2 bg-slate-50/60 border-b border-slate-200 flex items-center gap-1.5 overflow-x-auto text-[10px] whitespace-nowrap no-scrollbar">
+        <span class="text-slate-400 font-semibold">Guide & Doctrine:</span>
+        <button @click="askSuggestedQuestion('How do I reform or update a Bar question with 2024 jurisprudence on this platform?')" class="px-2.5 py-1 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 font-semibold transition">🎓 How to Reform Questions</button>
+        <button @click="askSuggestedQuestion('How does the AI Essay grader evaluate ALAC answers and assign points?')" class="px-2.5 py-1 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-900 border border-indigo-200 font-semibold transition">🎓 How Grading Works</button>
+        <button @click="askSuggestedQuestion('How do I configure and test my OpenCode Go API Key?')" class="px-2.5 py-1 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-200 font-semibold transition">🎓 Connect OpenCode Go</button>
+        <button @click="askSuggestedQuestion('Explain the Ah Chong doctrine on mistake of fact with requisites')" class="px-2.5 py-1 rounded-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition">Ah Chong Doctrine</button>
+        <button @click="askSuggestedQuestion('What are the requisites of Res Judicata under Remedial Law?')" class="px-2.5 py-1 rounded-full bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition">Res Judicata</button>
+      </div>
+
+      <!-- Message History Container -->
+      <div class="flex-1 p-3.5 overflow-y-auto space-y-3 text-xs leading-relaxed" id="chatContainer">
+        <template x-for="(msg, idx) in chatMessages" :key="idx">
+          <div :class="msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'">
+            <div 
+              :class="msg.role === 'user' 
+                ? 'bg-amber-500 text-slate-950 font-semibold rounded-2xl rounded-tr-none px-3.5 py-2.5 max-w-[85%] shadow-xs' 
+                : 'bg-slate-50 border border-slate-200 text-slate-800 rounded-2xl rounded-tl-none px-3.5 py-2.5 max-w-[90%] shadow-xs'"
+            >
+              <div class="whitespace-pre-wrap" x-text="msg.content"></div>
+
+              <!-- BeautifulUI Grounded Source Citation Chips -->
+              <template x-if="msg.citations && msg.citations.length > 0">
+                <div class="mt-2.5 pt-2.5 border-t border-slate-200 space-y-1.5">
+                  <div class="text-[9px] font-bold text-amber-800 uppercase tracking-wider flex items-center gap-1">
+                    <span>⚡</span> <span>Tool Call: scoutReviewerKnowledgeBase</span>
+                  </div>
+                  <div class="flex flex-wrap gap-1">
+                    <template x-for="cit in msg.citations" :key="cit.book + cit.page">
+                      <span class="px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-700 text-[9px] font-mono hover:border-amber-400 transition cursor-default" x-text="`📖 ${cit.book} (p.${cit.page})`"></span>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+
+        <!-- BeautifulUI Thinking State Indicator -->
+        <div x-show="isChatLoading" class="flex justify-start">
+          <div class="bg-slate-50 border border-slate-200 rounded-2xl rounded-tl-none px-3.5 py-2.5 text-slate-700 text-xs flex items-center gap-2.5 shadow-xs">
+            <span class="inline-block w-3.5 h-3.5 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"></span>
+            <div class="flex flex-col">
+              <span class="font-bold text-slate-900 text-[11px]">Thinking & RAG Searching...</span>
+              <span class="text-[10px] text-slate-500 font-mono">Querying 1,951 Blue Phoenix reviewer pages</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BeautifulUI Glowing Prompt Bar -->
+      <div class="p-3 bg-slate-50 border-t border-slate-200">
+        <form @submit.prevent="sendChatMessage()" class="relative flex items-center">
+          <input 
+            type="text" 
+            x-model="chatInput" 
+            placeholder="Ask anything about the 2026 Bar syllabus..." 
+            class="w-full bg-white border border-slate-200 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 rounded-2xl pl-3.5 pr-20 py-2.5 text-xs text-slate-900 outline-none font-medium placeholder:text-slate-400 transition"
+          />
+          <button 
+            type="submit" 
+            :disabled="isChatLoading || !chatInput.trim()"
+            class="absolute right-1.5 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-30 text-slate-950 font-bold text-[11px] shadow-xs transition flex items-center gap-1"
+          >
+            <span>Send</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Floating Chatbot Launcher Button -->
+    <button 
+      @click="toggleChatbot()" 
+      class="group relative px-4 py-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-xl shadow-amber-500/20 flex items-center gap-2.5 transition-all duration-200 transform hover:scale-105 active:scale-95"
+    >
+      <span class="text-base">⚖️</span>
+      <span class="font-extrabold tracking-tight">Ask Dean Phoenix</span>
+      <span class="flex h-2 w-2 relative">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+      </span>
+    </button>
+  </div>
+
+  <!-- Global Footer -->
+  <footer class="mt-auto border-t border-slate-200 py-4 bg-white text-center text-xs text-slate-500">
+    <p>Bar 2026 Mock Reviewer • Grounded in the 2026 Supreme Court Syllabus & Blue Phoenix Reviewers</p>
+  </footer>
+
+  <!-- Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>

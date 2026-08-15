@@ -1,0 +1,111 @@
+{
+  "domain": "Political and Public International Law",
+  "weight_percentage": 15,
+  "version": "1.0",
+  "items": [
+    {
+      "id": "POL-ESS-001",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Political Law",
+        "Constitutional Law",
+        "Bill of Rights - Warrantless Searches and Seizures"
+      ],
+      "topic": "Warrantless Search of Moving Vehicles vs. Checkpoint Plain View Limitations",
+      "difficulty": "hard",
+      "extracted_rule": {
+        "doctrine": "Under Section 2, Article III of the 1987 Constitution, search and seizure must be carried out through a judicial warrant based on probable cause. In checkpoint searches of moving vehicles, the search is strictly limited to visual inspection (plain view doctrine). An extensive or intrusive search of the trunk or interior compartments requires probable cause based on prior reliable tips corroborated by overt suspicious acts observed by officers at the scene (Saluday v. People, G.R. No. 215305).",
+        "statutory_basis": [
+          "1987 Constitution, Art. III, Sec. 2 & Sec. 3(2)",
+          "Saluday v. People, G.R. No. 215305 (2018)",
+          "People v. Sapla, G.R. No. 244045 (2020)"
+        ],
+        "elements_and_principles": [
+          "Routine checkpoint search is limited to visual search without opening compartments or demanding passenger bag inspections.",
+          "An uncorroborated anonymous phone tip alone does not generate probable cause to justify a warrantless intrusive search of a moving vehicle (People v. Sapla).",
+          "Evidence obtained in violation of Art. III, Sec. 2 is inadmissible for any purpose (Exclusionary Rule / Fruit of the Poisonous Tree)."
+        ]
+      },
+      "fact_pattern": "On November 5, 2024, the Lucena City Police received an anonymous text message from an unidentified informant stating: 'A black Toyota Vios with plate ending in 88 is transporting illegal firearms from Bicol to Manila today.' Acting solely on this text message, police officers established a mobile checkpoint along the Maharlika Highway. An hour later, a black Toyota Vios with plate ending in 88 approached the checkpoint, obeying the signal to stop.\n\nThe driver, Gabriel, rolled down his window and politely complied with all traffic requests. Nothing illegal or suspicious was visible in plain sight inside the vehicle. Nonetheless, the commanding police officer ordered Gabriel to step out of the car, forcibly unlocked the vehicle's rear trunk, pried open a padlocked duffel bag found inside, and discovered two unlicensed submachine guns. Gabriel was arrested and charged with Illegal Possession of Firearms under RA 10591.\n\nDuring trial, Gabriel moved to suppress the seized firearms, contending they were the fruit of an unlawful warrantless search.",
+      "interrogatory": "(a) Was the warrantless search of Gabriel's locked duffel bag inside the trunk constitutionally valid under the 'search of a moving vehicle' doctrine? Explain.\n(b) Can the seized firearms be admitted in evidence against Gabriel? Explain the legal doctrine applicable.",
+      "suggested_answer": {
+        "issue": "(a) Whether an anonymous informant's tip alone constitutes probable cause justifying an extensive warrantless search of a locked trunk and bag in a moving vehicle;\n(b) Whether the confiscated firearms are admissible in evidence under the Exclusionary Rule.",
+        "rule": "(a) Under Section 2, Article III of the 1987 Constitution, warrantless search of a moving vehicle is an established exception, but extensive/intrusive searches require genuine probable cause. Under the landmark Supreme Court ruling in People v. Sapla (G.R. No. 244045, 2020), an unverified, anonymous tip alone does not justify an intrusive warrantless search. At a routine checkpoint, police authority is strictly confined to a visual search unless observable suspicious circumstances generate independent probable cause.\n(b) Under Section 3(2), Article III of the Constitution, any evidence obtained in violation of the right against unreasonable searches and seizures is inadmissible for any purpose in any proceeding (Exclusionary Rule / Fruit of the Poisonous Tree doctrine).",
+        "analysis": "(a) The police had nothing more than an uncorroborated anonymous text message. Gabriel was driving normally, stopped voluntarily, and displayed no suspicious behavior. Nothing illegal was in plain view. Under People v. Sapla, police officers cannot conduct an intrusive search of a locked trunk and bags based solely on an unverified tip. The search exceeded the permissible bounds of a routine checkpoint visual inspection and lacked probable cause.\n(b) Because the search was conducted in direct violation of Gabriel's constitutional rights under Article III, Section 2, the seized firearms are inadmissible under the Exclusionary Rule (Section 3(2), Article III). There is no independent admissible evidence to sustain the prosecution for illegal possession of firearms.",
+        "conclusion": "(a) No, the warrantless search was unconstitutional and invalid because an anonymous tip does not constitute probable cause for an intrusive search.\n(b) No, the firearms cannot be admitted in evidence because they are inadmissible fruits of the poisonous tree under the Exclusionary Rule."
+      }
+    },
+    {
+      "id": "POL-MCQ-001",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Political Law",
+        "Law on Public Officers",
+        "Impeachment under Article XI"
+      ],
+      "topic": "Impeachable Officers and One-Year Bar Rule",
+      "difficulty": "medium",
+      "question": "Under Article XI, Section 3(5) of the 1987 Constitution, no impeachment proceeding shall be initiated against the same official more than once within a period of:",
+      "options": [
+        "A) Six (6) months.",
+        "B) One (1) year.",
+        "C) Two (2) years.",
+        "D) The official's entire term of office."
+      ],
+      "correct_answer": "B",
+      "explanation": "Article XI, Section 3(5) of the 1987 Constitution explicitly provides that 'No impeachment proceeding shall be initiated against the same official more than once within a period of one year.'"
+    },
+    {
+      "id": "POL-ESS-002",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Political Law",
+        "Administrative Law",
+        "Law on Public Officers - Condonation Doctrine Abandonment"
+      ],
+      "topic": "Abandonment of the Condonation Doctrine (Aguinaldo Doctrine) in Carpio-Morales v. CA",
+      "difficulty": "hard",
+      "extracted_rule": {
+        "doctrine": "In Conchita Carpio Morales v. Court of Appeals and Jejomar Erwin S. Binay, Jr. (G.R. Nos. 217126-27, November 10, 2015), the Supreme Court En Banc completely and prospectively abandoned the Condonation Doctrine (Aguinaldo Doctrine). An elective public official can no longer escape administrative liability or prevent the Ombudsman from imposing administrative sanctions (such as dismissal from service and perpetual disqualification) for misconduct committed during a prior term simply by virtue of being re-elected by the electorate.",
+        "statutory_basis": [
+          "1987 Constitution, Art. XI, Sec. 1 (Public Office is a Public Trust)",
+          "Carpio Morales v. Court of Appeals, G.R. Nos. 217126-27 (2015)"
+        ],
+        "elements_and_principles": [
+          "Condonation doctrine held that re-election was an expression of public forgiveness condoning past administrative infractions.",
+          "The Supreme Court declared condonation doctrine constitutionally bereft of legal basis and contrary to public accountability.",
+          "Abandonment is prospective from November 10, 2015.",
+          "Re-election does not extinguish administrative liability or strip Ombudsman of disciplinary authority."
+        ]
+      },
+      "fact_pattern": "Mayor Rolando served as Municipal Mayor of San Gabriel from 2019 to 2022. In January 2022, during his first term, Mayor Rolando awarded a P45,000,000.00 infrastructure contract to a construction firm owned by his first cousin without conducting any competitive public bidding as required by RA 9184.\n\nIn the May 2022 elections, Mayor Rolando was overwhelmingly re-elected by the voters of San Gabriel. In July 2023, during his second term, the Office of the Ombudsman filed an administrative complaint against Mayor Rolando for Grave Misconduct and Conduct Prejudicial to the Best Interest of the Service arising from the anomalous 2022 contract. Mayor Rolando filed a Motion to Dismiss the administrative charges, citing the Aguinaldo Condonation Doctrine and arguing that his landslide re-election in May 2022 wiped out and condoned all administrative liabilities committed during his previous term.",
+      "interrogatory": "(a) Can Mayor Rolando successfully invoke the Condonation Doctrine to obtain the dismissal of his administrative case before the Ombudsman? Explain.\n(b) What was the Supreme Court's core constitutional rationale for abandoning the condonation doctrine in Carpio-Morales v. Court of Appeals?",
+      "suggested_answer": {
+        "issue": "(a) Whether an elective public official can invoke the Condonation Doctrine to bar administrative liability for misconduct committed in a prior term following his re-election in 2022;\n(b) What is the constitutional basis for the abandonment of the Condonation Doctrine.",
+        "rule": "(a) Under the landmark ruling in Conchita Carpio Morales v. Court of Appeals (G.R. Nos. 217126-27, November 10, 2015), the Supreme Court En Banc prospectively abandoned the Condonation Doctrine. Re-election to office no longer condones or extinguishes the administrative liability of an elective local official for misconduct committed during a prior term.\n(b) Under Section 1, Article XI of the 1987 Constitution, 'Public office is a public trust. Public officers and employees must at all times be accountable to the people.' The Supreme Court held that the condonation doctrine is a judicial creation without any statutory or constitutional foundation that directly subverts the principle of public accountability and promotes impunity.",
+        "analysis": "(a) The acts of misconduct occurred in 2022, and the re-election occurred in May 2022—both long after the November 10, 2015 promulgation of Carpio Morales v. CA. Because the abandonment applies to all future acts and re-elections, Mayor Rolando cannot benefit from the condonation doctrine. The Ombudsman retains full jurisdiction to investigate, find him guilty of Grave Misconduct, and impose the penalty of dismissal from service with perpetual disqualification from public office.\n(b) The Supreme Court reasoned that elections are not a judicial forum to adjudicate administrative guilt, and voters cannot condone illegal acts that violate the Constitution and criminal/administrative laws. Condonation creates a culture of impunity by allowing corrupt officials to launder administrative culpability through electoral popularity.",
+        "conclusion": "(a) No, Mayor Rolando cannot invoke the Condonation Doctrine because it was completely abandoned by the Supreme Court in Carpio Morales v. CA.\n(b) The constitutional rationale is grounded on Article XI, Section 1 (Public Office is a Public Trust) and the principle that elections cannot substitute for constitutional accountability."
+      }
+    },
+    {
+      "id": "POL-MCQ-002",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Political Law",
+        "Constitutional Law",
+        "Executive Department - Pardoning Power"
+      ],
+      "topic": "Limitations on Executive Clemency under Article VII, Section 19",
+      "difficulty": "medium",
+      "question": "Under Article VII, Section 19 of the 1987 Constitution, the President may NOT grant pardons or executive clemency in which of the following cases?",
+      "options": [
+        "A) In cases of treason or rebellion.",
+        "B) In cases of impeachment, or for violations of election laws without the favorable recommendation of the COMELEC.",
+        "C) Where the penalty imposed is reclusion perpetua.",
+        "D) When the convict has served less than half of his minimum sentence."
+      ],
+      "correct_answer": "B",
+      "explanation": "Article VII, Section 19 of the Constitution explicitly provides that the President cannot grant clemency in cases of impeachment, and Article IX-C, Section 5 provides that no pardon or clemency for violation of election laws shall be granted without the favorable recommendation of the COMELEC."
+    }
+  ]
+}

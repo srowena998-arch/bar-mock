@@ -1,0 +1,56 @@
+{
+  "title": "Bar 2026 Question Bank Master Registry",
+  "updated_at": "2026-08-15T20:20:00+08:00",
+  "total_essay_items": 20,
+  "total_mcq_items": 19,
+  "domains": [
+    {
+      "domain_name": "Remedial Law, Legal & Judicial Ethics, Practical Exercises",
+      "weight_percentage": 25,
+      "file": "remedial_law.json",
+      "essay_count": 4,
+      "mcq_count": 4,
+      "total_items": 8
+    },
+    {
+      "domain_name": "Civil Law and Land Titles and Deeds",
+      "weight_percentage": 20,
+      "file": "civil_law.json",
+      "essay_count": 3,
+      "mcq_count": 3,
+      "total_items": 6
+    },
+    {
+      "domain_name": "Commercial and Taxation Laws",
+      "weight_percentage": 20,
+      "file": "commercial_tax_law.json",
+      "essay_count": 3,
+      "mcq_count": 2,
+      "total_items": 5
+    },
+    {
+      "domain_name": "Political and Public International Law",
+      "weight_percentage": 15,
+      "file": "political_law.json",
+      "essay_count": 2,
+      "mcq_count": 2,
+      "total_items": 4
+    },
+    {
+      "domain_name": "Criminal Law",
+      "weight_percentage": 10,
+      "file": "criminal_law.json",
+      "essay_count": 6,
+      "mcq_count": 6,
+      "total_items": 12
+    },
+    {
+      "domain_name": "Labor Law and Social Legislation",
+      "weight_percentage": 10,
+      "file": "labor_law.json",
+      "essay_count": 2,
+      "mcq_count": 2,
+      "total_items": 4
+    }
+  ]
+}

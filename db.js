@@ -1,0 +1,94 @@
+// Database initialization and repository using Node 24 native node:sqlite
+const { DatabaseSync } = require('node:sqlite');
+const path = require('node:path');
+const fs = require('node:fs');
+
+const dbPath = path.join(__dirname, 'barmock.db');
+const db = new DatabaseSync(dbPath);
+
+// Enable WAL mode for high concurrency
+db.exec('PRAGMA journal_mode = WAL;');
+
+// Initialize Tables
+db.exec(`
+CREATE TABLE IF NOT EXISTS book_metadata (
+    id TEXT PRIMARY KEY,
+    book_title TEXT NOT NULL,
+    domain TEXT NOT NULL,
+    weight_percentage INTEGER NOT NULL,
+    total_pages INTEGER NOT NULL,
+    total_sections INTEGER NOT NULL,
+    extracted_sections INTEGER DEFAULT 0,
+    status TEXT DEFAULT 'in_progress',
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS syllabus_sections (
+    id TEXT PRIMARY KEY,
+    book_id TEXT NOT NULL,
+    domain TEXT NOT NULL,
+    hierarchy_path TEXT NOT NULL,
+    topic_title TEXT NOT NULL,
+    page_number INTEGER,
+    is_extracted INTEGER DEFAULT 0,
+    essay_count INTEGER DEFAULT 0,
+    mcq_count INTEGER DEFAULT 0,
+    extracted_at DATETIME
+);
+
+CREATE TABLE IF NOT EXISTS questions (
+    id TEXT PRIMARY KEY,
+    domain TEXT NOT NULL,
+    type TEXT NOT NULL, -- 'essay' | 'mcq'
+    topic TEXT NOT NULL,
+    subject_hierarchy TEXT NOT NULL, -- JSON array
+    difficulty TEXT DEFAULT 'hard',
+    fact_pattern TEXT,
+    interrogatory TEXT,
+    suggested_answer TEXT, -- JSON object
+    extracted_rule TEXT, -- JSON object
+    options TEXT, -- JSON array for MCQ
+    correct_answer TEXT,
+    explanation TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS candidate_attempts (
+    id TEXT PRIMARY KEY,
+    question_id TEXT NOT NULL,
+    user_answer TEXT NOT NULL,
+    ai_score INTEGER,
+    ai_feedback TEXT,
+    ai_breakdown TEXT, -- JSON {issue, rule, analysis, conclusion}
+    attempted_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS system_config (
+    key TEXT PRIMARY KEY,
+    value TEXT
+);
+`);
+
+// Set default system configurations if not already set
+const getConfig = (key) => {
+    const row = db.prepare('SELECT value FROM system_config WHERE key = ?').get(key);
+    return row ? row.value : null;
+};
+
+const setConfig = (key, value) => {
+    db.prepare('INSERT INTO system_config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = ?')
+      .run(key, value, value);
+};
+
+if (!getConfig('opencode_base_url')) {
+    setConfig('opencode_base_url', 'https://api.opencode.com/v1');
+}
+if (!getConfig('default_model')) {
+    setConfig('default_model', 'deepseek-chat');
+}
+
+module.exports = {
+    db,
+    getConfig,
+    setConfig
+};

@@ -1,0 +1,215 @@
+{
+  "domain": "Remedial Law, Legal & Judicial Ethics, Practical Exercises",
+  "weight_percentage": 25,
+  "version": "1.0",
+  "items": [
+    {
+      "id": "REM-ESS-001",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Remedial Law",
+        "Jurisdiction",
+        "MTC vs. RTC Jurisdiction under RA 11576"
+      ],
+      "topic": "Jurisdictional Thresholds in Real and Personal Actions under RA 11576",
+      "difficulty": "hard",
+      "extracted_rule": {
+        "doctrine": "Under RA 11576 amending BP 129, first-level courts (MeTC, MTCC, MTC, MCTC) have exclusive original jurisdiction over civil actions involving title to, or possession of, real property, or any interest therein, where the assessed value does not exceed P400,000.00 (outside Metro Manila and within Metro Manila). In all actions where the claim for money or damages is the main cause of action, first-level courts have jurisdiction where the amount of the demand does not exceed P2,000,000.00. Assessed value (not market value or zonal value) dictates jurisdiction in real actions.",
+        "statutory_basis": [
+          "Batas Pambansa Blg. 129, as amended by RA No. 11576",
+          "Rule 2, Sec. 5, Rules of Court"
+        ],
+        "elements_and_principles": [
+          "Jurisdiction over real actions is determined by the assessed value of the real property as alleged in the complaint.",
+          "Failure to allege the assessed value in the complaint renders the complaint dismissible for lack of jurisdiction over the subject matter.",
+          "Under RA 11576, the threshold for real actions in First Level Courts is assessed value not exceeding P400,000.00; above P400,000.00 belongs to RTC.",
+          "For money claims (personal actions), the threshold is claims not exceeding P2,000,000.00 in First Level Courts; exceeding P2,000,000.00 in RTC."
+        ]
+      },
+      "fact_pattern": "On September 14, 2024, Donato filed a Complaint for Accion Reivindicatoria and Damages before the Regional Trial Court (RTC) of Antipolo City against spouses Victor and Victoria. In his verified complaint, Donato alleged that he is the registered owner of a 500-square-meter parcel of land in Antipolo City under TCT No. 12345, with a prevailing fair market value of P3,500,000.00 and a BIR zonal valuation of P4,200,000.00. He alleged that Victor and Victoria unlawfully entered and built a perimeter fence enclosing the property in July 2023. Donato prayed for: (1) recovery of ownership and possession of the property; (2) moral damages of P300,000.00; and (3) attorney's fees of P150,000.00. Notably, the complaint did not state the assessed value of the subject land, though the attached latest tax declaration showed an assessed value of P280,000.00.\n\nVictor and Victoria filed an Answer with Affirmative Defense seeking the immediate dismissal of the complaint on the ground that the RTC lacked subject-matter jurisdiction because the assessed value of the land is below P400,000.00, and because the assessed value was not expressly pleaded in the complaint.",
+      "interrogatory": "(a) Rule on the affirmative defense of lack of jurisdiction over the subject matter. Does the RTC have jurisdiction over the Accion Reivindicatoria? Explain.\n(b) If the action had been an ordinary collection of a promissory note of P1,800,000.00 with a claim for P350,000.00 moral damages and P100,000.00 attorney's fees, which court would have exclusive original jurisdiction under RA 11576? Explain.",
+      "suggested_answer": {
+        "issue": "(a) Whether the RTC has subject-matter jurisdiction over an Accion Reivindicatoria where the assessed value of the land is P280,000.00 and was omitted from the body of the complaint;\n(b) Which court has jurisdiction over an action for collection of a sum of money where the principal claim is P1,800,000.00 plus damages and attorney's fees.",
+        "rule": "(a) Under BP 129, as amended by RA No. 11576, first-level courts (MTC/MeTC) exercise exclusive original jurisdiction in all civil actions involving title to, or possession of, real property where the assessed value of the property does not exceed P400,000.00. Above P400,000.00, jurisdiction belongs to the RTC. In real actions, jurisdiction is determined exclusively by the assessed value, not the market value or zonal valuation. Moreover, the assessed value must be alleged in the complaint or discernible from its attachments.\n(b) Under Section 5 of RA 11576, first-level courts have exclusive original jurisdiction over all civil actions and probate proceedings where the value of the personal property, estate, or amount of the demand does not exceed P2,000,000.00, exclusive of interest, damages of whatever kind, attorney's fees, litigation expenses, and costs.",
+        "analysis": "(a) In the first problem, the action is an accion reivindicatoria (a real action). The determinative factor for jurisdiction is the assessed value of the property. Although Donato alleged market and zonal values exceeding millions, the tax declaration attached to the complaint reveals that the assessed value is only P280,000.00. Under RA 11576, because the assessed value does not exceed P400,000.00, exclusive original jurisdiction belongs to the Municipal Trial Court, not the RTC. The RTC must dismiss the complaint for lack of subject matter jurisdiction.\n(b) In the second problem, the action is purely a personal action for a sum of money. In money claims, jurisdiction is determined solely by the principal demand, excluding damages of whatever kind, interest, and attorney's fees. Because the principal demand of P1,800,000.00 does not exceed the P2,000,000.00 jurisdictional ceiling of first-level courts, exclusive original jurisdiction belongs to the First Level Court (MTC/MeTC).",
+        "conclusion": "(a) The RTC should sustain the affirmative defense and dismiss the complaint for lack of subject-matter jurisdiction, as jurisdiction belongs to the MTC.\n(b) Exclusive original jurisdiction belongs to the Municipal Trial Court (First Level Court), since the principal money claim of P1,800,000.00 does not exceed P2,000,000.00."
+      }
+    },
+    {
+      "id": "REM-MCQ-001",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Remedial Law",
+        "Civil Procedure",
+        "Service of Summons under 2019 Amendments"
+      ],
+      "topic": "Substituted Service of Summons under Rule 14",
+      "difficulty": "medium",
+      "question": "Under Rule 14, Section 6 of the 2019 Proposed Amendments to the Rules of Civil Procedure (A.M. No. 19-10-20-SC), before substituted service of summons may be effected upon an individual defendant, what requirement regarding personal service attempts must be fulfilled?",
+      "options": [
+        "A) The server must make at least three (3) attempts on at least two (2) different dates.",
+        "B) The server must obtain prior leave of court and an order for publication in a newspaper of general circulation.",
+        "C) The server must execute an affidavit of failure within 24 hours of filing the complaint.",
+        "D) The server must first serve the summons upon the defendant's counsel of record."
+      ],
+      "correct_answer": "A",
+      "explanation": "Under Rule 14, Section 6 of the amended Rules of Civil Procedure, substituted service is permitted if, for justifiable causes, the defendant cannot be served personally after at least three (3) attempts on two (2) different dates."
+    },
+    {
+      "id": "REM-ESS-002",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Remedial Law",
+        "Civil Procedure",
+        "Rule 33 - Demurrer to Evidence"
+      ],
+      "topic": "Effects of Grant and Denial of Demurrer to Evidence in Civil vs. Criminal Cases",
+      "difficulty": "hard",
+      "extracted_rule": {
+        "doctrine": "In civil cases (Rule 33), if a demurrer to evidence is denied by the trial court, the defendant retains the right to present evidence. However, if the demurrer is granted by the trial court but reversed on appeal, the defendant completely loses the right to present evidence, and the appellate court decides the case solely on the plaintiff's evidence. In criminal cases (Rule 119, Sec. 23), a demurrer filed with leave of court allows the accused to present evidence if denied; if filed without leave, the accused waives the right to present evidence upon denial.",
+        "statutory_basis": [
+          "Rule 33, Sec. 1, 2019 Rules of Civil Procedure",
+          "Rule 119, Sec. 23, Revised Rules of Criminal Procedure"
+        ],
+        "elements_and_principles": [
+          "Civil Demurrer: Motion to dismiss on ground of insufficiency of plaintiff's evidence after plaintiff rests.",
+          "If civil demurrer is denied $\\rightarrow$ defendant presents evidence.",
+          "If civil demurrer is granted by RTC $\\rightarrow$ plaintiff appeals $\\rightarrow$ if Court of Appeals reverses $\\rightarrow$ judgment is rendered immediately on the basis of plaintiff's evidence; no remand to allow defendant to present evidence.",
+          "Criminal Demurrer with leave: denial allows defense evidence.",
+          "Criminal Demurrer without leave: denial waives presentation of defense evidence."
+        ]
+      },
+      "fact_pattern": "In a civil action for damages arising from breach of contract filed by Alpha Builders Inc. against MegaCorp before the RTC, Alpha Builders presented its documentary and testimonial evidence and rested its case. MegaCorp believed that Alpha Builders failed to establish breach and actual damages by preponderance of evidence. MegaCorp immediately filed a Demurrer to Evidence under Rule 33. The RTC granted the Demurrer and dismissed the complaint.\n\nAlpha Builders appealed the dismissal to the Court of Appeals (CA). The CA found that the RTC erred, holding that Alpha Builders' evidence was sufficient to establish a prima facie case of breach and damages. The CA reversed the RTC's order and remanded the case back to the RTC to allow MegaCorp to present its defense evidence.\n\nAlpha Builders comes to you as counsel, questioning the CA's directive remanding the case for presentation of MegaCorp's evidence.",
+      "interrogatory": "(a) Was the Court of Appeals correct in remanding the civil case to the RTC to allow MegaCorp to present its evidence? Explain fully.\n(b) Contrast the procedural effect in (a) with a scenario where the demurrer to evidence was filed in a criminal case without leave of court and subsequently denied by the trial court.",
+      "suggested_answer": {
+        "issue": "(a) Whether the Court of Appeals correctly remanded the case to allow the defendant to present evidence after reversing the RTC's grant of a civil demurrer to evidence;\n(b) The effect of the denial of a demurrer to evidence filed without leave in a criminal case.",
+        "rule": "(a) Under Rule 33, Section 1 of the Rules of Court, if a demurrer to evidence in a civil case is granted by the trial court but on appeal the order of dismissal is reversed, the movant-defendant loses the right to present evidence, and the appellate court shall render judgment on the merits based solely on the plaintiff's evidence.\n(b) Under Rule 119, Section 23 of the Revised Rules of Criminal Procedure, when a demurrer to evidence is filed in a criminal case without leave of court, the accused completely waives the right to present evidence and submits the case for judgment on the basis of the prosecution's evidence alone.",
+        "analysis": "(a) In the civil action, MegaCorp took the risk of filing a demurrer to evidence. When the RTC sustained the demurrer and dismissed the complaint, Alpha Builders properly appealed. Upon reversing the RTC's order, the CA was legally prohibited from remanding the case to allow MegaCorp to introduce evidence. By the express mandate of Rule 33, MegaCorp forfeited its right to present defense evidence, and the CA should have decided the case on the merits based on Alpha Builders' evidence.\n(b) In a criminal proceeding, filing a demurrer without leave operates as an absolute waiver of the right to present evidence if the demurrer is denied at the trial level. The trial court must immediately decide the accused's guilt or innocence on the prosecution's evidence. In contrast, in civil cases, denial by the trial court preserves the right to present evidence; the forfeiture in civil cases occurs only upon appellate reversal of an initial grant.",
+        "conclusion": "(a) No, the Court of Appeals erred. Under Rule 33, MegaCorp waived its right to present evidence upon appellate reversal, and the CA should have rendered judgment on the merits.\n(b) In a criminal case where a demurrer is filed without leave of court, its denial immediately submits the case for judgment without allowing the defense to present any evidence."
+      }
+    },
+    {
+      "id": "REM-MCQ-002",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Remedial Law",
+        "Evidence",
+        "Rule 130 - 2019 Revised Rules on Evidence"
+      ],
+      "topic": "Original Document Rule (Best Evidence Rule) under 2019 Amendments",
+      "difficulty": "medium",
+      "question": "Under the 2019 Revised Rules on Evidence (A.M. No. 19-08-15-SC), which of the following is considered an 'Original' of a document?",
+      "options": [
+        "A) Any photocopy made in the regular course of business regardless of verification.",
+        "B) A printout or other readable output of electronic data shown to reflect the data accurately.",
+        "C) A handwritten summary drafted by an expert witness during trial.",
+        "D) An oral narration of the document's contents recorded on an audio tape."
+      ],
+      "correct_answer": "B",
+      "explanation": "Under Rule 130, Section 4(b) of the 2019 Revised Rules on Evidence, an 'original' includes any printout or other output readable by sight, shown to reflect the data accurately, if data are stored in a computer or similar device."
+    },
+    {
+      "id": "REM-ESS-003",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Remedial Law",
+        "Legal & Judicial Ethics",
+        "Code of Professional Responsibility and Accountability (CPRA)"
+      ],
+      "topic": "Conflict of Interest, Social Media Conduct, and CPRA Canons",
+      "difficulty": "hard",
+      "extracted_rule": {
+        "doctrine": "Under the Code of Professional Responsibility and Accountability (CPRA, A.M. No. 22-04-05-SC, effective April 11, 2023), Canon II (Propriety) and Canon III (Fidelity) strictly prohibit lawyers from representing conflicting interests without the full written informed consent of all affected clients after full disclosure. Furthermore, under Section 40-44 of Canon II (Responsible Use of Social Media), lawyers are prohibited from posting or sharing false, unverified, or confidential client information, or creating content that undermines public confidence in the administration of justice.",
+        "statutory_basis": [
+          "CPRA, Canon II (Propriety), Secs. 36, 40-44",
+          "CPRA, Canon III (Fidelity), Secs. 13-18 (Conflict of Interest)"
+        ],
+        "elements_and_principles": [
+          "Conflict of interest exists when a lawyer represents opposing parties in the same or substantially related matters, or where the lawyer's duty to one client is materially limited by responsibilities to another client or personal interest.",
+          "Written informed consent of all affected clients is mandatory to waive concurrent conflicts.",
+          "CPRA imposes positive obligations on lawyers regarding social media posts, maintaining decorum, confidentiality, and truthfulness."
+        ]
+      },
+      "fact_pattern": "Atty. Bernardo is retained by Solar Power Corp. to negotiate and draft a long-term supply agreement with BatteryTech Inc. During the negotiations, Atty. Bernardo gained intimate knowledge of Solar Power Corp.'s maximum pricing tolerance, financial liabilities, and proprietary technology benchmarks. Two months after the contract was signed, a dispute arose regarding delivery delays and performance penalties. Solar Power Corp. terminated Atty. Bernardo's services due to a fee disagreement.\n\nOne week later, BatteryTech Inc. retained Atty. Bernardo to represent it in a formal arbitration against Solar Power Corp. arising from the same contract. Atty. Bernardo did not seek nor obtain written consent from Solar Power Corp. To boost his firm's public reputation, Atty. Bernardo posted on his public Facebook and TikTok accounts: 'Just accepted a multi-million arbitration against Solar Power Corp. Watch how we expose their secret financial distress and breach of contract in tribunal!'",
+      "interrogatory": "(a) Did Atty. Bernardo commit an ethical violation by accepting BatteryTech Inc.'s retention in the arbitration? Explain under the CPRA.\n(b) What ethical violations, if any, did Atty. Bernardo commit regarding his social media postings? Explain.",
+      "suggested_answer": {
+        "issue": "(a) Whether Atty. Bernardo violated the conflict of interest rules under Canon III of the CPRA by representing an adverse party in a dispute arising from the exact contract he negotiated for a former client;\n(b) Whether Atty. Bernardo's social media disclosure violated the CPRA's provisions on propriety, confidentiality, and responsible use of social media.",
+        "rule": "(a) Under Canon III (Fidelity), Sections 13 to 18 of the CPRA, a lawyer shall not represent a client whose interests are directly adverse to a former client in the same or substantially related matter, unless the former client gives written informed consent after full disclosure. This prohibition protects the former client's confidential information obtained during the fiduciary relationship.\n(b) Under Canon II (Propriety), Sections 40 to 44 of the CPRA on the Responsible Use of Social Media, lawyers must maintain professional decorum online and are strictly prohibited from revealing confidential information, making sensationalized posts about pending matters, or sharing statements that violate client trust and demean the legal profession.",
+        "analysis": "(a) Atty. Bernardo previously represented Solar Power Corp. in negotiating the very contract now subject to arbitration. He acquired confidential financial thresholds and proprietary details. Representing BatteryTech Inc. in the subsequent arbitration involves the exact same subject matter where BatteryTech's interests are directly adverse to Solar Power Corp. In the absence of written informed consent from Solar Power Corp., Atty. Bernardo is guilty of gross violation of the rule against conflict of interest.\n(b) Atty. Bernardo's public social media post on Facebook and TikTok disclosed confidential information ('secret financial distress') obtained during his representation of Solar Power Corp. Moreover, boasting about a pending contentious dispute in a sensational manner demeans the dignity of the legal profession and violates the specific CPRA guidelines on social media conduct.",
+        "conclusion": "(a) Yes, Atty. Bernardo violated Canon III of the CPRA on Conflict of Interest by representing BatteryTech Inc. in a substantially related matter against his former client without written informed consent.\n(b) Atty. Bernardo violated Canon II (Sections 40-44) of the CPRA on Responsible Use of Social Media and client confidentiality by publicly disclosing his former client's financial status and posting boastful, sensationalized remarks regarding a pending arbitration."
+      }
+    },
+    {
+      "id": "REM-MCQ-003",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Remedial Law",
+        "Criminal Procedure",
+        "Rule 117 - Double Jeopardy"
+      ],
+      "topic": "Requisites of Double Jeopardy",
+      "difficulty": "medium",
+      "question": "Which of the following is NOT an indispensable requisite for the valid invocation of the defense of Double Jeopardy under Rule 117, Section 7 of the Revised Rules of Criminal Procedure?",
+      "options": [
+        "A) A valid complaint or information sufficient in form and substance to sustain a conviction.",
+        "B) A court of competent jurisdiction.",
+        "C) The accused was arraigned and entered a valid plea.",
+        "D) The case was dismissed upon the express motion and insistence of the accused without violation of his right to speedy trial."
+      ],
+      "correct_answer": "D",
+      "explanation": "If a criminal case is dismissed upon the express motion and insistence of the accused, double jeopardy does not attach as a general rule because the dismissal is with the accused's consent, unless the dismissal is based on demurrer to evidence (acquittal) or violation of the right to speedy trial."
+    },
+    {
+      "id": "REM-ESS-004",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Remedial Law",
+        "Criminal Procedure",
+        "Rule 113 - Warrantless Arrests"
+      ],
+      "topic": "Warrantless Arrest under Rule 113, Sec. 5(b) - 'Hot Pursuit' Exception",
+      "difficulty": "hard",
+      "extracted_rule": {
+        "doctrine": "Under Rule 113, Section 5(b) of the Revised Rules of Criminal Procedure, a warrantless arrest under the 'hot pursuit' exception requires that: (1) an offense has just been committed; and (2) the arresting officer has probable cause to believe based on personal knowledge of facts or circumstances that the person to be arrested has committed it. 'Personal knowledge' does not require personal eyewitness observation of the crime itself, but must be based on actual facts immediately observed or gathered during an unbroken, continuous investigation right after the crime (Pestilos v. Generoso, G.R. No. 182601).",
+        "statutory_basis": [
+          "Rule 113, Sec. 5(b), Revised Rules of Criminal Procedure",
+          "Pestilos v. Generoso, G.R. No. 182601 (2014)"
+        ],
+        "elements_and_principles": [
+          "Offense has just been committed (immediacy).",
+          "Personal knowledge of facts/circumstances by the arresting officer.",
+          "Continuous and uninterrupted pursuit from crime scene to arrest point.",
+          "Inadmissibility of evidence seized incidental to an unlawful warrantless arrest."
+        ]
+      },
+      "fact_pattern": "At 11:30 PM on October 12, 2024, a robbery with homicide occurred inside a convenience store in Pasig City. The store cashier was fatally shot, and P50,000 cash was taken. Police operatives arrived at the scene 15 minutes later. Reviewing the store's high-definition CCTV, the officers observed the perpetrator's distinct facial tattoo, physical build, and the unique license plate of the getaway motorcycle (Plate No. 123-XYZ). The officers immediately broadcast the motorcycle description and tracked its registration to a nearby barangay.\n\nAt 2:30 AM (three hours after the crime), while conducting continuous continuous pursuit, the officers spotted the exact motorcycle parked outside a boarding house two kilometers away. Peering through the open gate, the officers saw a man whose face, tattoo, and clothing matched the CCTV footage, counting a bundle of cash. The officers immediately entered and arrested the suspect, Joaquin, seizing the unlicensed gun on the table.\n\nJoaquin's counsel moved to quash the information and suppress the seized gun, arguing that the warrantless arrest was illegal because three hours had elapsed, the officers were not present when the crime occurred, and thus had no personal knowledge under Rule 113, Sec. 5(b).",
+      "interrogatory": "(a) Was the warrantless arrest of Joaquin lawful under Rule 113, Section 5(b) of the Revised Rules of Criminal Procedure? Explain.\n(b) Is the seized unlicensed firearm admissible in evidence against Joaquin? Explain.",
+      "suggested_answer": {
+        "issue": "(a) Whether a warrantless arrest executed three hours after a robbery-homicide based on CCTV identification and uninterrupted police pursuit satisfies the 'hot pursuit' exception of Rule 113, Sec. 5(b);\n(b) Whether evidence seized during such warrantless arrest is admissible as an incident to a lawful arrest.",
+        "rule": "(a) Under Rule 113, Section 5(b) of the Revised Rules of Criminal Procedure, a warrantless arrest is valid when an offense has just been committed, and the arresting officer has probable cause to believe based on personal knowledge of facts or circumstances that the person to be arrested has committed it. In Pestilos v. Generoso (G.R. No. 182601), the Supreme Court clarified that personal knowledge does not mean eyewitness perception of the crime, but knowledge of facts gathered by officers during a continuous and immediate investigation.\n(b) Under Rule 126, Section 13, a person lawfully arrested may be searched for dangerous weapons or anything used in the commission of the offense without a search warrant (Search Incidental to Lawful Arrest).",
+        "analysis": "(a) Here, the crime had just been committed three hours earlier. The police immediately responded, viewed clear CCTV footage showing Joaquin's face, tattoo, and getaway motorcycle, and conducted continuous pursuit without interruption. When they located the motorcycle and saw Joaquin matching the CCTV description with the stolen cash in plain view, they possessed personal knowledge of facts generating strong probable cause. The arrest satisfies the hot pursuit doctrine.\n(b) Because the warrantless arrest was lawful, the simultaneous seizure of the unlicensed handgun lying on the table was a valid search incidental to a lawful arrest and within plain view. Consequently, the gun is admissible.",
+        "conclusion": "(a) Yes, the warrantless arrest was lawful under Rule 113, Section 5(b) as a valid hot pursuit arrest.\n(b) Yes, the seized firearm is admissible as the fruit of a search incidental to a lawful arrest."
+      }
+    },
+    {
+      "id": "REM-MCQ-004",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Remedial Law",
+        "Special Civil Actions",
+        "Rule 65 - Certiorari"
+      ],
+      "topic": "Period to File Petition for Certiorari under Rule 65",
+      "difficulty": "medium",
+      "question": "Under Rule 65, Section 4 of the Rules of Court, within what period must a Petition for Certiorari be filed?",
+      "options": [
+        "A) Within fifteen (15) days from notice of judgment.",
+        "B) Within not later than sixty (60) days from notice of the judgment, order, or resolution, or from notice of the denial of a timely motion for reconsideration.",
+        "C) Within thirty (30) days from the rendition of the assailed order.",
+        "D) Within ninety (90) days from exhaustion of administrative remedies."
+      ],
+      "correct_answer": "B",
+      "explanation": "Rule 65, Section 4 provides that the petition shall be filed not later than sixty (60) days from notice of the judgment, order or resolution, or from the denial of the motion for reconsideration."
+    }
+  ]
+}

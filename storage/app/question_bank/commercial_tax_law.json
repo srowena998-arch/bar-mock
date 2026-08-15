@@ -1,0 +1,141 @@
+{
+  "domain": "Commercial and Taxation Laws",
+  "weight_percentage": 20,
+  "version": "1.0",
+  "items": [
+    {
+      "id": "COM-ESS-001",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Commercial Law",
+        "Revised Corporation Code",
+        "Corporate Powers and Ultra Vires Acts"
+      ],
+      "topic": "Doctrine of Piercing the Veil of Corporate Fiction vs. Separate Legal Entity",
+      "difficulty": "hard",
+      "extracted_rule": {
+        "doctrine": "Under the Revised Corporation Code (RA 11232), a corporation has a legal personality distinct and separate from its directors, officers, and shareholders. Piercing the corporate veil is an equitable remedy warranted only when the separate personality is used to defeat public convenience, justify wrong, protect fraud, or defend crime, or when the corporation is a mere alter ego or instrumentality of a person or another corporation (Three-Prong Test: Control, Fraud/Injustice, and Proximate Cause). Mere ownership of majority or 100% shares and interlocking directors are insufficient per se to pierce the veil.",
+        "statutory_basis": [
+          "Revised Corporation Code (RA No. 11232), Sec. 2",
+          "Concept Builders Inc. v. NLRC, G.R. No. 108734 (1996)"
+        ],
+        "elements_and_principles": [
+          "General rule: Limited liability and separate corporate personality.",
+          "Alter Ego / Instrumentality Test: (1) Complete control/domination; (2) Control used to commit fraud or wrong; (3) Control and breach of duty proximately caused the injury.",
+          "Interlocking directorship and common office alone do not justify piercing without fraud."
+        ]
+      },
+      "fact_pattern": "Apex Mining Corporation (Apex) is a publicly listed mining corporation. Due to a toxic tailings dam leak in Benguet, the Regional Trial Court awarded P85,000,000.00 in environmental damages against Apex in favor of affected indigenous community farmers. When the sheriff attempted to execute the final judgment against Apex's bank accounts, it was discovered that Apex had zero liquid funds. The plaintiffs discovered that Apex's parent company, Summit Holdings Inc., owns 99.8% of Apex's capital stock, that four out of five directors of Apex are also directors of Summit Holdings, and that both corporations share the same corporate headquarters in Makati City.\n\nThe plaintiffs filed a Motion for Execution against Summit Holdings Inc., praying that the corporate veil be pierced and that Summit Holdings be held solidarily liable to pay the P85,000,000.00 judgment, arguing that Apex is a mere subsidiary and alter ego of Summit Holdings.",
+      "interrogatory": "(a) Apply the three-prong instrumentality test to determine whether piercing the corporate veil is legally warranted against Summit Holdings Inc. Explain.\n(b) Does 99.8% stock ownership and interlocking directorship automatically make a parent company liable for the torts/debts of its subsidiary? Explain.",
+      "suggested_answer": {
+        "issue": "(a) Whether the corporate veil of a subsidiary may be pierced to hold the parent company liable under the instrumentality test based solely on majority ownership, common directors, and shared office;\n(b) Whether majority stock ownership and interlocking directorship alone create solidary liability for the parent corporation.",
+        "rule": "(a) Under the landmark three-prong test in Concept Builders v. NLRC (G.R. No. 108734), piercing the corporate veil under the alter ego doctrine requires proof of: (1) Control—not mere majority stock control, but complete domination of finances, policy, and business practice such that the corporate entity had no separate mind of its own; (2) Fraud or Injustice—that such control was used to commit fraud or wrong, violate a statutory duty, or defeat plaintiff's legal rights; and (3) Proximate Cause—that the control and breach of duty proximately caused the plaintiff's injury.\n(b) Under Section 2 of the Revised Corporation Code, a corporation has a separate juridical personality. It is settled jurisprudence that mere ownership by a single shareholder or parent company of all or nearly all capital stock, interlocking directors, and shared premises do not, per se, justify piercing the corporate veil absent clear and convincing evidence of fraud or evasion of obligation.",
+        "analysis": "(a) Here, the plaintiffs only proved that Summit Holdings owns 99.8% of Apex, shares office space, and shares four interlocking directors. There is no evidence showing that Summit Holdings used Apex as a fraudulent sham or stripped Apex's assets to evade the environmental judgment. In the absence of evidence showing total financial domination and fraudulent misuse of the corporate form to cause the dam spill or hide assets, the second and third prongs of the instrumentality test are unsatisfied.\n(b) The separate personality of Apex and Summit Holdings must be respected. Interlocking directorship and stock concentration are common, lawful corporate structures that do not erase the legal boundary of limited liability.",
+        "conclusion": "(a) Piercing the corporate veil is not legally warranted because plaintiffs failed to prove the second and third prongs of the instrumentality test (fraudulent misuse and proximate injury).\n(b) No, majority stock ownership and interlocking directorship do not automatically make a parent company solidarily liable for its subsidiary's obligations."
+      }
+    },
+    {
+      "id": "TAX-ESS-001",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Taxation Law",
+        "National Internal Revenue Code",
+        "Tax Remedies - Assessment and Prescription"
+      ],
+      "topic": "Prescriptive Periods for Assessment: 3-Year General Rule vs. 10-Year Fraud Exception under Section 222",
+      "difficulty": "hard",
+      "extracted_rule": {
+        "doctrine": "Under Section 203 of the NIRC, internal revenue taxes shall be assessed within three (3) years after the last day prescribed by law for the filing of the return or the day the return was filed, whichever is later. Under Section 222(a), in the case of a false or fraudulent return with intent to evade tax or failure to file a return, the tax may be assessed within ten (10) years after the discovery of the falsity, fraud, or omission. Substantial underdeclaration of taxable sales/income by more than 30% constitutes prima facie evidence of a false or fraudulent return (Sec. 248(B)). Fraud is never presumed and must be established by clear and convincing evidence.",
+        "statutory_basis": [
+          "National Internal Revenue Code of 1997, as amended (NIRC), Secs. 203, 222(a), 248(B)",
+          "Commissioner of Internal Revenue v. Asiatrust Development Bank, G.R. No. 201530 (2017)"
+        ],
+        "elements_and_principles": [
+          "3-year prescriptive period from filing/deadline date (Sec. 203).",
+          "10-year prescriptive period applies only upon clear proof of deliberate fraud or unfiled return (Sec. 222(a)).",
+          "30% underdeclaration creates a rebuttable presumption of fraud.",
+          "An assessment issued beyond the 3-year period without valid proof of fraud is void due to prescription."
+        ]
+      },
+      "fact_pattern": "Vanguard Logistics Inc. (Vanguard) filed its Annual Income Tax Return for taxable year 2018 on April 15, 2019, declaring gross revenue of P100,000,000.00 and paying the corresponding income tax. On October 25, 2023 (more than four and a half years after the return was filed), the Commissioner of Internal Revenue (CIR) served a Final Assessment Notice (FAN) with Formal Letter of Demand (FLD) assessing Vanguard for deficiency income tax of P18,000,000.00 for taxable year 2018.\n\nVanguard filed a timely protest disputing the assessment on the ground of prescription under Section 203 of the NIRC, pointing out that the 3-year assessment period expired on April 15, 2022. In denying the protest, the CIR invoked Section 222(a) of the NIRC, claiming that the 10-year prescriptive period applied because Vanguard's return was 'false' due to disallowed unsupported expense deductions totaling P12,000,000.00. The CIR did not present any evidence of intentional deceit, fabricated receipts, or concealed income.",
+      "interrogatory": "(a) Is the CIR's invocation of the 10-year extraordinary prescriptive period under Section 222(a) of the NIRC legally justified? Explain.\n(b) How should the Court of Tax Appeals (CTA) rule on Vanguard's petition for review raising the defense of prescription? Explain.",
+      "suggested_answer": {
+        "issue": "(a) Whether the 10-year extraordinary prescriptive period applies to an assessment based merely on disallowed expense deductions without proof of deliberate fraud;\n(b) How the Court of Tax Appeals should resolve the petition for review on the ground of prescription.",
+        "rule": "(a) Under Section 203 of the NIRC, the government has three (3) years from the deadline or date of filing to assess deficiency taxes. The 10-year extraordinary period under Section 222(a) applies only when the taxpayer filed a false or fraudulent return with intent to evade tax, or failed to file a return. Under settled jurisprudence (CIR v. Fitness by Design, G.R. No. 215957), a 'false return' requires a showing of intentional design to mislead or evade tax; mere honest difference of opinion over allowable deductions or inadvertent error does not trigger the 10-year period.\n(b) Under the Tax Code, an assessment issued after the expiration of the 3-year statutory period is null and void for having prescribed.",
+        "analysis": "(a) Here, the CIR's assessment was based solely on disallowed unsupported expense deductions. The CIR did not allege or prove that Vanguard concealed revenues exceeding 30% or submitted fictitious receipts with intent to evade taxes. Disallowance of expenses is a routine audit finding and does not constitute fraud or a fraudulent return under Section 222(a). Because the BIR failed to establish deliberate fraud by clear and convincing evidence, the general 3-year prescriptive period under Section 203 applies.\n(b) Since Vanguard filed its 2018 return on April 15, 2019, the BIR had until April 15, 2022 to issue the assessment. The FAN issued on October 25, 2023 was issued long after the lapse of the 3-year period. The assessment is therefore void.",
+        "conclusion": "(a) No, the CIR's invocation of the 10-year prescriptive period is not legally justified because disallowance of deductions without proof of fraudulent intent does not constitute a false return under Section 222(a).\n(b) The Court of Tax Appeals should grant Vanguard's petition for review, declare the deficiency tax assessment null and void, and cancel the FAN on the ground of prescription."
+      }
+    },
+    {
+      "id": "COM-MCQ-001",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Commercial Law",
+        "Banking Laws",
+        "Secrecy of Bank Deposits - RA 1405"
+      ],
+      "topic": "Exceptions to Bank Secrecy under RA 1405",
+      "difficulty": "medium",
+      "question": "Under Republic Act No. 1405 (Bank Secrecy Law), in which of the following instances may a peso bank deposit be examined or inquired into WITHOUT the depositor's written permission?",
+      "options": [
+        "A) In an ordinary civil collection suit filed by a supplier against the depositor.",
+        "B) In cases of impeachment, or upon order of a competent court in cases of bribery or dereliction of duty of public officials.",
+        "C) Upon subpoena issued by a private insurance adjuster investigating a fire claim.",
+        "D) Upon request of the spouse in an ongoing legal separation case."
+      ],
+      "correct_answer": "B",
+      "explanation": "Under Section 2 of RA 1405, exceptions to bank secrecy include: (1) written permission of depositor; (2) cases of impeachment; (3) upon order of a competent court in cases of bribery or dereliction of duty of public officials; and (4) where the money deposited is the subject matter of the litigation."
+    },
+    {
+      "id": "COM-ESS-002",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Commercial Law",
+        "Intellectual Property Code",
+        "Trademarks - Infringement and Unfair Competition"
+      ],
+      "topic": "Dominancy Test vs. Holistic Test in Trademark Infringement; Likelihood of Confusion",
+      "difficulty": "hard",
+      "extracted_rule": {
+        "doctrine": "Under the Intellectual Property Code (RA 8293) and the landmark ruling in Kolin Electronics Co. v. Taiwan Kolin Corp. (G.R. No. 228407, March 9, 2021), the Supreme Court definitively adopted the Dominancy Test as the exclusive standard for determining likelihood of confusion and trademark infringement, formally abandoning the Holistic Test. The Dominancy Test focuses on the similarity of the prevalent or dominant features of the competing marks that could cause confusion, mistake, or deception among the buying public.",
+        "statutory_basis": [
+          "Republic Act No. 8293 (Intellectual Property Code), Sec. 155",
+          "Kolin Electronics Co., Inc. v. Taiwan Kolin Corp., G.R. No. 228407 (2021)"
+        ],
+        "elements_and_principles": [
+          "Dominancy Test focuses on the dominant features, sound, spelling, and connotation of the mark.",
+          "Holistic Test (which evaluated entire packaging and minor label differences) was explicitly abandoned in 2021 by the Supreme Court En Banc.",
+          "Likelihood of confusion includes confusion of goods (purchaser thinks goods are the same) and confusion of business (purchaser thinks products come from same manufacturer)."
+        ]
+      },
+      "fact_pattern": "Starlight Pharma Inc. is the registered owner of the trademark 'ASTHMAX' for prescription bronchodilator inhalers under Class 5. In 2024, Zenith Biotech Corp. introduced a non-prescription cough syrup under the brand name 'ASTHMAX-PLUS', packaged in a green rectangular box with different fonts, manufacturer logo, and background graphics compared to Starlight's white-and-blue aerosol canister.\n\nStarlight filed a Complaint for Trademark Infringement and Damages against Zenith under Section 155 of the IP Code before the Special Commercial Court. Zenith defended the suit by arguing under the Holistic Test that the total visual impression of the packaging, color scheme, dosage form (syrup vs. inhaler), and manufacturer labels are entirely distinct, precluding any confusion.",
+      "interrogatory": "(a) Which test—the Dominancy Test or the Holistic Test—must the Special Commercial Court apply to resolve the trademark infringement claim? Explain the governing rule.\n(b) Applying the prevailing test, is Zenith Biotech Corp. liable for trademark infringement? Explain.",
+      "suggested_answer": {
+        "issue": "(a) What is the prevailing judicial test for trademark infringement under Philippine Intellectual Property jurisprudence;\n(b) Whether the use of 'ASTHMAX-PLUS' on cough syrup infringes the registered trademark 'ASTHMAX'.",
+        "rule": "(a) Under the landmark En Banc ruling in Kolin Electronics Co., Inc. v. Taiwan Kolin Corp. (G.R. No. 228407, 2021), the Supreme Court held that the Dominancy Test is the sole and exclusive test to determine likelihood of confusion, explicitly abandoning the Holistic Test. Under the Dominancy Test, courts focus on the similarity of the prevalent or dominant features of the marks.\n(b) Under Section 155 of the IP Code, trademark infringement occurs when a person uses in commerce any reproduction, counterfeit, copy, or colorable imitation of a registered mark in connection with goods that is likely to cause confusion, mistake, or deception.",
+        "analysis": "(a) The trial court must strictly apply the Dominancy Test. The Holistic Test, which looked at the overall visual appearance of the labels and packaging, was abandoned by the Supreme Court because it undermined the statutory protection of registered trademarks.\n(b) Under the Dominancy Test, the dominant, visually arresting, and phonetically identical feature is the word 'ASTHMAX'. Adding the generic suffix '-PLUS' does not create a distinct commercial impression. Both products are medicinal remedies for respiratory ailments under Class 5. The dominant similarity creates a strong likelihood of confusion of goods and business. Zenith's differing packaging colors are irrelevant under the Dominancy Test.",
+        "conclusion": "(a) The Special Commercial Court must apply the Dominancy Test pursuant to the Kolin doctrine.\n(b) Yes, Zenith Biotech Corp. is liable for trademark infringement because its use of 'ASTHMAX-PLUS' incorporates the dominant registered mark and creates likelihood of confusion."
+      }
+    },
+    {
+      "id": "COM-MCQ-002",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Commercial Law",
+        "Insurance Code",
+        "Incontestability Clause under Section 48"
+      ],
+      "topic": "Incontestable Clause in Life Insurance",
+      "difficulty": "medium",
+      "question": "Under Section 48 of the Insurance Code (RA 10607), when does a life insurance policy become incontestable by the insurer on the ground of fraudulent concealment or misrepresentation of the insured?",
+      "options": [
+        "A) After the policy has been in force during the lifetime of the insured for a period of two (2) years from the date of its issue or last reinstatement.",
+        "B) Exactly thirty (30) days after the payment of the first annual premium.",
+        "C) After five (5) years from the issuance of the policy.",
+        "D) Never, because fraud vitiates consent ab initio."
+      ],
+      "correct_answer": "A",
+      "explanation": "Section 48 of the Insurance Code provides that an insurer cannot prove that the policy is void ab initio or rescind it on grounds of concealment or misrepresentation after the policy has been in force during the lifetime of the insured for a period of two (2) years from the date of its issue or last reinstatement (Sun Life v. Sibya)."
+    }
+  ]
+}

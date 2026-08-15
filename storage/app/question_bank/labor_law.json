@@ -1,0 +1,111 @@
+{
+  "domain": "Labor Law and Social Legislation",
+  "weight_percentage": 10,
+  "version": "1.0",
+  "items": [
+    {
+      "id": "LAB-ESS-001",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Labor Law",
+        "Employment Relationship",
+        "Legitimate Contracting vs. Labor-Only Contracting"
+      ],
+      "topic": "Labor-Only Contracting under DOLE Department Order No. 174-17 and Solidary Liability",
+      "difficulty": "hard",
+      "extracted_rule": {
+        "doctrine": "Under Article 106 of the Labor Code and DOLE Department Order No. 174, Series of 2017, Labor-Only Contracting (LOC) is prohibited and exists when: (1) The contractor does not have substantial capital or investments in tools, equipment, or machinery, AND the contractor's employees perform activities directly related to the principal business of the employer; OR (2) The contractor does not exercise the right of control over the performance of the work of the employee. In LOC, the principal is deemed the direct employer of the contractor's employees, solidarily liable for all labor standard benefits, and prohibited from terminating them without just or authorized cause.",
+        "statutory_basis": [
+          "Labor Code of the Philippines, Art. 106-109",
+          "DOLE Department Order No. 174-17",
+          "Alviado v. Procter & Gamble Phils., Inc., G.R. No. 160506 (2010)"
+        ],
+        "elements_and_principles": [
+          "Substantial capital requirement: Paid-up capitalization of at least P5,000,000.00 under DO 174-17.",
+          "Control test is the most crucial test.",
+          "If LOC exists: Principal becomes direct employer by operation of law; contractor is treated as agent.",
+          "Workers are deemed regular employees of the principal entitled to security of tenure."
+        ]
+      },
+      "fact_pattern": "Mega Mart Corporation (Mega Mart) operates a nationwide chain of retail hypermarkets. Mega Mart entered into a 'Service Agreement' with QuickForce Services Agency (QuickForce) to supply 150 cashiers, shelf stockers, and baggers for its flagship store in Quezon City. QuickForce has a registered paid-up capital of only P1,000,000.00 and does not own any premises, tools, or cash register equipment. All POS terminals, uniforms, price scanners, and training manuals are supplied directly by Mega Mart. Furthermore, Mega Mart's floor supervisors directly oversee the daily work schedules, evaluate performance, and issue disciplinary reprimands to the QuickForce workers.\n\nAfter working continuously at the hypermarket for two years, the 150 workers organized a union and demanded regularization and equal collective bargaining benefits from Mega Mart. In response, Mega Mart immediately cancelled its contract with QuickForce and barred all 150 workers from entering the store premises, claiming that they were employees of an independent contractor and had no employer-employee relationship with Mega Mart.",
+      "interrogatory": "(a) Is QuickForce engaged in legitimate job contracting or prohibited labor-only contracting? Explain under DOLE D.O. 174-17.\n(b) What are the legal consequences of this arrangement on the employment status of the 150 workers and the liability of Mega Mart? Explain.",
+      "suggested_answer": {
+        "issue": "(a) Whether QuickForce is engaged in prohibited labor-only contracting with Mega Mart under D.O. 174-17;\n(b) What is the legal status and remedy of the 150 workers against Mega Mart.",
+        "rule": "(a) Under Article 106 of the Labor Code and DOLE Department Order No. 174-17, Labor-Only Contracting (LOC) is an arrangement where the contractor does not possess substantial capital (at least P5,000,000.00 paid-up capital) or investments in the form of tools and machinery, and the workers perform activities directly related to the principal's business, or the contractor does not exercise the right of control over the workers' performance.\n(b) When there is a finding of labor-only contracting, the law creates an employer-employee relationship between the principal and the contractor's employees. The principal is deemed the direct employer for all intents and purposes, and the workers become regular employees entitled to security of tenure and backwages in case of illegal dismissal.",
+        "analysis": "(a) QuickForce is unmistakably a labor-only contractor. First, its paid-up capital of P1,000,000.00 falls far short of the mandatory statutory threshold of P5,000,000.00 required under D.O. 174-17. Second, QuickForce owns no tools or POS equipment. Third, the work of cashiers, stockers, and baggers is directly related to the core retail business of Mega Mart. Fourth, and most decisively, Mega Mart exercised full operational control over work schedules, performance evaluations, and discipline.\n(b) Because QuickForce is a mere labor-only contractor, it is deemed an agent of Mega Mart, and Mega Mart is the direct employer of the 150 workers from day one. Barring them from work without just or authorized cause and without due process constituted illegal dismissal. Mega Mart is liable for reinstatement without loss of seniority rights, full backwages, and all collective bargaining benefits.",
+        "conclusion": "(a) QuickForce is engaged in prohibited labor-only contracting under Article 106 of the Labor Code and D.O. 174-17.\n(b) The 150 workers are regular employees of Mega Mart, and Mega Mart's act of barring them constituted illegal dismissal, entitling the workers to reinstatement with full backwages and benefits."
+      }
+    },
+    {
+      "id": "LAB-MCQ-001",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Labor Law",
+        "Post-Employment",
+        "Termination by Employer - Authorized Causes"
+      ],
+      "topic": "Separation Pay under Article 298 for Authorized Causes",
+      "difficulty": "medium",
+      "question": "Under Article 298 (formerly Art. 283) of the Labor Code, what is the mandatory separation pay for an employee terminated due to Retrenchment to prevent losses?",
+      "options": [
+        "A) At least one (1) month pay or at least one (1) month pay for every year of service, whichever is higher.",
+        "B) At least one (1) month pay or at least one-half (1/2) month pay for every year of service, whichever is higher, with a fraction of at least six (6) months considered as one whole year.",
+        "C) Exactly two (2) months pay regardless of length of service.",
+        "D) Separation pay is not required when the retrenchment is due to business losses."
+      ],
+      "correct_answer": "B",
+      "explanation": "Under Article 298 of the Labor Code, in cases of retrenchment to prevent losses and closures not due to serious business losses, the separation pay shall be equivalent to one (1) month pay or at least one-half (1/2) month pay for every year of service, whichever is higher, with a fraction of at least six (6) months considered as one whole year."
+    },
+    {
+      "id": "LAB-ESS-002",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Labor Law",
+        "Labor Relations",
+        "Strikes and Lockouts - Mandatory Requisites"
+      ],
+      "topic": "Mandatory Procedural Cooling-off Period and Strike Vote Requirements under Article 278",
+      "difficulty": "hard",
+      "extracted_rule": {
+        "doctrine": "Under Article 278 (formerly Art. 263) of the Labor Code and its Implementing Rules, a strike is illegal unless all mandatory procedural requisites are complied with: (1) Valid ground (Collective Bargaining Deadlock or Unfair Labor Practice); (2) Filing of a Notice of Strike with the NCMB (30 days for CBD, 15 days for ULP); (3) Observance of the cooling-off period; (4) Conduct of a secret strike ballot with approval by a majority of total union membership; and (5) Submission of the 7-day strike vote report to the NCMB before staging the strike (7-day strike ban). Failure to observe any requisite renders the strike illegal, subjecting union officers to dismissal.",
+        "statutory_basis": [
+          "Labor Code, Art. 278-279",
+          "National Federation of Labor v. NLRC, G.R. No. 113466"
+        ],
+        "elements_and_principles": [
+          "Mandatory procedural requisites for valid strike.",
+          "Cooling-off period (15/30 days) and 7-day strike vote report period are separate, distinct, and mandatory.",
+          "Effect of illegal strike: Union officers knowingly participating in an illegal strike lose employment status; ordinary union members lose employment only if they participated in committing illegal acts."
+        ]
+      },
+      "fact_pattern": "On August 1, 2024, the United Workers Union (UWU) filed a Notice of Strike with the National Conciliation and Mediation Board (NCMB) against Zenith Textiles Inc. based on alleged Unfair Labor Practice (ULP). On August 5, 2024 (only 4 days after filing the notice), the union held a strike vote where 80% of its members voted to strike. On August 6, 2024, without submitting the strike vote report to the NCMB and without waiting for the 15-day cooling-off period to expire, the union officers and members walked out and staged a strike, blockading the company's factory gates.\n\nZenith Textiles filed a Petition to Declare the Strike Illegal before the Labor Arbiter. The union officers defended the strike, claiming that in cases of Unfair Labor Practice, the union has the absolute right to strike immediately without observing technical waiting periods.",
+      "interrogatory": "(a) Was the strike staged by UWU legal? Explain the procedural defects under Article 278 of the Labor Code.\n(b) What is the legal effect of the illegal strike on the employment status of the union officers versus the ordinary union members?",
+      "suggested_answer": {
+        "issue": "(a) Whether a strike conducted without observing the mandatory cooling-off period and the 7-day strike vote report notice is illegal;\n(b) What are the respective liabilities and consequences on the employment status of union officers versus ordinary members.",
+        "rule": "(a) Under Article 278 (formerly Art. 263) of the Labor Code, even in strikes based on Unfair Labor Practice (ULP), the union is strictly required to observe the 15-day cooling-off period from the filing of the Notice of Strike, conduct a strike vote, and submit the strike vote results to the NCMB at least seven (7) days before the intended strike date (7-day strike ban period). These procedural requirements are mandatory and jurisdictional.\n(b) Under Article 279 (formerly Art. 264) of the Labor Code, any union officer who knowingly participates in an illegal strike may be declared to have lost employment status. Ordinary union members do not lose their employment status by mere participation in an illegal strike unless they knowingly participated in the commission of illegal acts.",
+        "analysis": "(a) The strike is illegal on multiple grounds. First, the union struck on August 6, barely five days after filing the notice of strike on August 1, violating the 15-day ULP cooling-off period. Second, the union failed to submit the strike vote report to the NCMB. Third, the union failed to observe the mandatory 7-day strike ban after voting. The cooling-off period and the 7-day strike ban are separate and mandatory statutory safeguards intended to allow conciliation.\n(b) Because the strike was illegal, all union officers who led and knowingly participated in the strike may be lawfully dismissed and declared to have lost employment status. In contrast, ordinary union members who merely joined the walkout without committing violent or unlawful acts retain their employment.",
+        "conclusion": "(a) The strike was illegal due to total failure to comply with the mandatory cooling-off period and the 7-day strike ban under Article 278.\n(b) The union officers lose their employment status for participating in an illegal strike, while ordinary members retain their employment unless proven to have committed illegal acts."
+      }
+    },
+    {
+      "id": "LAB-MCQ-002",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Labor Law",
+        "Labor Relations",
+        "Unfair Labor Practices of Employers"
+      ],
+      "topic": "Yellow Dog Contract under Article 259",
+      "difficulty": "easy",
+      "question": "Under Article 259 (formerly Art. 248) of the Labor Code, what is an agreement whereby an employee promises as a condition of employment not to join a labor union or to withdraw from a union called?",
+      "options": [
+        "A) Sweetheart Agreement",
+        "B) Yellow Dog Contract",
+        "C) Closed Shop Agreement",
+        "D) Agency Shop Agreement"
+      ],
+      "correct_answer": "B",
+      "explanation": "Under Article 259(b) of the Labor Code, a 'Yellow Dog Contract' is an unfair labor practice where an employer requires as a condition of employment that a person or an employee shall not join a labor organization or shall withdraw from one to which he belongs."
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "domain": "Civil Law and Land Titles and Deeds",
+  "weight_percentage": 20,
+  "version": "1.0",
+  "items": [
+    {
+      "id": "CIV-ESS-001",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Civil Law",
+        "Family Code",
+        "Psychological Incapacity under Tan-Andal Doctrine"
+      ],
+      "topic": "Article 36 Psychological Incapacity - Juridical Antecedence, Gravity, and Incurability",
+      "difficulty": "hard",
+      "extracted_rule": {
+        "doctrine": "Under the landmark doctrine of Tan-Andal v. Andal (G.R. No. 196359, May 11, 2021, En Banc), psychological incapacity under Article 36 of the Family Code is not a medical illness but a legal concept describing a total personality pattern that renders a party unable to understand and comply with essential marital obligations. Psychological incapacity requires: (1) Gravity; (2) Juridical Antecedence (existing at the time of marriage celebration, even if manifesting later); and (3) Incurability in the legal (not medical/clinical) sense. Expert psychological examination of the respondent is not indispensable; the condition can be proven by totality of ordinary evidence.",
+        "statutory_basis": [
+          "Article 36, Family Code of the Philippines",
+          "Tan-Andal v. Andal, G.R. No. 196359 (2021)"
+        ],
+        "elements_and_principles": [
+          "Psychological incapacity is not a mental disorder requiring clinical psychiatric diagnosis.",
+          "Must be characterized by gravity, juridical antecedence, and legal incurability (an enduring aspect of personality).",
+          "Totality of evidence presented by ordinary witnesses who observed the spouse's behavior before and during marriage is sufficient.",
+          "Essential marital obligations under Arts. 68-71: live together, observe mutual love, respect and fidelity, render mutual help and support."
+        ]
+      },
+      "fact_pattern": "Leandro and Carmina were married in 2016. Throughout their 7-year marriage, Leandro exhibited extreme financial parasitism, chronic pathological lying, and total abandonment of paternal duties. Leandro refused to maintain any employment, secretly incurred millions in gambling debts by forging Carmina's signature on loan documents, and abandoned Carmina and their two infant children whenever creditors demanded payment, leaving them without sustenance for months. Testimony from Leandro's childhood relatives and former teachers established that since his adolescent years prior to the marriage, Leandro possessed a persistent pattern of sociopathic deception, grandiosity, and complete inability to feel empathy or accept familial responsibilities.\n\nCarmina filed a petition for declaration of nullity of marriage under Article 36 of the Family Code before the Family Court. Carmina presented testimonies of relatives, teachers, and an accredited psychologist who evaluated Carmina and Leandro's relatives (as Leandro refused to participate in the psychiatric interview). The trial court dismissed Carmina's petition, ruling that: (1) Leandro was never personally examined by the psychologist, rendering the evaluation hearsay; and (2) Leandro's conduct was merely 'refusal' rather than a 'clinically proven, medically incurable psychological illness' as required under the Molina guidelines.",
+      "interrogatory": "(a) Is the trial court's dismissal of Carmina's petition sustainable under current Philippine jurisprudence? Explain applying the Tan-Andal doctrine.\n(b) What are the three modified requisites of psychological incapacity under Tan-Andal v. Andal?",
+      "suggested_answer": {
+        "issue": "(a) Whether personal psychological examination of the respondent is mandatory and whether psychological incapacity must be proved as a clinical medical illness;\n(b) What are the refined requisites of psychological incapacity established in Tan-Andal v. Andal.",
+        "rule": "(a) Under the landmark En Banc ruling in Tan-Andal v. Andal (G.R. No. 196359, 2021), psychological incapacity is not a medical or clinical concept, but a legal concept. Personal examination of the respondent spouse by an expert psychologist or psychiatrist is not mandatory. The psychological incapacity may be established by the totality of evidence, including testimonies of ordinary witnesses who observed the spouse's enduring personality patterns.\n(b) Under Tan-Andal, the petitioner must establish three requisites: (1) Gravity (the incapacity is genuinely serious and renders the party unable to assume essential marital obligations); (2) Juridical Antecedence (the personality structure existed prior to or at the time of the celebration of the marriage); and (3) Incurability in a legal sense (an enduring aspect of the person's personality structure).",
+        "analysis": "(a) The trial court erred on both grounds. First, under Tan-Andal, the strict requirement of clinical medical diagnosis under the old Molina guidelines has been abandoned. Psychological incapacity need not be a medically diagnosed illness. Second, personal clinical interview of Leandro is not indispensable. The testimonies of childhood relatives, teachers, and Carmina clearly proved Leandro's deep-seated personality structure that existed long before the marriage celebration (juridical antecedence) and totally incapacitated him from fulfilling essential marital obligations of mutual support, fidelity, and parental care (gravity and legal incurability). The totality of evidence adequately proved psychological incapacity.\n(b) The three requisites under Tan-Andal are: (1) Gravity—it must not be mere mild refusal or difficulty, but a profound personality defect; (2) Juridical Antecedence—rooted in the history of the afflicted spouse prior to the wedding; and (3) Incurability—not medical incurability, but an enduring personality structure inherent to the individual.",
+        "conclusion": "(a) No, the trial court's dismissal is not sustainable. Under Tan-Andal, personal psychiatric examination is not required, and the totality of evidence proved Leandro's psychological incapacity under Article 36.\n(b) The three requisites are: Gravity, Juridical Antecedence, and Legal Incurability."
+      }
+    },
+    {
+      "id": "CIV-MCQ-001",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Civil Law",
+        "Property",
+        "Co-Ownership and Legal Redemption"
+      ],
+      "topic": "Legal Redemption by Co-Owner under Article 1620",
+      "difficulty": "medium",
+      "question": "Under Article 1620 of the Civil Code, when a co-owner sells his ideal share in the co-owned property to a third person, within what period may another co-owner exercise the right of legal redemption?",
+      "options": [
+        "A) Within thirty (30) days from written notice of the sale given by the vendor or vendee.",
+        "B) Within four (4) years from the registration of the deed of sale in the Registry of Deeds.",
+        "C) Within ten (10) years from the date of the execution of the notarized deed.",
+        "D) At any time before the actual physical partition of the property."
+      ],
+      "correct_answer": "A",
+      "explanation": "Under Article 1623 of the Civil Code, the right of legal redemption of co-owners must be exercised within thirty (30) days from written notice of the sale given by the prospective vendor or by the vendor."
+    },
+    {
+      "id": "CIV-ESS-002",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Civil Law",
+        "Land Titles and Deeds",
+        "Torrens System - Innocent Purchaser for Value"
+      ],
+      "topic": "Mirror Doctrine vs. Duty to Inquire; Forged Deed of Sale",
+      "difficulty": "hard",
+      "extracted_rule": {
+        "doctrine": "Under the Mirror Doctrine of the Torrens System (PD 1529), a buyer dealing with registered land may rely on the face of the clean certificate of title without looking beyond it. Exception: Where the buyer has knowledge of facts that would impel a reasonably prudent person to make further inquiries (such as when the property is in the open, adverse possession of someone other than the registered seller, or where the title contains an adverse encumbrance), the buyer cannot claim to be an Innocent Purchaser for Value (IPV) without investigating.",
+        "statutory_basis": [
+          "Presidential Decree No. 1529 (Property Registration Decree), Sec. 32, 44",
+          "Civil Code, Art. 1458, 1544"
+        ],
+        "elements_and_principles": [
+          "General Rule: Mirror Doctrine allows reliance on clean Torrens title.",
+          "Exception: When land is occupied by a person other than the vendor, purchaser must verify possessor's rights.",
+          "A forged deed of sale is completely null and void; however, a forged deed may become the root of a valid title in the hands of an Innocent Purchaser for Value (IPV).",
+          "If the buyer fails the duty to inspect physical possession, he is not in good faith."
+        ]
+      },
+      "fact_pattern": "Mariano is the registered owner of a prime commercial lot in Iloilo City covered by TCT No. 8888. In 2021, Mariano entrusted the physical custody of his Owner's Duplicate TCT to his caretaker, Esteban, for safekeeping while Mariano was undergoing medical treatment in the United States. While Mariano was abroad, Esteban forged Mariano's signature on a Deed of Absolute Sale conveying the property to Esteban himself. By virtue of this forged deed, Esteban succeeded in having TCT No. 8888 cancelled and obtained TCT No. 9999 in his own name.\n\nIn 2023, Esteban offered to sell the lot to Gregorio. Gregorio inspected the physical property and observed that Mariano's long-time lessee, Prime Supermarket Inc., was in actual, continuous possession of the lot, displaying signage and paying monthly rentals under a 10-year lease from Mariano. Gregorio made no inquiry with the supermarket manager or Mariano regarding the lease, relying solely on Esteban's clean TCT No. 9999. Gregorio purchased the lot and obtained TCT No. 11111.\n\nUpon discovering the fraud upon his return in 2024, Mariano filed a Complaint for Annulment of Title and Reconveyance against Gregorio. Gregorio set up the defense of being an Innocent Purchaser for Value under the Torrens Mirror Doctrine.",
+      "interrogatory": "(a) Can Gregorio successfully claim the status of an Innocent Purchaser for Value (IPV) under the Mirror Doctrine? Explain.\n(b) Will Mariano's action for reconveyance against Gregorio prosper? Explain.",
+      "suggested_answer": {
+        "issue": "(a) Whether a purchaser who buys registered land occupied by a third-party lessee without making inquiry qualifies as an Innocent Purchaser for Value under the Mirror Doctrine;\n(b) Whether the original registered owner can recover the land from the purchaser through an action for reconveyance.",
+        "rule": "(a) Under the Torrens System and settled jurisprudence, the Mirror Doctrine provides that a buyer may rely on the face of a clean title. However, an indispensable exception applies: when the land is in the actual possession of someone other than the vendor, the purchaser has a legal duty to inquire into the nature and status of the possessor's rights. Failure to inspect and inquire negates good faith and strips the buyer of IPV status.\n(b) While a forged deed can be the root of a valid title in the hands of an IPV, where the subsequent purchaser is NOT an innocent purchaser for value, he acquires no better right than his fraudulent transferor. The true owner is entitled to reconveyance of the property.",
+        "analysis": "(a) Gregorio cannot be considered an innocent purchaser for value. When Gregorio inspected the premises, he saw that Prime Supermarket Inc. was in actual physical possession under a long-term lease with Mariano. This physical occupation was a clear red flag that imposed upon Gregorio the positive obligation to investigate beyond the title. Because Gregorio deliberately failed to make any inquiry regarding the supermarket's tenancy, he acted in bad faith or gross negligence and cannot invoke the mirror doctrine.\n(b) Because Gregorio is not an innocent purchaser for value, he is not protected by the Torrens system against the true owner. The forged deed of sale executed by Esteban was a complete nullity, and since Gregorio did not acquire the title in good faith, Mariano's action for annulment of title and reconveyance must prosper.",
+        "conclusion": "(a) No, Gregorio cannot claim IPV status because his failure to investigate the open physical possession of a third party defeated his claim of good faith.\n(b) Yes, Mariano's action for reconveyance will prosper because Gregorio is not an innocent purchaser for value."
+      }
+    },
+    {
+      "id": "CIV-MCQ-002",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Civil Law",
+        "Succession",
+        "Compulsory Heirs and Legitime"
+      ],
+      "topic": "Legitime of Illegitimate Children under Article 895",
+      "difficulty": "medium",
+      "question": "Under the Civil Code, as amended by the Family Code, what is the proportion of the legitime of each illegitimate child in relation to the legitime of each legitimate child?",
+      "options": [
+        "A) Equal to the legitime of a legitimate child.",
+        "B) One-half (1/2) of the legitime of each legitimate child.",
+        "C) One-third (1/3) of the legitime of each legitimate child.",
+        "D) Two-thirds (2/3) of the legitime of each legitimate child."
+      ],
+      "correct_answer": "B",
+      "explanation": "Under Article 176 of the Family Code in relation to Article 895 of the Civil Code, the legitime of each illegitimate child shall consist of one-half (1/2) of the legitime of a legitimate child."
+    },
+    {
+      "id": "CIV-ESS-003",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Civil Law",
+        "Torts and Damages",
+        "Article 2180 - Vicarious Liability of Employers"
+      ],
+      "topic": "Employer's Vicarious Liability vs. Bonus Paterfamilias Defense under Art. 2180",
+      "difficulty": "hard",
+      "extracted_rule": {
+        "doctrine": "Under Article 2180, paragraph 5 in relation to Article 2176 of the Civil Code, employers are liable for damages caused by their employees acting within the scope of their assigned tasks. The liability of the employer is primary and direct. To successfully overcome the presumption of negligence, the employer must prove that it observed the diligence of a good father of a family (bonus paterfamilias) not only in the selection but also in the continuous supervision of the employee (Filamer Christian Institute v. CA).",
+        "statutory_basis": [
+          "Civil Code, Arts. 2176, 2180",
+          "Filamer Christian Institute v. CA, G.R. No. 75112"
+        ],
+        "elements_and_principles": [
+          "Presumption of negligence (juris tantum) arises against employer upon proof of employee's tort.",
+          "Dual diligence requirement: Diligence in selection AND diligence in supervision.",
+          "Selection requires thorough vetting, driving exams, background checks.",
+          "Supervision requires formulation and strict enforcement of safety protocols, regular monitoring, and discipline."
+        ]
+      },
+      "fact_pattern": "FastCargo Freight Services Inc. (FastCargo) hired Danilo as a heavy trailer truck driver. During his hiring in 2022, FastCargo verified that Danilo had a valid professional driver's license and had him submit police and NBI clearances. However, FastCargo never conducted any actual driving proficiency exam, psychological assessment, or pre-employment drug screening. Furthermore, FastCargo did not maintain any log of driver hours or conduct regular safety monitoring.\n\nOn July 18, 2024, after driving continuously for 18 hours without sleep, Danilo fell asleep at the wheel while traversing a public highway in Bulacan. His truck swerved into the opposite lane and crushed a private van driven by Ernesto, causing Ernesto permanent physical disability and total destruction of the van. Ernesto filed a complaint for damages based on quasi-delict against both Danilo and FastCargo before the RTC.\n\nFastCargo raised the affirmative defense that it is not liable under Article 2180 because Danilo possessed a valid professional driver's license, which FastCargo claimed was conclusive proof of due diligence in selection.",
+      "interrogatory": "(a) Is FastCargo's presentation of Danilo's professional driver's license sufficient to establish the defense of due diligence in the selection and supervision of employees under Article 2180? Explain.\n(b) What is the nature of the liability of FastCargo and Danilo—is it joint, solidary, or subsidiary? Explain.",
+      "suggested_answer": {
+        "issue": "(a) Whether presenting an employee's professional driver's license constitutes sufficient proof of the diligence of a good father of a family under Article 2180;\n(b) What is the legal nature of the employer and employee's liability under Article 2176 and 2180.",
+        "rule": "(a) Under Article 2180 of the Civil Code, the responsibility of employers for the quasi-delicts of their employees is primary and direct. The employer can only be exculpated if it proves that it observed all the diligence of a good father of a family to prevent damage. Under settled jurisprudence (Syki v. Begasa, G.R. No. 149149), mere possession of a driver's license does not satisfy the required diligence in selection; the employer must prove actual driving tests, psychological screenings, and comprehensive supervision.\n(b) Under Article 2194 of the Civil Code, the responsibility of two or more persons who are liable for a quasi-delict is solidary.",
+        "analysis": "(a) FastCargo failed on both prongs of Article 2180. In selection, relying merely on Danilo's driver's license and NBI clearance without testing driving skill or administering drug/physical tests falls short of bonus paterfamilias. In supervision, FastCargo had no monitoring system and permitted Danilo to operate an 18-wheeler truck continuously for 18 hours, directly causing the fatigue and accident. The presumption of negligence stands unrebutted.\n(b) Under Article 2194, because the action is based on quasi-delict (tort), FastCargo and Danilo are solidarily liable to Ernesto for all actual, moral, and exemplary damages.",
+        "conclusion": "(a) No, presenting a driver's license is grossly insufficient to prove due diligence in selection and supervision under Article 2180.\n(b) Their liability is solidary under Article 2194 of the Civil Code."
+      }
+    },
+    {
+      "id": "CIV-MCQ-003",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Civil Law",
+        "Succession",
+        "Testamentary Succession - Preterition"
+      ],
+      "topic": "Preterition under Article 854 of the Civil Code",
+      "difficulty": "medium",
+      "question": "Under Article 854 of the Civil Code, what is the legal effect of the preterition (total omission) of a compulsory heir in the direct line in a last will and testament?",
+      "options": [
+        "A) It renders the entire will completely void for all purposes.",
+        "B) It annuls the institution of heir, but legacies and devises shall be valid insofar as they are not inofficious.",
+        "C) It converts the testate succession into a summary settlement of estate.",
+        "D) It only entitles the preterited heir to demand his completion of legitime without affecting the instituted heirs."
+      ],
+      "correct_answer": "B",
+      "explanation": "Article 854 of the Civil Code explicitly provides that the preterition of a compulsory heir in the direct line shall annul the institution of heir, but the devises and legacies shall be valid insofar as they are not inofficious."
+    }
+  ]
+}

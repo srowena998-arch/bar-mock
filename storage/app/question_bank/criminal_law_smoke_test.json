@@ -1,0 +1,323 @@
+{
+  "domain": "Criminal Law",
+  "source_book": "2026 DAY 3 Blue Phoenix Criminal Law.pdf",
+  "generated_at": "2026-08-15T20:10:00+08:00",
+  "version": "1.0-smoke-test",
+  "total_essay_items": 6,
+  "total_mcq_items": 6,
+  "items": [
+    {
+      "id": "CRIM-ESSAY-001",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Criminal Law",
+        "Fundamental Principles",
+        "Construction or Interpretation of Penal Laws - Effects of Repeal and Retroactivity"
+      ],
+      "topic": "Absolute Repeal vs. Re-enactment & Retroactivity",
+      "difficulty": "medium",
+      "extracted_rule": {
+        "doctrine": "Absolute repeal of a penal law obliterates the crime and decriminalizes the act, retroactively extinguishing criminal liability and divesting courts of jurisdiction to try pending cases, whereas a partial repeal with re-enactment preserves criminal liability under the new enactment.",
+        "statutory_basis": [
+          "Article 22, Revised Penal Code",
+          "Nullum crimen, nulla poena sine lege"
+        ],
+        "elements_and_principles": [
+          "Penal laws operate prospectively as a general rule.",
+          "Exception: Penal laws apply retroactively when favorable to the accused who is not a habitual delinquent.",
+          "Absolute repeal completely decriminalizes the conduct, requiring immediate dismissal of pending cases and release of convicts serving sentence.",
+          "If the repealed law is re-enacted or amended without decriminalizing the core act, the crime continues to be punishable under the new provision."
+        ]
+      },
+      "fact_pattern": "On February 10, 2024, Mateo was charged before the Regional Trial Court of Pasig City for violation of a special penal statute punishing the unauthorized importation of certain industrial chemical solvents. While Mateo's trial was pending on August 15, 2024, Congress enacted Republic Act No. 12990, which expressly repealed the previous statute in its entirety without incorporating or re-enacting any penal prohibition against the importation of such chemical solvents. Mateo promptly filed a Motion to Dismiss the criminal information, arguing that the repeal completely obliterated the crime. The public prosecutor opposed the motion, contending that Mateo committed the act when the prohibitory statute was fully in force and effective.",
+      "interrogatory": "Should the Regional Trial Court grant Mateo's Motion to Dismiss? Fully explain your answer applying the principles of criminal law.",
+      "suggested_answer": {
+        "issue": "Whether the pending criminal case against Mateo should be dismissed due to the absolute repeal of the penal law under which he was charged.",
+        "rule": "Under Philippine criminal law and the fundamental principle of nullum crimen, nulla poena sine lege, an absolute repeal of a penal statute completely obliterates the crime defined therein and decriminalizes the act. Under Article 22 of the Revised Penal Code, penal laws that are favorable to the accused shall be given retroactive effect, provided the accused is not a habitual delinquent. An absolute repeal deprives the courts of jurisdiction to continue trying pending cases for the repealed offense.",
+        "analysis": "Here, Republic Act No. 12990 expressly and unconditionally repealed the special penal statute without re-enacting its penal provisions or saving pending prosecutions. The act of importing the specified chemical solvents has ceased to be a punishable offense under Philippine law. Because the repeal is absolute and decriminalizes the conduct, its beneficial effects retroactively apply to Mateo, who is facing a pending prosecution and has not been shown to be a habitual delinquent. Consequently, there is no longer any statutory basis or offense upon which the trial court may convict him.",
+        "conclusion": "Yes, the Regional Trial Court should grant Mateo's Motion to Dismiss. The absolute repeal of the penal statute decriminalized the act and retroactively extinguished Mateo's criminal liability, divesting the court of jurisdiction to proceed."
+      }
+    },
+    {
+      "id": "CRIM-MCQ-001",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Criminal Law",
+        "Fundamental Principles",
+        "Construction or Interpretation of Penal Laws - Retroactivity"
+      ],
+      "topic": "Retroactive Effect of Penal Laws",
+      "difficulty": "easy",
+      "question": "Under Article 22 of the Revised Penal Code, which of the following offenders is disqualified from enjoying the retroactive application of a newly enacted penal law that reduces the imposable penalty?",
+      "options": [
+        "A) A quasi-recidivist under Article 160 of the Revised Penal Code",
+        "B) A recidivist under Article 14(9) of the Revised Penal Code",
+        "C) A habitual delinquent under Article 62(5) of the Revised Penal Code",
+        "D) An accused who committed the crime during the pendency of another criminal case"
+      ],
+      "correct_answer": "C",
+      "explanation": "Article 22 of the Revised Penal Code provides that penal laws shall have retroactive effect insofar as they favor the accused who is not a habitual delinquent under the terms of Article 62(5)."
+    },
+    {
+      "id": "CRIM-ESSAY-002",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Criminal Law",
+        "Fundamental Principles",
+        "Cardinal Principles of Criminal Law - Generality"
+      ],
+      "topic": "Generality Principle and Diplomatic Immunities",
+      "difficulty": "medium",
+      "extracted_rule": {
+        "doctrine": "Under the principle of generality (Art. 14, Civil Code), Philippine penal laws bind all persons who live or sojourn in Philippine territory, except those covered by treaties, laws of preferential application, and recognized principles of public international law (diplomatic agents). Commercial consular officers do not enjoy blanket criminal immunity unless specifically provided by treaty.",
+        "statutory_basis": [
+          "Article 14, Civil Code of the Philippines",
+          "Vienna Convention on Diplomatic Relations",
+          "Vienna Convention on Consular Relations"
+        ],
+        "elements_and_principles": [
+          "Generality binds all inhabitants regardless of nationality.",
+          "Exceptions include diplomatic envoys (ambassadors, ministers, charges d'affaires).",
+          "Consuls and vice-consuls are commercial representatives and generally subject to local criminal jurisdiction for personal felonies/grave offenses unless a specific bilateral treaty confers broader immunity."
+        ]
+      },
+      "fact_pattern": "Henri Dupont is the Honorary Consul of the Republic of Valdoria in Cebu City, Philippines. While driving his personal sports car on a Sunday evening after attending a private birthday dinner at a resort, Henri struck a pedestrian, Lorenzo, who was crossing along a designated pedestrian lane in Mandaue City. Lorenzo suffered fatal head injuries and died instantly. When local police investigators arrived at the scene and prepared to arrest Henri for Reckless Imprudence Resulting in Homicide under Article 365 of the Revised Penal Code, Henri presented his consular identification card and claimed complete diplomatic immunity under international law, insisting that Philippine penal laws cannot apply to him under the generality principle.",
+      "interrogatory": "Is Henri Dupont correct in claiming total exemption from Philippine criminal jurisdiction? Explain.",
+      "suggested_answer": {
+        "issue": "Whether an honorary consular officer is immune from Philippine criminal prosecution for a crime committed in his personal capacity under the Generality Principle of criminal law.",
+        "rule": "Under Article 14 of the Civil Code, penal laws are obligatory upon all who live or sojourn in Philippine territory (Generality Principle). Exceptions exist only pursuant to treaty stipulations, laws of preferential application, and recognized principles of public international law. Under public international law and the Vienna Convention on Consular Relations, consular officers, particularly honorary consuls, perform commercial and administrative functions and do not enjoy blanket diplomatic immunity from criminal prosecution for acts done in their private capacity, unlike diplomatic envoys (ambassadors, ministers, and charges d'affaires).",
+        "analysis": "Here, Henri Dupont is an honorary consul, not a diplomatic envoy or ambassador. The incident occurred on a Sunday evening while he was returning from a private personal gathering, having no relation to the official performance of consular functions. Consular officers are subject to the jurisdiction and criminal laws of the receiving state for private acts and grave crimes. Because no treaty or statute accords Henri diplomatic immunity for personal acts, the generality principle strictly applies to him.",
+        "conclusion": "No, Henri Dupont is incorrect. As an honorary consul acting in his private capacity, he does not enjoy diplomatic immunity and remains subject to Philippine criminal jurisdiction for Reckless Imprudence Resulting in Homicide under the Generality Principle."
+      }
+    },
+    {
+      "id": "CRIM-MCQ-002",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Criminal Law",
+        "Fundamental Principles",
+        "Mala In Se vs. Mala Prohibita"
+      ],
+      "topic": "Distinction between Mala In Se and Mala Prohibita",
+      "difficulty": "medium",
+      "question": "Which of the following statements correctly distinguishes crimes mala in se from crimes mala prohibita?",
+      "options": [
+        "A) In crimes mala prohibita, good faith and lack of criminal intent are valid regular defenses unless expressly barred.",
+        "B) In crimes mala in se, the degree of participation (principal, accomplice, accessory) is generally disregarded in fixing the penalty.",
+        "C) In crimes mala prohibita, the act is condemned because it is inherently immoral, regardless of statutory prohibition.",
+        "D) In crimes mala in se, modifying circumstances (mitigating and aggravating) are taken into account based on the offender's moral culpability, whereas they are generally disregarded in crimes mala prohibita."
+      ],
+      "correct_answer": "D",
+      "explanation": "In crimes mala in se, modifying circumstances are evaluated to calibrate the penalty based on the offender's moral liability. In crimes mala prohibita, modifying circumstances are generally not appreciated unless the special law expressly provides for them."
+    },
+    {
+      "id": "CRIM-ESSAY-003",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Criminal Law",
+        "Felonies and Criminal Liability",
+        "Stages of Execution - Consummation in Theft"
+      ],
+      "topic": "Stages of Execution: No Frustrated Stage in Theft",
+      "difficulty": "hard",
+      "extracted_rule": {
+        "doctrine": "Under the landmark doctrine in Valenzuela v. People, there is no crime of 'frustrated theft' under Article 308 of the Revised Penal Code. Once unlawful taking (apoderamiento) is complete—which occurs the moment the offender gains physical custody and control over the thing without the owner's consent—the crime of theft is fully consummated, regardless of whether the offender had the opportunity to dispose of or carry the stolen goods away from the premises.",
+        "statutory_basis": [
+          "Article 308, Revised Penal Code",
+          "Valenzuela v. People, G.R. No. 160188 (2007)"
+        ],
+        "elements_and_principles": [
+          "Elements of theft: (1) taking of personal property; (2) property belongs to another; (3) taking done with intent to gain (animus lucrandi); (4) taking without consent of owner; (5) taking accomplished without violence or intimidation against persons nor force upon things.",
+          "Unlawful taking is complete upon the offender obtaining physical possession/control.",
+          "Ability to freely dispose of the property is not an element of consummated theft.",
+          "Theft is either attempted or consummated; it does not admit of a frustrated stage."
+        ]
+      },
+      "fact_pattern": "On November 12, 2024, Rogelio, an employee at a large electronics distribution warehouse in Laguna, loaded four sealed boxes containing high-end smartphones (valued at P350,000) onto a hand pallet truck. Intending to steal them, Rogelio pushed the truck toward the rear loading bay gate. As he passed through the inner warehouse perimeter and reached the final security turnstile, an alert security guard ordered him to produce the corresponding gate pass and delivery receipt. When Rogelio failed to present any documents, the guard immediately detained him and retrieved the boxes intact inside the compound. The assistant provincial prosecutor subsequently filed an Information charging Rogelio with 'Frustrated Theft.'",
+      "interrogatory": "Is the Information charging Rogelio with 'Frustrated Theft' legally tenable under Philippine criminal jurisprudence? What crime, if any, did Rogelio commit, and at what stage of execution?",
+      "suggested_answer": {
+        "issue": "Whether the crime of theft admits of a frustrated stage of execution when the perpetrator is apprehended with the stolen goods inside the owner's premises before leaving the compound.",
+        "rule": "Under Article 308 of the Revised Penal Code and the definitive ruling in Valenzuela v. People (G.R. No. 160188, 2007), there is no crime of 'frustrated theft' under Philippine penal law. Theft is produced and consummated the moment unlawful taking (apoderamiento) occurs, which is the exact moment the offender takes physical possession and control of the personal property with intent to gain and without the owner's consent. Complete dominion or the opportunity to freely dispose of the items is not required for consummation.",
+        "analysis": "Here, Rogelio performed all the acts of execution by removing the four boxes of smartphones from their designated warehouse storage and placing them onto his pallet truck with animus lucrandi and without authorization. The moment Rogelio exercised physical control and custody over the items, the unlawful taking was accomplished. The fact that he was intercepted by security guards at the perimeter turnstile and prevented from carrying the goods outside the compound does not demote the felony to a frustrated stage. Under established jurisprudence, theft is either attempted or consummated; once unlawful taking has occurred, it is fully consummated.",
+        "conclusion": "No, the charge of 'Frustrated Theft' is legally untenable because Philippine law does not recognize frustrated theft. Rogelio committed the crime of Consummated Theft because the element of unlawful taking was fully completed upon his exercise of physical custody over the goods."
+      }
+    },
+    {
+      "id": "CRIM-MCQ-003",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Criminal Law",
+        "Felonies and Criminal Liability",
+        "Stages of Execution - Crimes Not Admitting Frustrated Stage"
+      ],
+      "topic": "Crimes without Frustrated Stage",
+      "difficulty": "medium",
+      "question": "Which of the following crimes admits of a frustrated stage under the Revised Penal Code?",
+      "options": [
+        "A) Rape",
+        "B) Arson",
+        "C) Homicide",
+        "D) Theft"
+      ],
+      "correct_answer": "C",
+      "explanation": "Homicide admits of a frustrated stage when the offender inflicts a mortal wound performing all acts of execution, but the victim survives due to timely medical intervention. In contrast, Rape (upon slightest penetration), Arson (upon partial burning of structure), and Theft (upon unlawful taking) do not admit of a frustrated stage."
+    },
+    {
+      "id": "CRIM-ESSAY-004",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Criminal Law",
+        "Felonies and Criminal Liability",
+        "Aberratio Ictus vs. Error in Personae vs. Praeter Intentionem"
+      ],
+      "topic": "Aberratio Ictus and Complex Crime under Article 48",
+      "difficulty": "hard",
+      "extracted_rule": {
+        "doctrine": "Under Article 4(1) of the RPC, criminal liability is incurred by any person committing a felony although the wrongful act done be different from that intended. In aberratio ictus (mistake in the blow), when a single gunshot aimed at an intended victim misses or passes through and hits a third person, causing death or injury to both or to the bystander, the offender is liable for the resulting felonies, which form a compound complex crime under Article 48 if a single act produces two or more grave or less grave felonies.",
+        "statutory_basis": [
+          "Article 4(1), Revised Penal Code",
+          "Article 48, Revised Penal Code",
+          "People v. Adriano, G.R. No. 205228 (2015)"
+        ],
+        "elements_and_principles": [
+          "Aberratio ictus occurs when the perpetrator directs the blow at one person but mistakenly strikes another due to lack of skill or bad aim.",
+          "The offender cannot claim lack of intent toward the unintended victim because he was acting with felonious intent.",
+          "If a single act (single shot) hits both the intended victim and a bystander resulting in grave/less grave felonies, Article 48 applies (compound complex crime)."
+        ]
+      },
+      "fact_pattern": "On the night of October 20, 2024, Bernardo harbored a bitter grudge against his business rival, Crisostomo. Seeing Crisostomo conversing outside a convenience store in Quezon City, Bernardo drew an unlicensed .45 caliber pistol, aimed directly at Crisostomo's chest from a distance of five meters, and fired a single shot with intent to kill. However, due to Bernardo's unsteady aim, the bullet merely grazed Crisostomo's arm (causing an injury requiring 7 days of medical attendance), but continued its trajectory and fatally struck Teresa, a 12-year-old student who was standing several meters behind Crisostomo buying school supplies. Teresa died on the spot.",
+      "interrogatory": "What crime or crimes did Bernardo commit, and how should his criminal liability and penalty be determined under the Revised Penal Code? Explain fully.",
+      "suggested_answer": {
+        "issue": "What is the criminal liability of an offender whose single gunshot intended to kill one victim grazes that victim and fatally hits a bystander behind him (aberratio ictus)?",
+        "rule": "Under Article 4(1) of the Revised Penal Code, criminal liability is incurred by any person committing a felony although the wrongful act done be different from that which he intended. Under the doctrine of aberratio ictus (mistake in the blow), an offender who shoots at an intended target but strikes an unintended bystander is liable for the natural and direct consequences of his felonious act. Under Article 48 of the Revised Penal Code, when a single act constitutes two or more grave or less grave felonies, a compound complex crime is committed, and the penalty for the most serious crime shall be imposed in its maximum period.",
+        "analysis": "Here, Bernardo fired a single shot with intent to kill Crisostomo. Regarding Crisostomo, because Bernardo performed an overt act directly commencing murder/homicide but failed to produce death due to a cause other than his own desistance, Bernardo committed Attempted Homicide/Murder (a less grave or grave felony). As to Teresa, although Bernardo had no specific design against her, her death was the direct and natural result of his felonious discharge of a firearm; hence, Bernardo is liable for Homicide (a grave felony). Because a single act (one trigger pull/one bullet) produced two felonies (Homicide and Attempted Homicide/Slight Physical Injury), Article 48 applies, constituting a compound complex crime.",
+        "conclusion": "Bernardo committed the compound complex crime of Homicide with Attempted Homicide under Article 48 in relation to Article 4(1) of the Revised Penal Code. Pursuant to Article 48, he shall be sentenced to the penalty corresponding to the most serious crime (Homicide), to be imposed in its maximum period."
+      }
+    },
+    {
+      "id": "CRIM-MCQ-004",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Criminal Law",
+        "Felonies and Criminal Liability",
+        "Aberratio Ictus vs. Error in Personae vs. Praeter Intentionem"
+      ],
+      "topic": "Praeter Intentionem as a Mitigating Circumstance",
+      "difficulty": "easy",
+      "question": "When an offender commits an intentional felony but the wrongful consequence that results is graver than that which was originally intended (praeter intentionem), what is the legal effect on his criminal liability?",
+      "options": [
+        "A) The offender is completely exempt from criminal liability for the graver consequence.",
+        "B) The offender is entitled to the mitigating circumstance of lack of intent to commit so grave a wrong under Article 13(3) of the Revised Penal Code.",
+        "C) The crime is treated as an impossible crime under Article 4(2) of the Revised Penal Code.",
+        "D) The offense is automatically converted into a quasi-offense of reckless imprudence under Article 365."
+      ],
+      "correct_answer": "B",
+      "explanation": "Under Article 13(3) of the Revised Penal Code, praeter intentionem operates as a mitigating circumstance (that the offender had no intention to commit so grave a wrong as that committed) when there is a notable disparity between the means used and the resulting injury."
+    },
+    {
+      "id": "CRIM-ESSAY-005",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Criminal Law",
+        "Felonies and Criminal Liability",
+        "Impossible Crime"
+      ],
+      "topic": "Impossible Crime vs. Attempted Felony",
+      "difficulty": "medium",
+      "extracted_rule": {
+        "doctrine": "An impossible crime under Article 4(2) of the Revised Penal Code requires: (1) an act which would be an offense against persons or property; (2) evil intent on the part of the actor; and (3) accomplishment is inherently impossible (either legally or factually) or the means employed are inadequate or ineffectual. In factual impossibility, extraneous unknown circumstances render the consummation physically impossible.",
+        "statutory_basis": [
+          "Article 4(2), Revised Penal Code",
+          "Article 59, Revised Penal Code",
+          "Intod v. Court of Appeals, G.R. No. 103119 (1992)",
+          "Jacinto v. People, G.R. No. 162540 (2009)"
+        ],
+        "elements_and_principles": [
+          "Crime must be against persons or property.",
+          "Actor must possess subjective mens rea / evil intent.",
+          "Factual impossibility occurs when unknown circumstances prevent consummation (e.g. shooting into an empty bedroom where the target is absent, or picking an empty pocket).",
+          "Impossible crimes are punished under Article 59 to suppress social danger, not under the attempted stage of the intended crime."
+        ]
+      },
+      "fact_pattern": "Believing that his neighbor, Damian, was asleep inside his bedroom, Federico decided to assassinate him. At 1:00 AM on December 5, 2024, Federico positioned himself outside Damian's ground-floor bedroom window, pointed an automatic shotgun at the center of the bed where a humanoid silhouette under the blanket was visible, and fired three consecutive rounds into the bed, completely shredding the mattress and pillows. Unbeknownst to Federico, Damian had left the house two hours earlier to attend to an emergency at his office, and had merely arranged bolster pillows under the blanket to keep the shape of the bed. The police arrested Federico shortly thereafter, and the prosecutor charged him with 'Attempted Murder.'",
+      "interrogatory": "Is the charge of Attempted Murder correct? If not, what crime was committed by Federico and under what statutory provision should he be held liable? Explain.",
+      "suggested_answer": {
+        "issue": "Whether shooting into an empty bed where the intended victim is absent constitutes Attempted Murder or an Impossible Crime under Article 4(2) of the Revised Penal Code.",
+        "rule": "Under Article 4(2) of the Revised Penal Code and Intod v. Court of Appeals (G.R. No. 103119, 1992), criminal liability is incurred by any person performing an act which would be an offense against persons or property, were it not for the inherent impossibility of its accomplishment or on account of the employment of inadequate or ineffectual means. Factual impossibility occurs where extraneous circumstances unknown to the actor or beyond his control prevent the consummation of the intended crime.",
+        "analysis": "Here, Federico performed overt acts directed against persons with clear evil intent (intent to kill Damian). However, the accomplishment of murder was inherently and factually impossible from the beginning because the intended victim was not in the room or bed when the shots were fired. Under the doctrine established in Intod v. Court of Appeals, where the perpetrator fires into the target's room or bed when the victim is elsewhere, the crime committed is not Attempted Murder, but an Impossible Crime due to factual impossibility. Attempted murder requires that the non-consummation be due to some cause other than inherent impossibility.",
+        "conclusion": "No, the charge of Attempted Murder is incorrect. Federico is liable for an Impossible Crime under Article 4, paragraph 2 of the Revised Penal Code, punishable pursuant to Article 59 of the same Code."
+      }
+    },
+    {
+      "id": "CRIM-MCQ-005",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Criminal Law",
+        "Felonies and Criminal Liability",
+        "Impossible Crime - Scope of Offenses"
+      ],
+      "topic": "Scope of Impossible Crimes under Article 4(2)",
+      "difficulty": "easy",
+      "question": "Under Article 4, paragraph 2 of the Revised Penal Code, an impossible crime can only be committed if the intended offense belongs to which of the following classifications?",
+      "options": [
+        "A) Crimes against National Security and Public Order",
+        "B) Crimes against Persons or Crimes against Property",
+        "C) Crimes against Public Morals or Chastity",
+        "D) Any felony punished under the Revised Penal Code"
+      ],
+      "correct_answer": "B",
+      "explanation": "Article 4(2) of the Revised Penal Code expressly restricts impossible crimes to acts that would be an 'offense against persons or property, were it not for the inherent impossibility of its accomplishment or on account of the employment of inadequate or ineffectual means.'"
+    },
+    {
+      "id": "CRIM-ESSAY-006",
+      "type": "essay",
+      "subject_hierarchy": [
+        "Criminal Law",
+        "Felonies and Criminal Liability",
+        "Plurality of Crimes - Compound vs. Complex Crime Proper vs. Special Complex Crime"
+      ],
+      "topic": "Compound Crime under Article 48",
+      "difficulty": "medium",
+      "extracted_rule": {
+        "doctrine": "Under Article 48 of the RPC, a compound crime arises when a single physical act produces two or more grave or less grave felonies. Light felonies produced by the same act are excluded from the composition of a compound crime and must be treated as separate infractions or absorbed.",
+        "statutory_basis": [
+          "Article 48, Revised Penal Code",
+          "People v. Turla, G.R. No. 26388 (1927)"
+        ],
+        "elements_and_principles": [
+          "Requisites of Compound Crime: (1) only a single physical act is performed; (2) that single act produces two or more grave felonies, or one grave and one less grave, or two or more less grave felonies.",
+          "Only grave and less grave felonies are complexed under Article 48.",
+          "Light felonies resulting from the single act cannot form a compound crime with grave/less grave felonies."
+        ]
+      },
+      "fact_pattern": "On New Year's Eve, December 31, 2024, during a heated argument at a neighborhood plaza, Joaquin threw a live fragmentation grenade at a bench occupied by his rivals. The explosion killed two persons, Edgardo and Fernando, severely mutilated the leg of a third person, Gabriel (requiring 45 days of medical treatment and incapacitation), and caused superficial scratches to a fourth bystander, Hector (requiring 3 days of medical attendance). The city prosecutor filed a single Information against Joaquin for 'Complex Crime of Double Murder with Serious Physical Injuries and Slight Physical Injuries.'",
+      "interrogatory": "Is the prosecutor correct in including Slight Physical Injuries in the compound complex crime under Article 48 of the Revised Penal Code? Explain how the crimes and corresponding penalties should be properly charged.",
+      "suggested_answer": {
+        "issue": "Whether a light felony (Slight Physical Injuries) can be complexed with grave and less grave felonies (Murder and Serious Physical Injuries) under Article 48 of the Revised Penal Code when produced by a single act.",
+        "rule": "Under Article 48 of the Revised Penal Code, a compound crime exists when a single act constitutes two or more grave or less grave felonies. The law deliberately limits complex crimes to grave and less grave felonies; light felonies (such as Slight Physical Injuries under Article 266) cannot be included in a compound complex crime (People v. Turla, G.R. No. 26388).",
+        "analysis": "Here, Joaquin performed a single act—throwing one fragmentation grenade. This single act directly produced two counts of Murder (grave felonies) and one count of Serious Physical Injuries (less grave felony). These grave and less grave offenses properly constitute a compound complex crime under Article 48, punishable with the penalty for the most serious crime (Murder) in its maximum period. However, the superficial scratches sustained by Hector constitute Slight Physical Injuries, which is a light felony under Article 9(3) and Article 266 of the Revised Penal Code. Because Article 48 excludes light felonies from compound crimes, the slight physical injury cannot be complexed with the murders and serious physical injuries, and must instead be prosecuted as a separate light offense.",
+        "conclusion": "No, the prosecutor is incorrect in including Slight Physical Injuries in the complex crime. Joaquin should be charged with the compound complex crime of Double Murder with Serious Physical Injuries under Article 48 (imposing the penalty for Murder in its maximum period), while the Slight Physical Injuries must be treated and charged as a separate light offense."
+      }
+    },
+    {
+      "id": "CRIM-MCQ-006",
+      "type": "mcq",
+      "subject_hierarchy": [
+        "Criminal Law",
+        "Felonies and Criminal Liability",
+        "Plurality of Crimes - Compound Crimes"
+      ],
+      "topic": "Requisites of Compound Crimes under Article 48",
+      "difficulty": "medium",
+      "question": "Which of the following combinations of offenses produced by a single physical act CANNOT constitute a compound crime under Article 48 of the Revised Penal Code?",
+      "options": [
+        "A) Two grave felonies",
+        "B) One grave felony and one less grave felony",
+        "C) Two less grave felonies",
+        "D) One less grave felony and one light felony"
+      ],
+      "correct_answer": "D",
+      "explanation": "Article 48 of the Revised Penal Code explicitly applies only when a single act constitutes two or more grave or less grave felonies. Light felonies are excluded from compound crimes."
+    }
+  ]
+}
