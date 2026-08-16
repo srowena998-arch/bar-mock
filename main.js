@@ -19,12 +19,17 @@ function syncGitHubUpdates() {
   }
 }
 
-// 2. Start Embedded Server Process
+// 2. Start Embedded Server Process (Only if not already running)
 function startServer() {
-  serverProcess = spawn('node', ['server.js'], {
-    cwd: __dirname,
-    stdio: 'ignore',
-    env: { ...process.env, PORT: PORT }
+  http.get(`http://localhost:${PORT}/api/domains`, (res) => {
+    console.log('✅ Connected to existing Bar Mock Reviewer Engine.');
+  }).on('error', () => {
+    console.log('🚀 Spawning internal server on port ' + PORT + '...');
+    serverProcess = spawn('node', ['server.js'], {
+      cwd: __dirname,
+      stdio: 'ignore',
+      env: { ...process.env, PORT: PORT }
+    });
   });
 }
 

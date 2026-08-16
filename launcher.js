@@ -93,9 +93,10 @@ const getBrowserAppPath = () => {
     // 1. Priority: True Electron Native Application (Custom Icon in Taskbar)
     if (fs.existsSync(electronBinary)) {
       console.log('🖥️ Launching Standalone Electron Native Window (Custom Taskbar Icon)...');
-      const electronProcess = spawn(electronBinary, ['.'], {
+      const electronProcess = spawn('cmd.exe', ['/c', `"${electronBinary}" .`], {
         cwd: REPO_DIR,
         stdio: 'inherit',
+        windowsVerbatimArguments: true,
         env: { ...process.env, PORT: PORT }
       });
 

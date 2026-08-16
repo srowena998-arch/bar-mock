@@ -1638,6 +1638,16 @@ Please evaluate the candidate's answer and output strictly valid JSON.`;
   }
 });
 
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.log(`ℹ️ Port ${PORT} is already in use by another active instance. Reusing existing running engine...`);
+    process.exit(0);
+  } else {
+    console.error('Server Listen Error:', err);
+    process.exit(1);
+  }
+});
+
 server.listen(PORT, () => {
   console.log(`\n======================================================`);
   console.log(`⚖️  BAR 2026 MOCK REVIEWER SERVER RUNNING`);
