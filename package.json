@@ -2,9 +2,11 @@
   "name": "bar-2026-mock-reviewer",
   "version": "1.0.0",
   "description": "2026 Philippine Bar Mock Reviewer & Supreme Court AI Platform",
-  "main": "server.js",
+  "main": "main.js",
   "scripts": {
     "start": "node server.js",
+    "app": "node launcher.js",
+    "electron": "electron .",
     "test": "node --test"
   },
   "engines": {
@@ -17,5 +19,8 @@
     "llamaindex": "^0.12.1",
     "sqlite-vec": "^0.1.9",
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "electron": "^40.8.0"
   }
 }
