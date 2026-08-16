@@ -13,9 +13,10 @@ yarn-error.log*
 Thumbs.db
 desktop.ini
 
-# Environment variables
+# Environment & Local User Settings (Never committed to GitHub)
 .env
 .env.local
+.user_settings.json
 
 # Executables
 *.exe

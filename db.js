@@ -97,16 +97,70 @@ CREATE TABLE IF NOT EXISTS ai_audit_logs (
 );
 `);
 
-// Set default system configurations if not already set
+// Persistent Local Settings File (Untracked by Git, immune to pulls/rebuilds)
+const userSettingsFile = path.join(__dirname, '.user_settings.json');
+
 const getConfig = (key) => {
-    const row = db.prepare('SELECT value FROM system_config WHERE key = ?').get(key);
-    return row ? row.value : null;
+    // 1. Check SQLite database
+    try {
+        const row = db.prepare('SELECT value FROM system_config WHERE key = ?').get(key);
+        if (row && row.value) return row.value;
+    } catch(e) {}
+
+    // 2. Check persistent untracked .user_settings.json
+    try {
+        if (fs.existsSync(userSettingsFile)) {
+            const fileData = JSON.parse(fs.readFileSync(userSettingsFile, 'utf8') || '{}');
+            if (fileData[key]) {
+                // Restore into SQLite
+                try {
+                    db.prepare('INSERT INTO system_config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = ?')
+                      .run(key, fileData[key], fileData[key]);
+                } catch(e) {}
+                return fileData[key];
+            }
+        }
+    } catch(e) {}
+
+    // 3. Fallback to process.env
+    if (key === 'opencode_api_key') return process.env.OPENCODE_API_KEY || null;
+    if (key === 'opencode_base_url') return process.env.OPENCODE_BASE_URL || null;
+    if (key === 'default_model') return process.env.DEFAULT_MODEL || null;
+
+    return null;
 };
 
 const setConfig = (key, value) => {
-    db.prepare('INSERT INTO system_config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = ?')
-      .run(key, value, value);
+    // 1. Save to SQLite
+    try {
+        db.prepare('INSERT INTO system_config (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = ?')
+          .run(key, value, value);
+    } catch(e) {}
+
+    // 2. Save to persistent untracked .user_settings.json
+    try {
+        let current = {};
+        if (fs.existsSync(userSettingsFile)) {
+            try { current = JSON.parse(fs.readFileSync(userSettingsFile, 'utf8') || '{}'); } catch(e) {}
+        }
+        current[key] = value;
+        fs.writeFileSync(userSettingsFile, JSON.stringify(current, null, 2), 'utf8');
+    } catch(e) {
+        console.warn('Failed to write .user_settings.json backup:', e.message);
+    }
 };
+
+// Initial sync on startup
+try {
+    if (fs.existsSync(userSettingsFile)) {
+        const fileData = JSON.parse(fs.readFileSync(userSettingsFile, 'utf8') || '{}');
+        for (const [k, v] of Object.entries(fileData)) {
+            if (v && !getConfig(k)) {
+                setConfig(k, v);
+            }
+        }
+    }
+} catch(e) {}
 
 const recordEvalLog = (log) => {
     try {
