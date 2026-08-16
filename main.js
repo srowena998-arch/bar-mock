@@ -53,7 +53,7 @@ function createWindow() {
     minWidth: 420,
     minHeight: 600,
     title: 'BAR 2026 Mock Reviewer & Supreme Court AI Platform',
-    icon: path.join(__dirname, 'favicon.ico'),
+    icon: path.join(__dirname, 'app_icon.ico'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true
@@ -72,6 +72,11 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+}
+
+app.setName('Bar 2026 Mock Reviewer');
+if (process.platform === 'win32') {
+  app.setAppUserModelId('ph.supremecourt.barmock2026');
 }
 
 app.whenReady().then(() => {
