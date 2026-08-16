@@ -16,3 +16,7 @@ desktop.ini
 # Environment variables
 .env
 .env.local
+
+# Executables
+*.exe
+
