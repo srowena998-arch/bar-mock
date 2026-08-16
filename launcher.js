@@ -87,12 +87,32 @@ const getBrowserAppPath = () => {
     await waitForServer(PORT);
     console.log(`\n🌐 Engine ready at http://localhost:${PORT}`);
     
-    const browserPath = getBrowserAppPath();
     const appUrl = `http://localhost:${PORT}`;
+    const electronBinary = path.join(REPO_DIR, 'node_modules', '.bin', 'electron.cmd');
+
+    // 1. Priority: True Electron Native Application (Custom Icon in Taskbar)
+    if (fs.existsSync(electronBinary)) {
+      console.log('🖥️ Launching Standalone Electron Native Window (Custom Taskbar Icon)...');
+      const electronProcess = spawn(electronBinary, ['.'], {
+        cwd: REPO_DIR,
+        stdio: 'inherit',
+        env: { ...process.env, PORT: PORT }
+      });
+
+      electronProcess.on('exit', () => {
+        console.log('\n🛑 Application window closed. Shutting down server engine...');
+        try { serverProcess.kill(); } catch (e) {}
+        process.exit(0);
+      });
+      return;
+    }
+
+    // 2. Secondary: Edge / Chrome App Mode
+    const browserPath = getBrowserAppPath();
     const userDataDir = path.join(process.env.LOCALAPPDATA || 'C:\\temp', 'BarMock2026_UserData');
 
     if (browserPath) {
-      console.log('🖥️ Launching Native Windows Application Window...');
+      console.log('🖥️ Launching Native Windows App Window (Edge App Mode)...');
       
       const appWindow = spawn(browserPath, [
         `--app=${appUrl}`,
@@ -111,7 +131,7 @@ const getBrowserAppPath = () => {
         process.exit(0);
       });
     } else {
-      // Fallback: Open default browser
+      // 3. Fallback: Open default browser
       console.log('🖥️ Opening in default browser...');
       execSync(`start ${appUrl}`, { shell: 'cmd.exe' });
     }
