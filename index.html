@@ -1340,25 +1340,16 @@
           </button>
         </nav>
 
-        <!-- Live Provider Indicator pill on Mobile & Desktop -->
-        <div class="flex items-center gap-1">
-          <span 
-            @click="showSettingsModal = true"
-            class="cursor-pointer text-[10px] font-mono px-2 py-1 rounded-xl border flex items-center gap-1 transition"
-            :class="aiProviderStatus === 'ready' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-slate-100 text-slate-700 border-slate-200'"
-            title="AI Engine Status"
-          >
-            <span class="w-2 h-2 rounded-full" :class="aiProviderStatus === 'ready' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"></span>
-            <span class="hidden sm:inline font-bold" x-text="selectedModel ? selectedModel.split('/')[1] || selectedModel : 'AI SDK'"></span>
-          </span>
-
-          <!-- Settings Button -->
+        <!-- Live Provider Indicator & Settings Action -->
+        <div class="flex items-center">
           <button 
             @click="showSettingsModal = true" 
-            class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 hover:text-slate-900 transition"
-            title="Configure AI Provider & Model"
+            class="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 transition flex items-center gap-1.5 text-xs font-medium cursor-pointer shadow-2xs"
+            title="Configure AI Provider, API Key & Model"
           >
-            <span class="text-xs sm:text-sm">⚙️</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="font-mono text-[11px] text-slate-900 font-bold hidden sm:inline" x-text="settings.default_model || 'AI Model'"></span>
+            <span class="text-slate-500 text-xs">⚙️</span>
           </button>
         </div>
       </div>
@@ -3139,7 +3130,7 @@
   </main>
 
   <!-- Floating RAG Bar Counsel Chatbot (BeautifulUI Chat Panel Primitive) -->
-  <div class="fixed bottom-16 sm:bottom-6 right-2 sm:right-6 left-2 sm:left-auto z-40 flex flex-col items-end">
+  <div class="fixed bottom-16 sm:bottom-6 right-3 sm:right-6 z-50 flex flex-col items-end pointer-events-none">
     
     <!-- Chat Drawer Window -->
     <div 
@@ -3150,7 +3141,7 @@
       x-transition:leave="transition ease-in duration-150"
       x-transition:leave-start="opacity-100 translate-y-0 scale-100"
       x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-      class="mb-2 w-full sm:w-[470px] max-h-[80vh] h-[520px] sm:h-[570px] bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-3xl shadow-2xl flex flex-col overflow-hidden ring-1 ring-slate-900/5"
+      class="pointer-events-auto mb-2 w-[calc(100vw-1.5rem)] sm:w-[470px] max-h-[75vh] sm:max-h-[80vh] h-[520px] sm:h-[570px] bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-3xl shadow-2xl flex flex-col overflow-hidden ring-1 ring-slate-900/5"
     >
       <!-- Chatbot Header -->
       <div class="p-3 sm:p-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
@@ -3262,10 +3253,10 @@
       </div>
     </div>
 
-    <!-- Floating Chatbot Launcher Button (Positioned safely above bottom nav on mobile) -->
+    <!-- Floating Chatbot Launcher Button (Fixed securely on bottom right) -->
     <button 
       @click="toggleChatbot()" 
-      class="group relative px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-xl shadow-amber-500/25 flex items-center gap-2 transition-all duration-200 transform hover:scale-105 active:scale-95 bottom-16 sm:bottom-0"
+      class="pointer-events-auto group px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-xl shadow-amber-500/25 flex items-center gap-2 transition-all duration-200 transform hover:scale-105 active:scale-95 cursor-pointer"
     >
       <span class="text-base">⚖️</span>
       <span class="font-extrabold tracking-tight hidden sm:inline">Ask Dean Phoenix</span>
