@@ -40,15 +40,21 @@
 
   <style>
     [x-cloak] { display: none !important; }
+    html { -webkit-tap-highlight-color: transparent; }
+    button, a, input, select, textarea { touch-action: manipulation; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #f1f5f9; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
     ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     .legal-paper {
       background-color: #ffffff;
       background-image: radial-gradient(#e2e8f0 0.75px, transparent 0.75px);
       background-size: 16px 16px;
     }
+    .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1rem); }
+    .bottom-safe { bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem); }
   </style>
 </head>
 
@@ -73,32 +79,32 @@
   <div 
     x-show="showRefineModal" 
     x-transition:enter="transition ease-out duration-200"
-    x-transition:enter-start="opacity-0 scale-95"
-    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:enter-start="opacity-0 translate-y-4 sm:scale-95"
+    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
     x-transition:leave="transition ease-in duration-150"
-    x-transition:leave-start="opacity-100 scale-100"
-    x-transition:leave-end="opacity-0 scale-95"
-    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+    x-transition:leave-end="opacity-0 translate-y-4 sm:scale-95"
+    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-6"
   >
     <div 
       @click.away="showRefineModal = false" 
-      class="bg-white border border-slate-200 rounded-3xl max-w-3xl w-full p-6 sm:p-7 space-y-5 shadow-2xl overflow-hidden"
+      class="bg-white border border-slate-200 rounded-t-3xl sm:rounded-3xl max-w-3xl w-full p-4 sm:p-7 space-y-4 sm:space-y-5 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
     >
       <!-- Modal Header -->
-      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 text-base font-bold">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 sm:pb-4 shrink-0">
+        <div class="flex items-center gap-2.5 sm:gap-3">
+          <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 text-sm sm:text-base font-bold shrink-0">
             ✨
           </div>
-          <div>
-            <h3 class="font-bold text-slate-900 text-base tracking-tight" x-text="refineItemType === 'mcq' ? 'AI MCQ Refinement & Expansion Studio' : 'Targeted AI Essay Refinement & Polish'"></h3>
-            <p class="text-xs text-slate-500">In-place AI SDK transformation adhering to Supreme Court Bar standards</p>
+          <div class="min-w-0">
+            <h3 class="font-bold text-slate-900 text-sm sm:text-base tracking-tight truncate" x-text="refineItemType === 'mcq' ? 'AI MCQ Refinement Studio' : 'Targeted AI Essay Refinement'"></h3>
+            <p class="text-[10px] sm:text-xs text-slate-500 truncate">In-place AI transformation adhering to Supreme Court Bar standards</p>
           </div>
         </div>
-        <button @click="showRefineModal = false" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center text-sm transition">✕</button>
+        <button @click="showRefineModal = false" class="w-8 h-8 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center text-sm transition shrink-0">✕</button>
       </div>
 
-      <div class="space-y-4 text-xs">
+      <div class="space-y-3 sm:space-y-4 text-xs overflow-y-auto pr-1 flex-1">
         <!-- Target Field Selector (for Essay) -->
         <template x-if="refineItemType === 'essay'">
           <div>
@@ -317,11 +323,11 @@
       </div>
 
       <!-- Action Footer -->
-      <div class="flex items-center justify-between pt-3 border-t border-slate-100">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-3 border-t border-slate-100 shrink-0">
         <button 
           @click="executeRefineQuestion()" 
           :disabled="isRefining"
-          class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-xs shadow-md transition flex items-center gap-2"
+          class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2 min-h-[44px]"
         >
           <span x-show="!isRefining">⚡ Synthesize with AI SDK</span>
           <span x-show="isRefining" class="flex items-center gap-1.5">
@@ -331,13 +337,13 @@
         </button>
 
         <div class="flex items-center gap-2">
-          <button @click="showRefineModal = false" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">Cancel</button>
+          <button @click="showRefineModal = false" class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition text-center min-h-[44px]">Cancel</button>
           <button 
             @click="applyRefinedQuestion()" 
             :disabled="!refinePreviewData"
-            class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-bold shadow-md transition flex items-center gap-1.5"
+            class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5 min-h-[44px]"
           >
-            <span>💾</span> Apply & Save to SQLite
+            <span>💾</span> Save to SQLite
           </button>
         </div>
       </div>
@@ -347,22 +353,27 @@
   <!-- Settings Modal (Live Models & Endpoints) -->
   <div 
     x-show="showSettingsModal" 
-    x-transition 
-    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4"
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0 translate-y-4 sm:scale-95"
+    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+    x-transition:leave-end="opacity-0 translate-y-4 sm:scale-95"
+    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
   >
     <div 
       @click.away="showSettingsModal = false" 
-      class="bg-white border border-slate-200 rounded-3xl max-w-md w-full p-6 space-y-5 shadow-2xl"
+      class="bg-white border border-slate-200 rounded-t-3xl sm:rounded-3xl max-w-md w-full p-5 sm:p-6 space-y-4 sm:space-y-5 shadow-2xl max-h-[92vh] flex flex-col"
     >
-      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
         <div class="flex items-center gap-2.5">
           <span class="text-amber-600 text-lg">⚙️</span>
-          <h3 class="font-bold text-slate-900 text-base">Live AI Provider Configuration</h3>
+          <h3 class="font-bold text-slate-900 text-sm sm:text-base">AI Provider Configuration</h3>
         </div>
         <button @click="showSettingsModal = false" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center text-xs">✕</button>
       </div>
 
-      <div class="space-y-4 text-xs">
+      <div class="space-y-4 text-xs overflow-y-auto pr-1 flex-1">
         <!-- Quick Provider Presets -->
         <div>
           <label class="block text-slate-700 font-semibold mb-1.5">Quick Provider Presets</label>
@@ -511,16 +522,16 @@
   <div 
     x-show="showScoutModal" 
     x-transition:enter="transition ease-out duration-200"
-    x-transition:enter-start="opacity-0 scale-95"
-    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:enter-start="opacity-0 translate-y-4 sm:scale-95"
+    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
     x-transition:leave="transition ease-in duration-150"
-    x-transition:leave-start="opacity-100 scale-100"
-    x-transition:leave-end="opacity-0 scale-95"
-    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
+    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+    x-transition:leave-end="opacity-0 translate-y-4 sm:scale-95"
+    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-6"
   >
     <div 
       @click.away="showScoutModal = false" 
-      class="bg-white border border-slate-200 rounded-3xl max-w-4xl w-full p-5 sm:p-7 space-y-5 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
+      class="bg-white border border-slate-200 rounded-t-3xl sm:rounded-3xl max-w-4xl w-full p-4 sm:p-7 space-y-4 sm:space-y-5 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
     >
       <!-- Modal Header with 4-Step Pipeline Indicators -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4 shrink-0">
@@ -780,16 +791,16 @@
   <div 
     x-show="showUploadModal" 
     x-transition:enter="transition ease-out duration-200"
-    x-transition:enter-start="opacity-0 scale-95"
-    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:enter-start="opacity-0 translate-y-4 sm:scale-95"
+    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
     x-transition:leave="transition ease-in duration-150"
-    x-transition:leave-start="opacity-100 scale-100"
-    x-transition:leave-end="opacity-0 scale-95"
-    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+    x-transition:leave-end="opacity-0 translate-y-4 sm:scale-95"
+    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-6"
   >
     <div 
       @click.away="showUploadModal = false" 
-      class="bg-white border border-slate-200 rounded-3xl max-w-2xl w-full p-6 sm:p-7 space-y-5 shadow-2xl overflow-hidden"
+      class="bg-white border border-slate-200 rounded-t-3xl sm:rounded-3xl max-w-2xl w-full p-4 sm:p-7 space-y-4 sm:space-y-5 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
     >
       <div class="flex items-center justify-between border-b border-slate-100 pb-4">
         <div class="flex items-center gap-3">
@@ -870,16 +881,16 @@
   <div 
     x-show="showAuthorModal" 
     x-transition:enter="transition ease-out duration-200"
-    x-transition:enter-start="opacity-0 scale-95"
-    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:enter-start="opacity-0 translate-y-4 sm:scale-95"
+    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
     x-transition:leave="transition ease-in duration-150"
-    x-transition:leave-start="opacity-100 scale-100"
-    x-transition:leave-end="opacity-0 scale-95"
-    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+    x-transition:leave-end="opacity-0 translate-y-4 sm:scale-95"
+    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-6"
   >
     <div 
       @click.away="showAuthorModal = false" 
-      class="bg-white border border-slate-200 rounded-3xl max-w-3xl w-full p-6 sm:p-7 space-y-5 shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+      class="bg-white border border-slate-200 rounded-t-3xl sm:rounded-3xl max-w-3xl w-full p-4 sm:p-7 space-y-4 sm:space-y-5 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
     >
       <!-- Modal Header -->
       <div class="flex items-center justify-between border-b border-slate-100 pb-4 shrink-0">
@@ -1184,16 +1195,16 @@
   <div 
     x-show="showBulkModal" 
     x-transition:enter="transition ease-out duration-200"
-    x-transition:enter-start="opacity-0 scale-95"
-    x-transition:enter-end="opacity-100 scale-100"
+    x-transition:enter-start="opacity-0 translate-y-4 sm:scale-95"
+    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
     x-transition:leave="transition ease-in duration-150"
-    x-transition:leave-start="opacity-100 scale-100"
-    x-transition:leave-end="opacity-0 scale-95"
-    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6"
+    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+    x-transition:leave-end="opacity-0 translate-y-4 sm:scale-95"
+    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-6"
   >
     <div 
       @click.away="showBulkModal = false" 
-      class="bg-white border border-slate-200 rounded-3xl max-w-xl w-full p-6 sm:p-7 space-y-5 shadow-2xl overflow-hidden"
+      class="bg-white border border-slate-200 rounded-t-3xl sm:rounded-3xl max-w-xl w-full p-4 sm:p-7 space-y-4 sm:space-y-5 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col"
     >
       <div class="flex items-center justify-between border-b border-slate-100 pb-4">
         <div class="flex items-center gap-3">
@@ -1251,30 +1262,30 @@
   </div>
 
   <!-- Top Navigation Bar -->
-  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/90 shadow-xs">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between">
       
       <!-- Brand Logo -->
-      <div class="flex items-center space-x-3 cursor-pointer group" @click="currentTab = 'dashboard'; loadReadinessAnalytics();">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/20 text-white font-bold text-xl group-hover:scale-105 transition transform">
+      <div class="flex items-center space-x-2.5 sm:space-x-3 cursor-pointer group" @click="currentTab = 'dashboard'; loadReadinessAnalytics();">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md shadow-amber-500/20 text-white font-bold text-lg sm:text-xl group-hover:scale-105 transition transform shrink-0">
           ⚖️
         </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <h1 class="text-base sm:text-lg font-extrabold tracking-tight text-slate-900">BAR 2026</h1>
-            <span class="text-[10px] uppercase font-bold tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">Mock Reviewer</span>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <h1 class="text-sm sm:text-lg font-extrabold tracking-tight text-slate-900 truncate">BAR 2026</h1>
+            <span class="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200 whitespace-nowrap">Mock Reviewer</span>
           </div>
-          <p class="text-[11px] text-slate-500 font-medium hidden sm:block">Supreme Court Essay Simulation & Resources Studio</p>
+          <p class="text-[10px] sm:text-[11px] text-slate-500 font-medium hidden sm:block truncate">Supreme Court Simulation & Resources Studio</p>
         </div>
       </div>
 
-      <!-- Navigation Tabs & Settings -->
-      <div class="flex items-center space-x-2">
-        <nav class="flex items-center space-x-1 sm:space-x-1.5">
+      <!-- Desktop Navigation Tabs & Settings -->
+      <div class="flex items-center space-x-1.5 sm:space-x-2">
+        <nav class="hidden md:flex items-center space-x-1">
           <button 
             @click="currentTab = 'dashboard'; loadReadinessAnalytics();" 
             :class="currentTab === 'dashboard' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'" 
-            class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition duration-150 flex items-center gap-1.5"
+            class="px-3 py-1.5 rounded-xl text-xs font-semibold transition duration-150 flex items-center gap-1.5"
           >
             <span>📊</span>
             <span>Dashboard</span>
@@ -1283,7 +1294,7 @@
           <button 
             @click="currentTab = 'essay'" 
             :class="currentTab === 'essay' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'" 
-            class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition duration-150 flex items-center gap-1.5"
+            class="px-3 py-1.5 rounded-xl text-xs font-semibold transition duration-150 flex items-center gap-1.5"
           >
             <span>✍️</span>
             <span>Essay Exam</span>
@@ -1292,7 +1303,7 @@
           <button 
             @click="currentTab = 'mcq'" 
             :class="currentTab === 'mcq' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'" 
-            class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition duration-150 flex items-center gap-1.5"
+            class="px-3 py-1.5 rounded-xl text-xs font-semibold transition duration-150 flex items-center gap-1.5"
           >
             <span>⚡</span>
             <span>Recall MCQs</span>
@@ -1301,16 +1312,16 @@
           <button 
             @click="currentTab = 'studio'; loadExtractionProgress();" 
             :class="currentTab === 'studio' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'" 
-            class="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition duration-150 flex items-center gap-1.5"
+            class="px-3 py-1.5 rounded-xl text-xs font-semibold transition duration-150 flex items-center gap-1.5"
           >
             <span>📚</span>
-            <span class="font-bold">Resources Studio</span>
+            <span class="font-bold">Studio</span>
           </button>
 
           <button 
             @click="currentTab = 'evals'; loadEvalTestCases();" 
             :class="currentTab === 'evals' ? 'bg-amber-500 text-slate-950 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'" 
-            class="px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition duration-150 flex items-center gap-1.5"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-semibold transition duration-150 flex items-center gap-1"
             title="Interactive AI Quality Benchmarks & Vector Grounding Verifiers"
           >
             <span>🧪</span>
@@ -1320,7 +1331,7 @@
           <button 
             @click="currentTab = 'logs'; fetchAuditLogs();" 
             :class="currentTab === 'logs' ? 'bg-slate-900 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'" 
-            class="px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition duration-150 flex items-center gap-1.5"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-semibold transition duration-150 flex items-center gap-1.5"
             title="AI Calls & System Observability Audit Logs"
           >
             <span>📋</span>
@@ -1329,20 +1340,85 @@
           </button>
         </nav>
 
-        <!-- Settings Button -->
-        <button 
-          @click="showSettingsModal = true" 
-          class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 hover:text-slate-900 transition ml-1"
-          title="Configure AI Provider & Model"
-        >
-          <span class="text-sm">⚙️</span>
-        </button>
+        <!-- Live Provider Indicator pill on Mobile & Desktop -->
+        <div class="flex items-center gap-1">
+          <span 
+            @click="showSettingsModal = true"
+            class="cursor-pointer text-[10px] font-mono px-2 py-1 rounded-xl border flex items-center gap-1 transition"
+            :class="aiProviderStatus === 'ready' ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-slate-100 text-slate-700 border-slate-200'"
+            title="AI Engine Status"
+          >
+            <span class="w-2 h-2 rounded-full" :class="aiProviderStatus === 'ready' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'"></span>
+            <span class="hidden sm:inline font-bold" x-text="selectedModel ? selectedModel.split('/')[1] || selectedModel : 'AI SDK'"></span>
+          </span>
+
+          <!-- Settings Button -->
+          <button 
+            @click="showSettingsModal = true" 
+            class="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 hover:text-slate-900 transition"
+            title="Configure AI Provider & Model"
+          >
+            <span class="text-xs sm:text-sm">⚙️</span>
+          </button>
+        </div>
       </div>
+    </div>
+
+    <!-- Mobile Horizontal Swipeable Sub-Navigation Bar -->
+    <div class="md:hidden border-t border-slate-100 bg-white/95 px-3 py-1.5 overflow-x-auto no-scrollbar flex items-center gap-1.5 whitespace-nowrap shadow-2xs">
+      <button 
+        @click="currentTab = 'dashboard'; loadReadinessAnalytics();" 
+        :class="currentTab === 'dashboard' ? 'bg-slate-900 text-white font-bold' : 'bg-slate-100 text-slate-700'" 
+        class="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 shrink-0"
+      >
+        <span>📊</span> Dashboard
+      </button>
+
+      <button 
+        @click="currentTab = 'essay'" 
+        :class="currentTab === 'essay' ? 'bg-slate-900 text-white font-bold' : 'bg-slate-100 text-slate-700'" 
+        class="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 shrink-0"
+      >
+        <span>✍️</span> Essay Exam
+      </button>
+
+      <button 
+        @click="currentTab = 'mcq'" 
+        :class="currentTab === 'mcq' ? 'bg-slate-900 text-white font-bold' : 'bg-slate-100 text-slate-700'" 
+        class="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 shrink-0"
+      >
+        <span>⚡</span> MCQs
+      </button>
+
+      <button 
+        @click="currentTab = 'studio'; loadExtractionProgress();" 
+        :class="currentTab === 'studio' ? 'bg-slate-900 text-white font-bold' : 'bg-slate-100 text-slate-700'" 
+        class="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 shrink-0"
+      >
+        <span>📚</span> Studio
+      </button>
+
+      <button 
+        @click="currentTab = 'evals'; loadEvalTestCases();" 
+        :class="currentTab === 'evals' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-100 text-slate-700'" 
+        class="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 shrink-0"
+      >
+        <span>🧪</span> AI Evals
+      </button>
+
+      <button 
+        @click="currentTab = 'logs'; fetchAuditLogs();" 
+        :class="currentTab === 'logs' ? 'bg-slate-900 text-white font-bold' : 'bg-slate-100 text-slate-700'" 
+        class="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1 shrink-0"
+      >
+        <span>📋</span> AI Logs
+        <span class="px-1.5 py-0.2 rounded-full bg-indigo-500/20 text-indigo-700 text-[9px] font-mono" x-text="auditLogs.length"></span>
+      </button>
     </div>
   </header>
 
-  <!-- Main Content Area -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-7">
+  <!-- Main Content Area with Mobile Safe Bottom Padding -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-7 pb-28 md:pb-14">
 
     <!-- 1. DASHBOARD & DIAGNOSTIC VIEW -->
     <div x-show="currentTab === 'dashboard'" class="space-y-7">
@@ -1375,37 +1451,39 @@
       </div>
 
       <!-- Holistic Bar Readiness Diagnostic Radar Card -->
-      <div class="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
-        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
+      <div class="bg-white border border-slate-200/90 rounded-3xl p-4 sm:p-7 shadow-xs space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-100 pb-4">
           <div class="space-y-1">
             <div class="flex items-center gap-2">
               <span class="text-xl">🎯</span>
-              <h3 class="text-lg font-bold text-slate-900">Projected Bar Readiness & Domain Mastery</h3>
+              <h3 class="text-base sm:text-lg font-bold text-slate-900">Projected Bar Readiness & Domain Mastery</h3>
             </div>
             <p class="text-xs text-slate-500">Weighted diagnostic score calculated dynamically against the 75% passing mark</p>
           </div>
 
-          <div class="flex items-center gap-3">
-            <div class="text-right">
-              <div class="text-[10px] uppercase font-bold tracking-wider text-slate-400">Composite Projected Score</div>
-              <div 
-                :class="readinessData?.projected_score >= 75 ? 'text-emerald-700' : 'text-amber-700'" 
-                class="text-3xl font-extrabold font-mono"
-                x-text="`${readinessData?.projected_score || 0}%`"
-              ></div>
+          <div class="flex flex-wrap items-center justify-between sm:justify-end gap-2.5">
+            <div class="flex items-center gap-2">
+              <div class="text-left sm:text-right">
+                <div class="text-[9px] sm:text-[10px] uppercase font-bold tracking-wider text-slate-400">Composite Score</div>
+                <div 
+                  :class="readinessData?.projected_score >= 75 ? 'text-emerald-700' : 'text-amber-700'" 
+                  class="text-2xl sm:text-3xl font-extrabold font-mono"
+                  x-text="`${readinessData?.projected_score || 0}%`"
+                ></div>
+              </div>
+              <span 
+                :class="readinessData?.is_passing ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'"
+                class="px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-extrabold border font-mono tracking-wider uppercase"
+                x-text="readinessData?.is_passing ? '✓ PASSING' : '⚠️ CONDITIONAL'"
+              ></span>
             </div>
-            <span 
-              :class="readinessData?.is_passing ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'"
-              class="px-3.5 py-1.5 rounded-full text-xs font-extrabold border font-mono tracking-wider uppercase"
-              x-text="readinessData?.is_passing ? '✓ PASSING READY' : '⚠️ CONDITIONAL'"
-            ></span>
 
             <button 
               @click="resetCandidateProgress()" 
               title="Reset all past attempt history and domain mastery analytics"
-              class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 border border-slate-200 text-slate-600 text-xs font-semibold transition flex items-center gap-1 ml-2"
+              class="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 border border-slate-200 text-slate-600 text-xs font-semibold transition flex items-center gap-1 shrink-0"
             >
-              <span>🔄</span> Reset Progress
+              <span>🔄</span> Reset
             </button>
           </div>
         </div>
@@ -1482,13 +1560,13 @@
     <div x-show="currentTab === 'essay'" class="space-y-6">
       
       <!-- Filter and Jump Header -->
-      <div class="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
-        <div class="flex items-center space-x-3">
-          <label class="text-xs font-bold text-slate-600 uppercase tracking-wider">Subject:</label>
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+        <div class="flex items-center space-x-2.5 sm:space-x-3 w-full sm:w-auto justify-between sm:justify-start">
+          <label class="text-xs font-bold text-slate-600 uppercase tracking-wider shrink-0">Subject:</label>
           <select 
             x-model="selectedDomain" 
             @change="filterEssays()" 
-            class="bg-slate-50 text-slate-900 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 focus:border-amber-500 outline-none cursor-pointer"
+            class="flex-1 sm:flex-initial bg-slate-50 text-slate-900 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 focus:border-amber-500 outline-none cursor-pointer"
           >
             <option value="all">All 6 Bar Subjects</option>
             <template x-for="d in (domains.length ? domains : window.BAR_DATA)" :key="d.domain">
@@ -1497,19 +1575,19 @@
           </select>
         </div>
 
-        <div class="flex items-center space-x-2">
+        <div class="flex items-center justify-between sm:justify-end space-x-2 w-full sm:w-auto">
           <button 
             @click="prevEssay()" 
             :disabled="currentEssayIdx === 0"
-            class="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 disabled:opacity-40 border border-slate-200 text-slate-700 transition"
+            class="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 disabled:opacity-40 border border-slate-200 text-slate-700 text-xs font-semibold transition"
           >← Prev</button>
           
-          <span class="text-xs font-mono font-bold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800 border border-slate-200" x-text="`Question ${currentEssayIdx + 1} of ${essayList.length}`"></span>
+          <span class="text-xs font-mono font-bold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-800 border border-slate-200" x-text="`Q ${currentEssayIdx + 1} / ${essayList.length}`"></span>
 
           <button 
             @click="nextEssay()" 
             :disabled="currentEssayIdx >= essayList.length - 1"
-            class="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 disabled:opacity-40 border border-slate-200 text-slate-700 transition"
+            class="px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 disabled:opacity-40 border border-slate-200 text-slate-700 text-xs font-semibold transition"
           >Next →</button>
         </div>
       </div>
@@ -1519,29 +1597,29 @@
         
         <!-- Left: Fact Pattern & Problem Stem (6 Cols) -->
         <div class="lg:col-span-6 space-y-4">
-          <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-xs space-y-5">
+          <div class="bg-white border border-slate-200 rounded-3xl p-4 sm:p-7 shadow-xs space-y-4 sm:space-y-5">
             <div class="flex items-center justify-between border-b border-slate-100 pb-3">
               <div class="flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
                 <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-500" x-text="currentEssay.domain"></h3>
               </div>
-              <span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200" x-text="`Topic: ${currentEssay.topic}`"></span>
+              <span class="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 truncate max-w-[50%]" x-text="`Topic: ${currentEssay.topic}`"></span>
             </div>
 
             <!-- Supreme Court Legal Fact Pattern -->
-            <div class="legal-paper border border-slate-200 rounded-2xl p-5 sm:p-6 text-slate-800 font-serif text-sm sm:text-base leading-relaxed whitespace-pre-wrap" x-text="currentEssay.fact_pattern"></div>
+            <div class="legal-paper border border-slate-200 rounded-2xl p-4 sm:p-6 text-slate-800 font-serif text-xs sm:text-sm md:text-base leading-relaxed whitespace-pre-wrap" x-text="currentEssay.fact_pattern"></div>
 
             <!-- Interrogatory Stem -->
-            <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-1">
+            <div class="p-3.5 sm:p-4 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-1">
               <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-800 block">Interrogatory:</span>
-              <p class="text-slate-900 font-bold text-sm leading-snug whitespace-pre-wrap" x-text="currentEssay.interrogatory"></p>
+              <p class="text-slate-900 font-bold text-xs sm:text-sm leading-snug whitespace-pre-wrap" x-text="currentEssay.interrogatory"></p>
             </div>
 
             <!-- Toggle Benchmark Solution -->
             <div class="pt-2 border-t border-slate-100">
               <button 
                 @click="showBenchmark = !showBenchmark" 
-                class="text-xs font-bold text-slate-600 hover:text-amber-800 flex items-center gap-1.5 transition"
+                class="text-xs font-bold text-slate-600 hover:text-amber-800 flex items-center gap-1.5 transition py-1"
               >
                 <span x-text="showBenchmark ? '🙈 Hide Benchmark ALAC Solution' : '👁️ Reveal Official Benchmark Solution'"></span>
               </button>
@@ -1570,7 +1648,7 @@
 
         <!-- Right: Typing Box & In-App AI Grader (6 Cols) -->
         <div class="lg:col-span-6 space-y-4">
-          <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-7 shadow-xs flex flex-col">
+          <div class="bg-white border border-slate-200 rounded-3xl p-4 sm:p-7 shadow-xs flex flex-col">
             <div class="flex items-center justify-between mb-3">
               <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
                 <span>📝</span> Candidate Exam Workspace
@@ -1585,15 +1663,15 @@
               x-model="userAnswer" 
               @input="saveAnswer()" 
               placeholder="Type your answer here under strict Bar exam conditions applying ALAC (Answer, Legal Basis, Application, Conclusion)..." 
-              class="w-full min-h-[320px] bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-2xl p-4 text-slate-900 font-mono text-sm leading-relaxed outline-none transition resize-y"
+              class="w-full min-h-[260px] sm:min-h-[320px] bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-2xl p-3.5 sm:p-4 text-slate-900 font-mono text-xs sm:text-sm leading-relaxed outline-none transition resize-y"
             ></textarea>
 
             <!-- Action Controls: Grade Answer & Copy Prompt -->
-            <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between gap-3">
+            <div class="mt-4 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
               <button 
                 @click="gradeWithAI()" 
                 :disabled="isEvaluating"
-                class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold text-xs shadow-md transition flex items-center gap-2"
+                class="w-full sm:w-auto px-5 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-slate-950 font-bold text-xs shadow-md transition flex items-center justify-center gap-2 min-h-[44px]"
               >
                 <span x-show="!isEvaluating">✨ Grade Answer with AI</span>
                 <span x-show="isEvaluating" class="flex items-center gap-1.5">
@@ -1604,9 +1682,9 @@
 
               <button 
                 @click="copyEvaluationPrompt()" 
-                class="px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-semibold text-xs transition flex items-center gap-1.5"
+                class="w-full sm:w-auto px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-semibold text-xs transition flex items-center justify-center gap-1.5 min-h-[44px]"
               >
-                <span>📋</span> Copy Evaluation Prompt
+                <span>📋</span> Copy Prompt
               </button>
             </div>
           </div>
@@ -1702,19 +1780,19 @@
     <div x-show="currentTab === 'mcq'" class="space-y-6">
       
       <!-- MCQ Bar -->
-      <div class="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
         <div>
-          <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+          <h2 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
             <span>⚡</span> Quick Recall Drills
           </h2>
           <p class="text-xs text-slate-500">Test core definitions, exceptions, and requisites</p>
         </div>
 
-        <div class="flex items-center space-x-3">
+        <div class="flex items-center justify-between sm:justify-end space-x-2 sm:space-x-3 w-full sm:w-auto">
           <select 
             x-model="mcqSelectedDomain" 
             @change="filterMcqs()" 
-            class="bg-slate-50 text-slate-900 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 focus:border-amber-500 outline-none cursor-pointer"
+            class="flex-1 sm:flex-initial bg-slate-50 text-slate-900 text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 focus:border-amber-500 outline-none cursor-pointer"
           >
             <option value="all">All Subjects (Randomized)</option>
             <template x-for="d in (domains.length ? domains : window.BAR_DATA)" :key="d.domain">
@@ -1722,21 +1800,21 @@
             </template>
           </select>
 
-          <div class="text-xs font-mono font-bold px-3 py-2 rounded-xl bg-amber-50 text-amber-900 border border-amber-200" x-text="`Score: ${mcqScore} / ${Object.keys(mcqAnswers).length}`"></div>
+          <div class="text-xs font-mono font-bold px-3 py-2 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 shrink-0" x-text="`Score: ${mcqScore} / ${Object.keys(mcqAnswers).length}`"></div>
         </div>
       </div>
 
       <!-- MCQ Card -->
-      <div class="max-w-3xl mx-auto bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
-        <div class="flex items-center justify-between text-xs">
-          <span class="text-amber-800 font-bold" x-text="`${currentMcq.domainName} > ${currentMcq.topic}`"></span>
-          <span class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 border border-slate-200" x-text="`Question ${currentMcqIdx + 1} of ${mcqList.length}`"></span>
+      <div class="max-w-3xl mx-auto bg-white border border-slate-200 rounded-3xl p-4 sm:p-8 shadow-xs space-y-5 sm:space-y-6">
+        <div class="flex items-center justify-between text-xs border-b border-slate-100 pb-3">
+          <span class="text-amber-800 font-bold truncate max-w-[65%]" x-text="`${currentMcq.domainName} > ${currentMcq.topic}`"></span>
+          <span class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 text-slate-600 border border-slate-200 shrink-0" x-text="`Q ${currentMcqIdx + 1} / ${mcqList.length}`"></span>
         </div>
 
-        <h3 class="text-base sm:text-lg font-bold text-slate-900 leading-snug" x-text="currentMcq.question"></h3>
+        <h3 class="text-sm sm:text-lg font-bold text-slate-900 leading-snug" x-text="currentMcq.question"></h3>
 
-        <!-- Options Container -->
-        <div class="space-y-3">
+        <!-- Options Container with Large Touch Area -->
+        <div class="space-y-2.5 sm:space-y-3">
           <template x-for="opt in currentMcq.options" :key="opt">
             <button 
               @click="selectMcq(opt.trim().charAt(0))"
@@ -1746,34 +1824,34 @@
                 'bg-rose-50 border-rose-400 text-rose-900 font-semibold': mcqAnswers[currentMcq.id] && mcqAnswers[currentMcq.id].selected === opt.trim().charAt(0) && !mcqAnswers[currentMcq.id].isCorrect,
                 'bg-slate-50 border-slate-200 text-slate-800 hover:border-amber-400 hover:bg-amber-50/50': !mcqAnswers[currentMcq.id]
               }"
-              class="w-full text-left p-4 rounded-2xl border text-sm font-medium transition duration-150 flex items-start gap-3 disabled:cursor-default"
+              class="w-full text-left p-3.5 sm:p-4 rounded-2xl border text-xs sm:text-sm font-medium transition duration-150 flex items-start gap-3 disabled:cursor-default min-h-[48px]"
             >
-              <span class="font-bold text-amber-600" x-text="opt.trim().charAt(0)"></span>
-              <span x-text="opt.substring(2).trim()"></span>
+              <span class="font-bold text-amber-600 font-mono" x-text="opt.trim().charAt(0)"></span>
+              <span class="leading-relaxed" x-text="opt.substring(2).trim()"></span>
             </button>
           </template>
         </div>
 
         <!-- Explanation Panel -->
-        <div x-show="mcqAnswers[currentMcq.id]" class="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-1 text-xs">
-          <div class="font-bold text-amber-900 flex items-center gap-1.5">
+        <div x-show="mcqAnswers[currentMcq.id]" class="p-3.5 sm:p-4 rounded-2xl bg-amber-50/60 border border-amber-200 space-y-1 text-xs">
+          <div class="font-bold text-amber-900 flex items-center gap-1.5 text-[11px] sm:text-xs">
             <span>💡</span> Doctrinal Explanation:
           </div>
           <p class="text-slate-800 leading-relaxed" x-text="currentMcq.explanation"></p>
         </div>
 
-        <!-- Navigation Footer -->
-        <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+        <!-- Navigation Footer with Mobile Touch Targets -->
+        <div class="flex items-center justify-between pt-4 border-t border-slate-100 gap-3">
           <button 
             @click="prevMcq()" 
             :disabled="currentMcqIdx === 0"
-            class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 text-xs font-semibold transition"
+            class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 text-slate-700 text-xs font-semibold transition text-center min-h-[44px]"
           >← Previous</button>
 
           <button 
             @click="nextMcq()" 
             :disabled="currentMcqIdx >= mcqList.length - 1"
-            class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition shadow-xs"
+            class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition shadow-xs text-center min-h-[44px]"
           >Next Question →</button>
         </div>
       </div>
@@ -2403,11 +2481,11 @@
                   </div>
 
                   <!-- Synthesize Action Button -->
-                  <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
                     <button 
                       @click="executeRefineQuestion()" 
                       :disabled="isRefining || !refineInstruction.trim()"
-                      class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-40 text-slate-950 font-bold text-xs shadow-md transition flex items-center gap-2"
+                      class="w-full sm:w-auto px-5 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 disabled:opacity-40 text-slate-950 font-bold text-xs shadow-md transition flex items-center justify-center gap-2 min-h-[44px]"
                     >
                       <span x-show="!isRefining">⚡ Synthesize Refinement with AI</span>
                       <span x-show="isRefining" class="flex items-center gap-1.5">
@@ -2418,7 +2496,7 @@
 
                     <button 
                       @click="openRefineModalForQuestion(activeRefineQuestion)"
-                      class="text-xs text-indigo-700 hover:text-indigo-900 font-semibold flex items-center gap-1"
+                      class="text-xs text-indigo-700 hover:text-indigo-900 font-semibold flex items-center justify-center gap-1 py-1"
                     >
                       <span>🔍</span> Open Full Modal Diff View
                     </button>
@@ -2426,13 +2504,13 @@
 
                   <!-- Inline Split Diff Preview & Commit -->
                   <div x-show="refinePreviewData" x-transition class="p-4 rounded-2xl bg-amber-50/70 border border-amber-300 shadow-xs space-y-3">
-                    <div class="flex items-center justify-between border-b border-amber-200/80 pb-2">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200/80 pb-2">
                       <span class="text-xs font-bold text-amber-900 uppercase flex items-center gap-1.5">
                         <span>📋</span> Synthesized Output (Ready to Commit)
                       </span>
                       <button 
                         @click="applyRefinedQuestion()" 
-                        class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition flex items-center gap-1.5"
+                        class="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition flex items-center justify-center gap-1.5 min-h-[44px]"
                       >
                         <span>💾</span> Apply & Save to Question Bank
                       </button>
@@ -2875,29 +2953,29 @@
     <!-- ======================================================== -->
     <!-- TAB 6: AI & SYSTEM OBSERVABILITY AUDIT LOGS              -->
     <!-- ======================================================== -->
-    <div x-show="currentTab === 'logs'" class="space-y-7">
+    <div x-show="currentTab === 'logs'" class="space-y-6 sm:space-y-7">
       
       <!-- Observability Header -->
-      <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-6 border border-slate-700/60">
+      <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 rounded-3xl p-5 sm:p-8 text-white shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-5 sm:gap-6 border border-slate-700/60">
         <div class="space-y-2 max-w-2xl">
           <div class="flex items-center gap-2">
-            <span class="px-3 py-1 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-wider font-mono">
+            <span class="px-2.5 py-0.5 rounded-full text-[9px] sm:text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-wider font-mono">
               Live SQLite Telemetry
             </span>
-            <span class="text-xs text-slate-400 font-mono">Table: ai_audit_logs</span>
+            <span class="text-[10px] sm:text-xs text-slate-400 font-mono">Table: ai_audit_logs</span>
           </div>
-          <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight">AI Calls & System Observability</h2>
+          <h2 class="text-xl sm:text-3xl font-extrabold tracking-tight">AI Calls & System Observability</h2>
           <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
             Forensic audit stream tracking model latencies, token consumption, prompt inputs, ALAC grading scores, and full payload JSON across all AI endpoints.
           </p>
         </div>
 
         <!-- Action Controls -->
-        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+        <div class="flex items-center gap-2 shrink-0">
           <button 
             @click="fetchAuditLogs()" 
             :disabled="isLoadingAuditLogs"
-            class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold text-xs shadow-xs transition flex items-center gap-2"
+            class="flex-1 sm:flex-initial px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5"
           >
             <span :class="isLoadingAuditLogs ? 'animate-spin' : ''">🔄</span>
             <span>Refresh</span>
@@ -2905,7 +2983,7 @@
 
           <button 
             @click="clearAllAuditLogs()" 
-            class="px-4 py-2.5 rounded-xl bg-rose-900/40 hover:bg-rose-900/60 border border-rose-700/60 text-rose-200 font-bold text-xs shadow-xs transition flex items-center gap-1.5"
+            class="flex-1 sm:flex-initial px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl bg-rose-900/40 hover:bg-rose-900/60 border border-rose-700/60 text-rose-200 font-bold text-xs shadow-xs transition flex items-center justify-center gap-1"
           >
             <span>🗑️</span>
             <span>Purge Logs</span>
@@ -2914,58 +2992,58 @@
       </div>
 
       <!-- Live Telemetry KPI Metrics -->
-      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Recorded Events</span>
-          <div class="text-2xl font-black text-slate-900 font-mono" x-text="auditStats.total"></div>
-          <p class="text-[10px] text-slate-400 font-mono">All logged AI interactions</p>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+          <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Events</span>
+          <div class="text-xl sm:text-2xl font-black text-slate-900 font-mono" x-text="auditStats.total"></div>
+          <p class="text-[9.5px] sm:text-[10px] text-slate-400 font-mono">All logged AI interactions</p>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-          <span class="text-[11px] font-bold text-indigo-700 uppercase tracking-wider">Average Latency</span>
-          <div class="text-2xl font-black text-indigo-900 font-mono" x-text="`${auditStats.avg_latency} ms`"></div>
-          <p class="text-[10px] text-slate-400 font-mono">End-to-end inference speed</p>
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+          <span class="text-[10px] sm:text-[11px] font-bold text-indigo-700 uppercase tracking-wider">Avg Latency</span>
+          <div class="text-xl sm:text-2xl font-black text-indigo-900 font-mono" x-text="`${auditStats.avg_latency} ms`"></div>
+          <p class="text-[9.5px] sm:text-[10px] text-slate-400 font-mono">End-to-end inference</p>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-          <span class="text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Success Rate</span>
-          <div class="text-2xl font-black text-emerald-700 font-mono" x-text="`${auditStats.success_rate}%`"></div>
-          <p class="text-[10px] text-slate-400 font-mono" x-text="`${auditStats.success_count} success / ${auditStats.fallback_count} fallbacks`"></p>
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+          <span class="text-[10px] sm:text-[11px] font-bold text-emerald-700 uppercase tracking-wider">Success Rate</span>
+          <div class="text-xl sm:text-2xl font-black text-emerald-700 font-mono" x-text="`${auditStats.success_rate}%`"></div>
+          <p class="text-[9.5px] sm:text-[10px] text-slate-400 font-mono" x-text="`${auditStats.success_count} success / ${auditStats.fallback_count} fb`"></p>
         </div>
 
-        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
-          <span class="text-[11px] font-bold text-amber-700 uppercase tracking-wider">Tokens Processed (Est.)</span>
-          <div class="text-lg font-bold text-amber-900 font-mono" x-text="`↑ ${auditStats.tokens_in} / ↓ ${auditStats.tokens_out}`"></div>
-          <p class="text-[10px] text-slate-400 font-mono">Prompt & response volume</p>
+        <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/80 shadow-xs space-y-1">
+          <span class="text-[10px] sm:text-[11px] font-bold text-amber-700 uppercase tracking-wider">Token Volume</span>
+          <div class="text-sm sm:text-lg font-bold text-amber-900 font-mono" x-text="`↑${auditStats.tokens_in} / ↓${auditStats.tokens_out}`"></div>
+          <p class="text-[9.5px] sm:text-[10px] text-slate-400 font-mono">Prompt & output total</p>
         </div>
       </div>
 
       <!-- Filter & Search Bar -->
-      <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <!-- Event Type Filters -->
-        <div class="flex flex-wrap items-center gap-1.5 text-xs">
+      <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <!-- Event Type Filters (Swipeable on mobile) -->
+        <div class="flex items-center gap-1.5 text-xs overflow-x-auto no-scrollbar whitespace-nowrap pb-0.5">
           <button 
             @click="auditLogsFilter = 'all'" 
             :class="auditLogsFilter === 'all' ? 'bg-slate-900 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" 
-            class="px-3 py-1.5 rounded-xl transition font-mono text-[11px]"
+            class="px-3 py-1.5 rounded-xl transition font-mono text-[11px] shrink-0"
           >All Events</button>
           
           <button 
             @click="auditLogsFilter = 'QUESTION_REFINEMENT'" 
             :class="auditLogsFilter === 'QUESTION_REFINEMENT' ? 'bg-amber-500 text-slate-950 font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" 
-            class="px-3 py-1.5 rounded-xl transition text-[11px]"
+            class="px-3 py-1.5 rounded-xl transition text-[11px] shrink-0"
           >✨ Refinements</button>
 
           <button 
             @click="auditLogsFilter = 'ALAC_GRADING'" 
             :class="auditLogsFilter === 'ALAC_GRADING' ? 'bg-emerald-600 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" 
-            class="px-3 py-1.5 rounded-xl transition text-[11px]"
+            class="px-3 py-1.5 rounded-xl transition text-[11px] shrink-0"
           >✍️ ALAC Grading</button>
 
           <button 
             @click="auditLogsFilter = 'RAG_CHAT'" 
             :class="auditLogsFilter === 'RAG_CHAT' ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'" 
-            class="px-3 py-1.5 rounded-xl transition text-[11px]"
+            class="px-3 py-1.5 rounded-xl transition text-[11px] shrink-0"
           >⚖️ RAG Chat</button>
         </div>
 
@@ -2975,9 +3053,9 @@
             type="text" 
             x-model="auditLogsSearch" 
             placeholder="Search action, prompt, model..."
-            class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl pl-8 pr-3 py-1.5 text-xs text-slate-800 outline-none transition"
+            class="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 focus:bg-white rounded-xl pl-8 pr-3 py-2 text-xs text-slate-800 outline-none transition"
           />
-          <span class="absolute left-2.5 top-2 text-slate-400 text-xs">🔍</span>
+          <span class="absolute left-2.5 top-2.5 text-slate-400 text-xs">🔍</span>
         </div>
       </div>
 
@@ -3061,7 +3139,7 @@
   </main>
 
   <!-- Floating RAG Bar Counsel Chatbot (BeautifulUI Chat Panel Primitive) -->
-  <div class="fixed bottom-6 right-6 z-40 flex flex-col items-end">
+  <div class="fixed bottom-16 sm:bottom-6 right-2 sm:right-6 left-2 sm:left-auto z-40 flex flex-col items-end">
     
     <!-- Chat Drawer Window -->
     <div 
@@ -3072,10 +3150,10 @@
       x-transition:leave="transition ease-in duration-150"
       x-transition:leave-start="opacity-100 translate-y-0 scale-100"
       x-transition:leave-end="opacity-0 translate-y-4 scale-95"
-      class="mb-3 w-[92vw] sm:w-[470px] max-h-[640px] h-[570px] bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-3xl shadow-2xl flex flex-col overflow-hidden ring-1 ring-slate-900/5"
+      class="mb-2 w-full sm:w-[470px] max-h-[80vh] h-[520px] sm:h-[570px] bg-white/95 backdrop-blur-xl border border-slate-200/90 rounded-3xl shadow-2xl flex flex-col overflow-hidden ring-1 ring-slate-900/5"
     >
       <!-- Chatbot Header -->
-      <div class="p-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+      <div class="p-3 sm:p-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2.5">
           <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-500 to-indigo-600 flex items-center justify-center text-sm text-white shadow-xs">
             ⚖️
@@ -3184,13 +3262,14 @@
       </div>
     </div>
 
-    <!-- Floating Chatbot Launcher Button -->
+    <!-- Floating Chatbot Launcher Button (Positioned safely above bottom nav on mobile) -->
     <button 
       @click="toggleChatbot()" 
-      class="group relative px-4 py-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-xl shadow-amber-500/20 flex items-center gap-2.5 transition-all duration-200 transform hover:scale-105 active:scale-95"
+      class="group relative px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-xl shadow-amber-500/25 flex items-center gap-2 transition-all duration-200 transform hover:scale-105 active:scale-95 bottom-16 sm:bottom-0"
     >
       <span class="text-base">⚖️</span>
-      <span class="font-extrabold tracking-tight">Ask Dean Phoenix</span>
+      <span class="font-extrabold tracking-tight hidden sm:inline">Ask Dean Phoenix</span>
+      <span class="font-extrabold tracking-tight sm:hidden">Dean Phoenix</span>
       <span class="flex h-2 w-2 relative">
         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
         <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -3198,8 +3277,61 @@
     </button>
   </div>
 
+  <!-- Mobile Fixed Bottom Navigation Bar (Thumb Zone) -->
+  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-t border-slate-200/90 pb-safe shadow-2xl flex items-center justify-around px-2 py-1">
+    <button 
+      @click="currentTab = 'dashboard'; loadReadinessAnalytics();" 
+      :class="currentTab === 'dashboard' ? 'text-amber-600 font-bold' : 'text-slate-500 hover:text-slate-800'"
+      class="flex flex-col items-center justify-center p-1 min-w-[54px] min-h-[44px] transition"
+    >
+      <span class="text-base">📊</span>
+      <span class="text-[9.5px] tracking-tight">Dashboard</span>
+      <span class="w-1 h-1 rounded-full bg-amber-500 mt-0.5" x-show="currentTab === 'dashboard'"></span>
+    </button>
+
+    <button 
+      @click="currentTab = 'essay'" 
+      :class="currentTab === 'essay' ? 'text-amber-600 font-bold' : 'text-slate-500 hover:text-slate-800'"
+      class="flex flex-col items-center justify-center p-1 min-w-[54px] min-h-[44px] transition"
+    >
+      <span class="text-base">✍️</span>
+      <span class="text-[9.5px] tracking-tight">Essay</span>
+      <span class="w-1 h-1 rounded-full bg-amber-500 mt-0.5" x-show="currentTab === 'essay'"></span>
+    </button>
+
+    <button 
+      @click="currentTab = 'mcq'" 
+      :class="currentTab === 'mcq' ? 'text-amber-600 font-bold' : 'text-slate-500 hover:text-slate-800'"
+      class="flex flex-col items-center justify-center p-1 min-w-[54px] min-h-[44px] transition"
+    >
+      <span class="text-base">⚡</span>
+      <span class="text-[9.5px] tracking-tight">MCQs</span>
+      <span class="w-1 h-1 rounded-full bg-amber-500 mt-0.5" x-show="currentTab === 'mcq'"></span>
+    </button>
+
+    <button 
+      @click="currentTab = 'studio'; loadExtractionProgress();" 
+      :class="currentTab === 'studio' ? 'text-amber-600 font-bold' : 'text-slate-500 hover:text-slate-800'"
+      class="flex flex-col items-center justify-center p-1 min-w-[54px] min-h-[44px] transition"
+    >
+      <span class="text-base">📚</span>
+      <span class="text-[9.5px] tracking-tight">Studio</span>
+      <span class="w-1 h-1 rounded-full bg-amber-500 mt-0.5" x-show="currentTab === 'studio'"></span>
+    </button>
+
+    <button 
+      @click="currentTab = 'logs'; fetchAuditLogs();" 
+      :class="currentTab === 'logs' ? 'text-amber-600 font-bold' : 'text-slate-500 hover:text-slate-800'"
+      class="flex flex-col items-center justify-center p-1 min-w-[54px] min-h-[44px] transition"
+    >
+      <span class="text-base">📋</span>
+      <span class="text-[9.5px] tracking-tight">AI Logs</span>
+      <span class="w-1 h-1 rounded-full bg-amber-500 mt-0.5" x-show="currentTab === 'logs'"></span>
+    </button>
+  </nav>
+
   <!-- Global Footer -->
-  <footer class="mt-auto border-t border-slate-200 py-4 bg-white text-center text-xs text-slate-500">
+  <footer class="mt-auto border-t border-slate-200 py-4 bg-white text-center text-xs text-slate-500 hidden md:block">
     <p>Bar 2026 Mock Reviewer • Grounded in the 2026 Supreme Court Syllabus & Blue Phoenix Reviewers</p>
   </footer>
 
