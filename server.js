@@ -2,6 +2,8 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
+const os = require('node:os');
+const { execSync } = require('node:child_process');
 const { db, getConfig, setConfig, getEvalLogs, getLatestEvalMap, recordAIAuditLog, getAIAuditLogs, clearAIAuditLogs } = require('./db');
 const { runAutonomousIngestAgent, runDiagnosticAgent, refineQuestionModality, chatWithReviewerRAG, generateQuestionModalitiesWithAI } = require('./agent_engine');
 const { retrieveHybridRAG, getVectorStoreStats, indexAllReviewerBooks, ingestCustomResource, getModalityCoverageStats } = require('./rag_indexer');
@@ -148,6 +150,52 @@ const server = http.createServer(async (req, res) => {
           percentage: b.total_sections > 0 ? Math.round((b.extracted_sections / b.total_sections) * 100) : 0
         })),
         sections
+      });
+    }
+
+    // ----------------------------------------------------
+    // API: GET /api/network-info (Dynamic Local Network & Wi-Fi Discovery)
+    // ----------------------------------------------------
+    if (req.method === 'GET' && pathname === '/api/network-info') {
+      const nets = os.networkInterfaces();
+      const interfaces = [];
+      let primaryIp = '127.0.0.1';
+
+      for (const name of Object.keys(nets)) {
+        for (const net of nets[name]) {
+          if (net.family === 'IPv4' && !net.internal) {
+            const isWifi = /wi-?fi|wlan|wireless/i.test(name);
+            interfaces.push({
+              name,
+              ip: net.address,
+              isWifi
+            });
+            if (primaryIp === '127.0.0.1' || isWifi) {
+              primaryIp = net.address;
+            }
+          }
+        }
+      }
+
+      let wifiSsid = null;
+      if (process.platform === 'win32') {
+        try {
+          const out = execSync('netsh wlan show interfaces', { encoding: 'utf8', timeout: 1500 });
+          const match = out.match(/^\s*SSID\s*:\s*(.+)$/m);
+          if (match && match[1]) {
+            wifiSsid = match[1].trim();
+          }
+        } catch (e) {}
+      }
+
+      return sendJSON(res, 200, {
+        success: true,
+        local_ip: primaryIp,
+        port: PORT,
+        mobile_url: `http://${primaryIp}:${PORT}`,
+        wifi_ssid: wifiSsid,
+        interfaces,
+        hostname: os.hostname()
       });
     }
 

@@ -520,6 +520,111 @@
     </div>
   </div>
 
+  <!-- Mobile Connect & Dynamic QR Code Modal -->
+  <div 
+    x-show="showQrModal" 
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0 translate-y-4 sm:scale-95"
+    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+    x-transition:leave-end="opacity-0 translate-y-4 sm:scale-95"
+    class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4"
+  >
+    <div 
+      @click.away="showQrModal = false" 
+      class="bg-white border border-slate-200 rounded-t-3xl sm:rounded-3xl max-w-md w-full p-5 sm:p-6 space-y-4 sm:space-y-5 shadow-2xl max-h-[92vh] flex flex-col"
+    >
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3 shrink-0">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 text-sm font-bold">
+            📲
+          </div>
+          <div>
+            <h3 class="font-bold text-slate-900 text-sm sm:text-base">Practice on Mobile Device</h3>
+            <p class="text-[10px] text-slate-500">Scan QR code from your phone or tablet</p>
+          </div>
+        </div>
+        <button @click="showQrModal = false" class="w-7 h-7 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 flex items-center justify-center text-xs">✕</button>
+      </div>
+
+      <div class="space-y-4 text-xs overflow-y-auto pr-1 flex-1">
+        <!-- Live Wi-Fi / Local Network Discovery Banner -->
+        <div class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+              <span>📶</span> <span>Local Wi-Fi Network Required</span>
+            </span>
+            <span class="px-2 py-0.5 rounded-md bg-amber-200/70 text-amber-950 font-mono font-bold text-[9.5px]" x-text="networkInfo?.wifi_ssid ? `SSID: ${networkInfo.wifi_ssid}` : 'Same Network'"></span>
+          </div>
+          <p class="text-[11px] text-amber-900/80 leading-relaxed">
+            Ensure your mobile phone is connected to the <strong>same Wi-Fi or hotspot</strong> (<span class="font-bold" x-text="networkInfo?.wifi_ssid || 'same local network'"></span>) so your device can reach your local engine.
+          </p>
+        </div>
+
+        <!-- Dynamic QR Code Card -->
+        <div class="flex flex-col items-center justify-center p-4 bg-slate-50 border border-slate-200/90 rounded-2xl space-y-3">
+          <div class="relative bg-white p-2.5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-center">
+            <template x-if="isLoadingNetworkInfo">
+              <div class="w-48 h-48 flex flex-col items-center justify-center space-y-2 text-slate-400">
+                <span class="inline-block w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin"></span>
+                <span class="text-[10px] font-mono">Generating QR...</span>
+              </div>
+            </template>
+            <template x-if="!isLoadingNetworkInfo && qrCodeUrl">
+              <img :src="qrCodeUrl" class="w-48 h-48 rounded-xl" alt="Mobile Exam QR Code" />
+            </template>
+          </div>
+
+          <!-- Live Dynamic URL & 1-Click Copy -->
+          <div class="w-full space-y-1.5 text-center">
+            <span class="text-[10px] text-slate-400 font-mono uppercase">Direct Mobile Browser URL:</span>
+            <div class="flex items-center justify-center gap-2 bg-white px-3 py-2 rounded-xl border border-slate-200 font-mono text-xs font-bold text-slate-900 select-all">
+              <span x-text="networkInfo?.mobile_url || 'Detecting network IP...'"></span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 w-full pt-1">
+            <button 
+              @click="copyMobileUrl()" 
+              class="flex-1 py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-1.5 min-h-[38px]"
+            >
+              <span>📋</span> Copy Link
+            </button>
+            <button 
+              @click="loadNetworkInfo()" 
+              :disabled="isLoadingNetworkInfo"
+              class="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition flex items-center justify-center gap-1 min-h-[38px]"
+              title="Re-detect network IPs"
+            >
+              <span :class="isLoadingNetworkInfo ? 'animate-spin' : ''">🔄</span> Refresh IP
+            </button>
+          </div>
+        </div>
+
+        <!-- 3-Step Quick Mobile Guide -->
+        <div class="p-3 bg-slate-50 border border-slate-200/80 rounded-2xl space-y-2 text-[11px]">
+          <div class="font-bold text-slate-800 text-[11px] flex items-center gap-1.5">
+            <span>💡</span> <span>Quick Mobile Instructions:</span>
+          </div>
+          <ol class="list-decimal list-inside space-y-1 text-slate-600 text-[10.5px] leading-relaxed">
+            <li>Open the Camera on your phone and point it at the QR code.</li>
+            <li>Tap the link banner to open the Bar Mock Reviewer on your phone.</li>
+            <li><strong>PWA Tip</strong>: In Safari or Chrome, tap <em>"Add to Home Screen"</em> for full-screen standalone app mode!</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Action Footer -->
+      <div class="flex items-center justify-end pt-3 border-t border-slate-100 shrink-0">
+        <button @click="showQrModal = false" class="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold shadow-xs transition">
+          Done
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Live Stepped Scout, Stream & Critique Workbench Modal -->
   <div 
     x-show="showScoutModal" 
@@ -1342,8 +1447,20 @@
           </button>
         </nav>
 
-        <!-- Live Provider Indicator & Settings Action -->
-        <div class="flex items-center">
+        <!-- Header Actions: Connect Phone (QR) & AI Settings -->
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <!-- QR Connect Phone Button -->
+          <button 
+            @click="openQrModal()" 
+            class="px-2.5 py-1.5 rounded-xl border border-amber-300 bg-amber-50/80 hover:bg-amber-100/80 text-amber-900 transition flex items-center gap-1.5 text-xs font-semibold cursor-pointer shadow-2xs"
+            title="Scan QR Code to open on Mobile Phone or Tablet"
+          >
+            <span class="text-xs">📲</span>
+            <span class="font-bold hidden sm:inline">Connect Phone</span>
+            <span class="text-[10px] font-mono font-bold bg-amber-200/80 text-amber-950 px-1 py-0.2 rounded sm:hidden">QR</span>
+          </button>
+
+          <!-- Live Provider Indicator & Settings Action -->
           <button 
             @click="showSettingsModal = true" 
             class="px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 transition flex items-center gap-1.5 text-xs font-medium cursor-pointer shadow-2xs"

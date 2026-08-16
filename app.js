@@ -183,6 +183,13 @@ document.addEventListener('alpine:init', () => {
       evaluation_strictness: 'lenient',
       has_key: false
     },
+
+    // QR Code & Mobile Connection State
+    showQrModal: false,
+    networkInfo: null,
+    isLoadingNetworkInfo: false,
+    activeNetworkTab: 'url',
+    qrCodeUrl: '',
     
     // Toast notification state
     toastVisible: false,
@@ -399,6 +406,38 @@ document.addEventListener('alpine:init', () => {
         }
       } catch (e) {
         console.warn('Analytics API error', e);
+      }
+    },
+
+    // QR Code & Mobile Wi-Fi Discovery Methods
+    async openQrModal() {
+      this.showQrModal = true;
+      await this.loadNetworkInfo();
+    },
+
+    async loadNetworkInfo() {
+      this.isLoadingNetworkInfo = true;
+      try {
+        const res = await fetch('/api/network-info');
+        if (res.ok) {
+          this.networkInfo = await res.json();
+          const targetUrl = this.networkInfo.mobile_url || window.location.href;
+          this.qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(targetUrl)}`;
+        }
+      } catch (err) {
+        console.warn('Network info error:', err);
+      } finally {
+        this.isLoadingNetworkInfo = false;
+      }
+    },
+
+    async copyMobileUrl() {
+      const url = this.networkInfo?.mobile_url || window.location.href;
+      try {
+        await navigator.clipboard.writeText(url);
+        this.showToastNotification(`📋 Copied link: ${url}`);
+      } catch (e) {
+        this.showToastNotification(`📋 Link: ${url}`);
       }
     },
 
